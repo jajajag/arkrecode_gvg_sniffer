@@ -61,6 +61,8 @@ pip install pycryptodome
 
 2. 最近发现PC端和iOS都能双开星陨计划了，很爽。PC端我用的是[Sandboxie-Plus](https://sandboxie-plus.com/downloads/)，iOS是把官网下的IPA文件通过[EditIPA](https://editipa.jagritthukral.tech/)这个网站修改Bundle Identifier再通过全能签安装。
 
+3. 注意data.json里面也包含己方信息，而且装备副属性是全的，千万不要泄露了当内鬼。
+
 ## 相关参考
 
 - [Capture-pcr-API](https://github.com/watermellye/Capture-pcr-API)
