@@ -102,17 +102,24 @@ def print_player(index, player):
 
 def print_all():
     data = load_data()
-    # GVG
+    # GVG (团战)
     if 'GuildWarData' in data and 'EnemyCampData' in data['GuildWarData']:
         plist = data['GuildWarData']['EnemyCampData']['PlayerInfoList']
         for i, player in enumerate(plist, 1):
             print_player(i, player)
-    # PVP
+    # PVP (竞技场)
     elif 'PVPData' in data:
         plist = data['PVPData']['EnemyList']
         for i, player in enumerate(plist, 1):
             print_player(i, player)
-    # Revenge
+    # Support (好友支援)
+    elif 'BattleSupportData' in data:
+        info = data['BattleSupportData']['PlayerInfo']
+        print(f'1. {info["Name"]}（{get_role(info["LeaderSID"])}）')
+        plist = data['BattleSupportData']['RoleDataList']
+        for i, player in enumerate(plist, 1):
+            print_role(player['Role'])
+    # Revenge (复仇)
     else:
         print_player(1, data)
 
