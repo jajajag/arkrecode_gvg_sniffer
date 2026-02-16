@@ -6,6 +6,7 @@ query_list = [
     "GuildWarHandler.QueryFullGuildWarData",
     "PVPHandler.QueryPVPData",
     "PVPHandler.QueryRevengeEnemyData",
+    "AccountHandler.QueryPlayerCardData",
 ]
 
 def process(flow):
