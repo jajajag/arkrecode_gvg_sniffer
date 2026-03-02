@@ -1,5 +1,4 @@
 import json
-from mitmproxy.script import concurrent
 from printer import print_all
 
 query_list = [
@@ -30,9 +29,7 @@ def process(flow):
     with open("data.json", "w", encoding="utf-8") as fp:
             json.dump(data, fp, ensure_ascii=False, indent=2)
 
-    #print('Saved data to data.json')
     print_all()
 
-@concurrent
 def response(flow):
     process(flow)
