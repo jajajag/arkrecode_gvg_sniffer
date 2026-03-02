@@ -1,9 +1,9 @@
 import csv
 import json
 import requests
+import threading
 import time
 from datetime import datetime, timezone
-#from mitmproxy.script import concurrent
 
 flag = True
 
@@ -48,14 +48,13 @@ def process(flow):
     except Exception:
         return
 
+    flag = False
+
     # Modify global payload
     payload['data'] = req['data']
 
-    analyze(data)
+    threading.Thread(target=analyze, args=(data,), daemon=True).start()
 
-    flag = False
-
-#@concurrent
 def response(flow):
     process(flow)
 
