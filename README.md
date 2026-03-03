@@ -63,6 +63,8 @@ pip install pycryptodome
 
 3. 注意data.json里面也包含己方信息，而且装备副属性是全的，千万不要泄露了当内鬼。
 
+4. ```main.py```角色信息，```analyzer.py```团战总结，```weekly_reward.py```刷周任务。
+
 ## 相关参考
 
 - [Capture-pcr-API](https://github.com/watermellye/Capture-pcr-API)
