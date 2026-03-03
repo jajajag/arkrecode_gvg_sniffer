@@ -1,5 +1,6 @@
 import json
 from printer import print_all
+from exporter import export_all
 
 query_list = [
     "GuildWarHandler.QueryFullGuildWarData",
@@ -30,6 +31,7 @@ def process(flow):
             json.dump(data, fp, ensure_ascii=False, indent=2)
 
     print_all()
+    export_all()
 
 def response(flow):
     process(flow)

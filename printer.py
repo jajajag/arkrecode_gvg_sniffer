@@ -64,11 +64,11 @@ def print_equipment(equip_map):
     if not flag_set:
         print('散件', end='')
 
-def print_bond(artifact):
-    if not artifact: 
+def print_bond(bond):
+    if not bond: 
         return
-    static_id = artifact['StaticID']
-    lv = artifact['LV']
+    static_id = bond['StaticID']
+    lv = bond['LV']
     print(f'，{lv}级{get_bond(static_id)}', end='')
 
 def print_role(role):
