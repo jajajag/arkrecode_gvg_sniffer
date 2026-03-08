@@ -37,7 +37,7 @@ pip install pycryptodome
 
 2. 打开设置->网络和Internet->使用代理服务器->设置。
 
-3. 打开使用代理服务器，代理IP地址填上面查到的IPv4地址，代理端口随便填一个数字（比如1825）。
+3. 打开使用代理服务器，代理IP地址填上面查到的IPv4地址，端口随便填一个数字（比如1825）。
 
 4. ```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```本目录到本地，然后调用```mitmdump -p 1825 -s main.py --quiet```运行程序，打开游戏即可。
 
