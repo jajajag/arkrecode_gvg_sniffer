@@ -61,7 +61,7 @@ pip install pycryptodome
 
 ## ~~配置模拟器~~
 
-1. ~~安装星陨计划安卓端和[MuMu模拟器](https://mumu.163.com/download/)（我用的是[国际版](https://www.mumuplayer.com/download/)）。~~
+1. ~~（PC）安装星陨计划安卓端和[MuMu模拟器](https://mumu.163.com/download/)（我用的是[国际版](https://www.mumuplayer.com/download/)）。~~
 
 2. ~~（模拟器）在设置中打开Root权限和系统盘可读写功能。~~
 
