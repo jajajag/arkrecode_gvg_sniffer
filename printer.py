@@ -87,16 +87,29 @@ def print_team(team):
         print_role(role)
 
 def print_player(index, player):
-    info = player['PlayerInfo']
-    print(f'{index}. {info["Name"]}（{get_role(info["LeaderSID"])}）')
+    # GVG, PVP, and Revenge
+    if 'PlayerInfo' in player:
+        info = player['PlayerInfo']
+    # Support
+    else:
+        info = player['BattleSupportData']['PlayerInfo']
+    avatar = get_role(info['LeaderSID'])
+    print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}）')
     # GVG
-    if 'DefenceTeamData' in player:
+    if 'DefenceTeamData' in player: 
         team = player['DefenceTeamData']
         print('[上半]')
         print_team(team['FirstTeam'])
         print('[下半]')
         print_team(team['SecondTeam'])
-    # PVP
+    # Support
+    elif 'BattleSupportData' in player:
+        print_team(player['PVPInfo']['DefenceTeam'])
+        print('-----辅助团员-----')
+        plist = player['BattleSupportData']['RoleDataList']
+        for i, player in enumerate(plist, 1):
+            print_role(player['Role'])
+    # PVP and Revenge
     else:
         print_team(player['TeamData'])
 
@@ -112,14 +125,7 @@ def print_all():
         plist = data['PVPData']['EnemyList']
         for i, player in enumerate(plist, 1):
             print_player(i, player)
-    # Support (好友支援)
-    elif 'BattleSupportData' in data:
-        info = data['BattleSupportData']['PlayerInfo']
-        print(f'1. {info["Name"]}（{get_role(info["LeaderSID"])}）')
-        plist = data['BattleSupportData']['RoleDataList']
-        for i, player in enumerate(plist, 1):
-            print_role(player['Role'])
-    # Revenge (复仇)
+    # Support (好友) and Revenge (复仇)
     else:
         print_player(1, data)
 
