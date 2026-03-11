@@ -60,7 +60,10 @@ def reward(repeat=140):
     for i in range(repeat):
         try:
             time.sleep(random.uniform(1, 2))
-            resp = requests.post(url, json=payload, headers=headers)
+            # Disable warnings
+            requests.packages.urllib3.disable_warnings()
+            resp = requests.post(url, json=payload, headers=headers, 
+                                 verify=False)
             resp.encoding = 'utf-8'
             data = resp.json()
             print(f'{i + 1}: {data}')

@@ -85,7 +85,9 @@ def analyze(data):
 def analyze_player(cuid):
     payload['data']['TargetCUID'] = cuid
     print(payload['data']['TargetCUID'])
-    resp = requests.post(url, json=payload, headers=headers)
+    # Disable warnings
+    requests.packages.urllib3.disable_warnings()
+    resp = requests.post(url, json=payload, headers=headers, verify=False)
     resp.encoding = 'utf-8'
     data = resp.json()
     return data
