@@ -116,8 +116,11 @@ def print_player(index, player):
 def print_all():
     data = load_data()
     # GVG (团战)
-    if 'GuildWarData' in data and 'EnemyCampData' in data['GuildWarData']:
-        plist = data['GuildWarData']['EnemyCampData']['PlayerInfoList']
+    if 'GuildWarData' in data:
+        if 'EnemyCampData' in data['GuildWarData']:
+            plist = data['GuildWarData']['EnemyCampData']['PlayerInfoList']
+        else:
+            plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
         for i, player in enumerate(plist, 1):
             print_player(i, player)
     # PVP (竞技场)

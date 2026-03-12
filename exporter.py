@@ -118,8 +118,14 @@ def export_all():
     data, rows = load_data(), []
 
     # GVG (只保存团战)
-    if 'GuildWarData' in data and 'EnemyCampData' in data['GuildWarData']:
-        plist = data['GuildWarData']['EnemyCampData']['PlayerInfoList']
+    if 'GuildWarData' in data:
+        guild_war = data['GuildWarData']
+        if 'EnemyCampData' in data['GuildWarData']:
+            plist = guild_war['EnemyCampData']['PlayerInfoList']
+            guild_name = guild_war['EnemyCampData']['GuildInfo']['Name']
+        else:
+            plist = guild_war['MyCampData']['PlayerInfoList']
+            guild_name = guild_war['MyCampData']['GuildInfo']['Name']
         for player in plist:
             rows += export_player(player)
         fieldnames = [
@@ -132,7 +138,6 @@ def export_all():
         ts = int(data['Utc'])
         dt_utc = datetime.fromtimestamp(ts, tz=timezone.utc)
         dt_str = dt_utc.strftime('%Y-%m-%d')
-        guild_name = data['GuildWarData']['EnemyCampData']['GuildInfo']['Name']
 
         # Write CSV
         with open(f'{dt_str} {guild_name}.csv', 'w', newline='', 
