@@ -51,7 +51,7 @@ pip install pycryptodome
 
 4. 需要注意的是，改了代理之后，必须打开mitmproxy才能联网，因此平常不开mitmproxy的时候，需要在设置里把代理关掉。
 
-5. 最近发现PC端和iOS都能双开星陨计划了，很爽。PC端我用的是[Sandboxie-Plus](https://sandboxie-plus.com/downloads/)，iOS是把官网下的IPA文件通过[EditIPA](https://editipa.jagritthukral.tech/)这个网站修改Bundle Identifier再通过全能签安装。
+5. 最近发现PC端和iOS都能双开星陨计划了，很爽。PC端我用的是[Sandboxie-Plus](https://sandboxie-plus.com/downloads/)，iOS是把官网下的IPA文件通过[EditIPA](https://jagritthukral.github.io/EditIPA/)这个网站修改Bundle Identifier再通过全能签安装。
 
 ## 相关参考
 
