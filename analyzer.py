@@ -27,6 +27,11 @@ payload = {
     #'route': 'GuildWarHandler.QueryGuildWarBattleLogByID'
 }
 
+routes = [
+    'GuildWarHandler.QueryFullGuildWarData',
+    'GuildHandler.QueryPartialGuildDataForGuildWar',
+]
+
 def process(flow):
     global flag, payload
     if not flag:
@@ -40,7 +45,7 @@ def process(flow):
         req = json.loads(flow.request.content.decode('utf-8'))
     except Exception:
         return
-    if req['route'] != 'GuildWarHandler.QueryFullGuildWarData':
+    if req['route'] not in routes:
         return
 
     try:
@@ -59,16 +64,22 @@ def response(flow):
     process(flow)
 
 def analyze(data):
-    plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
+    if 'GuildWarData' in data:
+        # Query from self guild
+        plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
+    else:
+        # Query from ranking list
+        plist = data['GuildData']['MemberList']
     rows = []
 
     for player in plist:
         pinfo = player['PlayerInfo']
         cuid = pinfo['CUID']
         name = pinfo['Name']
+        iap = pinfo['IAP'] if 'IAP' in pinfo else None
         # Fetch battle logs for this player
         time.sleep(1)
-        logs = analyze_player(cuid)
+        logs = analyze_player(cuid, name, iap)
         rows += parse_battle_logs(logs, cuid, name)
 
     # Sort rows by date and cuid
@@ -82,9 +93,9 @@ def analyze(data):
         w.writerows(rows)
     print(f'Saved: summary.csv (rows={len(rows)})')
 
-def analyze_player(cuid):
+def analyze_player(cuid, name, iap):
     payload['data']['TargetCUID'] = cuid
-    print(payload['data']['TargetCUID'])
+    print(f'{cuid}-{name}' + (f'-{iap}' if iap else ''))
     # Disable warnings
     requests.packages.urllib3.disable_warnings()
     resp = requests.post(url, json=payload, headers=headers, verify=False)

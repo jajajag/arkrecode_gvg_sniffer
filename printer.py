@@ -94,7 +94,8 @@ def print_player(index, player):
     else:
         info = player['BattleSupportData']['PlayerInfo']
     avatar = get_role(info['LeaderSID'])
-    print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}）')
+    print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}'
+          f'{f"-{info['IAP']}" if info.get("IAP") else ""}）')
     # GVG
     if 'DefenceTeamData' in player: 
         team = player['DefenceTeamData']
