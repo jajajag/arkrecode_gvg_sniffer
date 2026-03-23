@@ -14,7 +14,7 @@ headers = {
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
 }
 
-payload = {
+payload_player = {
     'data': {
         'TargetCUID': 0,
         'TargetID': '',
@@ -27,9 +27,19 @@ payload = {
     #'route': 'GuildWarHandler.QueryGuildWarBattleLogByID'
 }
 
+payload_guild = {
+    'data': {
+        'GuildID': '',
+        'AID': '',
+        'SessionID': ''
+    },
+    'route': 'GuildHandler.QueryPartialGuildDataForGuildWar'
+}
+
 routes = [
     'GuildWarHandler.QueryFullGuildWarData',
     'GuildHandler.QueryPartialGuildDataForGuildWar',
+    'AccountHandler.QueryPlayerCardData',
 ]
 
 def process(flow):
@@ -56,7 +66,11 @@ def process(flow):
     flag = False
 
     # Modify global payload
-    payload['data'] = req['data']
+    #payload_player['data'] = payload_guild['data'] = req['data']
+    payload_player['data']['AID'] = req['data']['AID']
+    payload_guild['data']['AID'] = req['data']['AID']
+    payload_player['data']['SessionID'] = req['data']['SessionID']
+    payload_guild['data']['SessionID'] = req['data']['SessionID']
 
     threading.Thread(target=analyze, args=(data,), daemon=True).start()
 
@@ -67,8 +81,14 @@ def analyze(data):
     if 'GuildWarData' in data:
         # Query from self guild
         plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
-    else:
+    elif 'GuidData' in data:
         # Query from ranking list
+        plist = data['GuildData']['MemberList']
+    else:
+        # Query from player card
+        ginfo = data['BattleSupportData']['PlayerInfo']['GuildSubInfo']
+        gid = ginfo['_id']['$oid']
+        data = analyze_guid(gid)
         plist = data['GuildData']['MemberList']
     rows = []
 
@@ -93,12 +113,22 @@ def analyze(data):
         w.writerows(rows)
     print(f'Saved: summary.csv (rows={len(rows)})')
 
+def analyze_guid(gid):
+    payload_guild['data']['GuildID'] = gid
+    # Disable warnings
+    requests.packages.urllib3.disable_warnings()
+    resp = requests.post(url, json=payload_guild, headers=headers, verify=False)
+    resp.encoding = 'utf-8'
+    data = resp.json()
+    return data
+
 def analyze_player(cuid, name, iap):
-    payload['data']['TargetCUID'] = cuid
+    payload_player['data']['TargetCUID'] = cuid
     print(f'{cuid}-{name}' + (f'-{iap}' if iap else ''))
     # Disable warnings
     requests.packages.urllib3.disable_warnings()
-    resp = requests.post(url, json=payload, headers=headers, verify=False)
+    resp = requests.post(url, json=payload_player, headers=headers, 
+                         verify=False)
     resp.encoding = 'utf-8'
     data = resp.json()
     return data
