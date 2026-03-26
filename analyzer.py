@@ -89,6 +89,7 @@ def analyze(data):
         ginfo = data['BattleSupportData']['PlayerInfo']['GuildSubInfo']
         gid = ginfo['_id']['$oid']
         data = analyze_guid(gid)
+        print(data)
         plist = data['GuildData']['MemberList']
     rows = []
 
