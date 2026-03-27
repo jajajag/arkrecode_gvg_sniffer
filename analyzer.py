@@ -81,9 +81,10 @@ def analyze(data):
     if 'GuildWarData' in data:
         # Query from self guild
         plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
-    elif 'GuidData' in data:
+    elif 'GuildData' in data:
         # Query from ranking list
         plist = data['GuildData']['MemberList']
+        print(data)
     else:
         # Query from player card
         ginfo = data['BattleSupportData']['PlayerInfo']['GuildSubInfo']
