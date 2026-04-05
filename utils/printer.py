@@ -1,5 +1,5 @@
 from collections import Counter, defaultdict
-from helper import *
+from .helper import *
 import json
 import sys
 

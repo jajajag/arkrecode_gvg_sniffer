@@ -1,6 +1,6 @@
-from analyzer import analyze_hits
-from printer import print_report
-from exporter import export_report
+from utils.analyzer import analyze_hits
+from utils.printer import print_report
+from utils.exporter import export_report
 import json
 import os
 import random

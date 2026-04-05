@@ -1,7 +1,7 @@
 import json
 import threading
-from analyzer import analyze_hits
-from printer import print_report
+from utils.analyzer import analyze_hits
+from utils.printer import print_report
 
 query_list = [
     "GuildWarHandler.QueryFullGuildWarData", # 团战数据
