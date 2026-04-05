@@ -17,7 +17,7 @@ headers = {
 
 def load_accounts():
     if not os.path.exists('accounts.json'):
-        print('请抓取AccountHandler.Login信息并在accounts.json里配置！')
+        print('请参考utils/accounts_example.json创建accounts.json！')
         exit()
     return json.load(open('accounts.json', 'r', encoding='utf-8'))
 

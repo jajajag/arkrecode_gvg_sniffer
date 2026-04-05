@@ -1,0 +1,17 @@
+[
+  {
+    "cuid": "自己填",
+    "name": "自己填",
+    "data": {
+      "LoginID": "在Request的route为AccountHandler.Login的包里抓取",
+      "Token": "在Request的route为AccountHandler.Login的包里抓取",
+      "GuestID": "",
+      "Platform": "WindowsPlayer",
+      "Version": "",
+      "DeviceID": "在Request的route为AccountHandler.Login的包里抓取",
+      "LoginType": "Erolabs",
+      "IsNewSDK": 1
+    },
+    "route": "AccountHandler.Login"
+  }
+]
