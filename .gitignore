@@ -1,4 +1,5 @@
 *.pyc
 *.csv
 *.swp
-*.json
+accounts.json
+accounts_example.json
