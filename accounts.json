@@ -1,7 +1,7 @@
 [
   {
-    "cuid": "自己填",
-    "name": "自己填",
+    "cuid": "自己修改accounts.json",
+    "name": "自己修改accounts.json",
     "data": {
       "LoginID": "在AccountHandler.Login里抓取",
       "Token": "在AccountHandler.Login里抓取",
