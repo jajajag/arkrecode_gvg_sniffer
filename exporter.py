@@ -1,14 +1,9 @@
 from collections import Counter
 from datetime import datetime, timezone
-from translator import *
+from helper import *
 import csv
 import json
 
-DATA_PATH = 'data.json'
-
-def load_data(path=DATA_PATH):
-    with open(path, 'r', encoding='utf-8') as fp:
-        return json.load(fp)
 
 def export_prop(row, equip_map):
     if not equip_map: return
@@ -114,8 +109,8 @@ def export_player(player):
 
     return first_rows + second_rows
 
-def export_all():
-    data, rows = load_data(), []
+def export_report(data):
+    rows = []
 
     # GVG (只保存团战)
     if 'GuildWarData' in data:
@@ -145,6 +140,3 @@ def export_all():
             w = csv.DictWriter(fp, fieldnames=fieldnames)
             w.writeheader()
             w.writerows(rows)
-
-if __name__ == '__main__':
-    export_all()

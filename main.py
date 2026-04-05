@@ -1,12 +1,13 @@
 import json
-from printer import print_all
-from exporter import export_all
+import threading
+from analyzer import analyze_hits
+from printer import print_report
 
 query_list = [
-    "GuildWarHandler.QueryFullGuildWarData",
-    "PVPHandler.QueryPVPData",
-    "PVPHandler.QueryRevengeEnemyData",
-    "AccountHandler.QueryPlayerCardData",
+    "GuildWarHandler.QueryFullGuildWarData", # 团战数据
+    "PVPHandler.QueryPVPData", # JJC数据
+    "PVPHandler.QueryRevengeEnemyData", # 复仇数据
+    "AccountHandler.QueryPlayerCardData", # 好友JJC和辅助团员数据
 ]
 
 def process(flow):
@@ -26,12 +27,15 @@ def process(flow):
         data = json.loads(flow.response.content.decode("utf-8"))
     except Exception:
         return
-    
-    with open("data.json", "w", encoding="utf-8") as fp:
-            json.dump(data, fp, ensure_ascii=False, indent=2)
 
-    print_all()
-    export_all()
+    # 进佣兵团则进行团战总结，否则打印PVP数据
+    if req.get("route") == "GuildWarHandler.QueryFullGuildWarData":
+        threading.Thread(target=analyze_hits, 
+                         args=(data, req['data']['AID'], 
+                               req['data']['SessionID'],),
+                         daemon=True).start()
+    else:
+        threading.Thread(target=print_report, args=(data,), daemon=True).start()
 
 def response(flow):
     process(flow)

@@ -1,13 +1,8 @@
 from collections import Counter, defaultdict
-from translator import *
+from helper import *
 import json
 import sys
 
-DATA_PATH = 'data.json'
-
-def load_data(path=DATA_PATH):
-    with open(path, 'r', encoding='utf-8') as fp:
-        return json.load(fp)
 
 def print_prop(equip_map):
     if not equip_map: 
@@ -42,7 +37,7 @@ def print_equipment(equip_map):
         if equip not in equip_map:
             print('X', end='')
             continue
-        prop = equip_map[equip]["MainProp"]["PropertyType"]
+        prop = equip_map[equip]['MainProp']['PropertyType']
         print(f'{get_prop_short(prop)}', end='')
         sets.append(equip_map[equip]['Set'])
     for equip in ['Body', 'Head', 'Weapon']:
@@ -87,15 +82,18 @@ def print_team(team):
         print_role(role)
 
 def print_player(index, player):
-    # GVG, PVP, and Revenge
-    if 'PlayerInfo' in player:
+    if 'PlayerInfo' in player: # GVG, PVP, and Revenge
         info = player['PlayerInfo']
-    # Support
-    else:
+    else: # Support
         info = player['BattleSupportData']['PlayerInfo']
+
     avatar = get_role(info['LeaderSID'])
-    print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}'
-          f'{f"-{info['IAP']}" if info.get("IAP") else ""}）')
+    print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}）')
+
+    if 'BattleSupportData' in player:
+        # Also query iap and guild id from player card
+        print(f'IAP: {info["IAP"]}, GID: {info["GuildSubInfo"]["_id"]["$oid"]}')
+
     # GVG
     if 'DefenceTeamData' in player: 
         team = player['DefenceTeamData']
@@ -105,6 +103,7 @@ def print_player(index, player):
         print_team(team['SecondTeam'])
     # Support
     elif 'BattleSupportData' in player:
+        print('-----防守队伍-----')
         print_team(player['PVPInfo']['DefenceTeam'])
         print('-----辅助团员-----')
         plist = player['BattleSupportData']['RoleDataList']
@@ -114,10 +113,10 @@ def print_player(index, player):
     else:
         print_team(player['TeamData'])
 
-def print_all():
-    data = load_data()
+def print_report(data):
     # GVG (团战)
     if 'GuildWarData' in data:
+        # 开了团战打印敌方阵容，否则打印我方阵容
         if 'EnemyCampData' in data['GuildWarData']:
             plist = data['GuildWarData']['EnemyCampData']['PlayerInfoList']
         else:
@@ -132,6 +131,3 @@ def print_all():
     # Support (好友) and Revenge (复仇)
     else:
         print_player(1, data)
-
-if __name__ == '__main__':
-    print_all()
