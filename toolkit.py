@@ -89,21 +89,33 @@ def run_refresh_token(accounts, acc_idx):
     save_accounts(accounts)
     return data
 
+def run_old_sdk(accounts, acc_idx, token):
+    jwt = token.split(".")[1]
+    jwt += "=" * (-len(jwt) % 4)
+    token_data = json.loads(base64.urlsafe_b64decode(jwt))
+    login_id = token_data['user_id']
+    if 'exp' in token_data:
+        return 1, login_id
+    return 0, login_id
+
 def run_login(accounts, acc_idx, version):
-    # Parse token (now can be dumped from response)
-    #jwt = token.split(".")[1]
-    #jwt += "=" * (-len(jwt) % 4)
-    #token_data = json.loads(base64.urlsafe_b64decode(jwt))
-    #login_id = token_data['user_id']
-    token_data = run_refresh_token(accounts, acc_idx)
+    # On Android it seems they are using an old SDK
+    is_new_sdk, login_id = run_old_sdk(accounts, acc_idx, 
+                                       accounts[acc_idx]['refreshToken'])
+    if is_new_sdk:
+        token_data = run_refresh_token(accounts, acc_idx)
+        login_id = token_data['data']['userId']
+        token = token_data['data']['accessToken']
+    else:
+        token = accounts[acc_idx]['refreshToken']
     payload = {
         'data': {
-            'LoginID': token_data['data']['userId'],
-            'Token': token_data['data']['accessToken'],
+            'LoginID': login_id,
+            'Token': token,
             'Version': version,
             'DeviceID': accounts[acc_idx]['DeviceID'],
             'LoginType': 'Erolabs',
-            'IsNewSDK': 1
+            'IsNewSDK': is_new_sdk
         },
         'route': 'AccountHandler.Login'
     }
@@ -117,7 +129,11 @@ def run_clan_data(aid, session_id):
         },
         'route': 'GuildWarHandler.QueryFullGuildWarData'
     }
-    data = send(payload)
+    try:
+        data = send(payload)
+    except Exception as e:
+        print('没有开团战！')
+        return
     print_report(data)
     export_report(data)
 

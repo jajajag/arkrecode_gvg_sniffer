@@ -1,7 +1,7 @@
 [
   {
     "name": "账号1（自己填）",
-    "refreshToken": "抓包在POST https://sadpki-portal-v2.ebuajk.com/api/v2/token/access里找",
+    "refreshToken": "抓包在POST https://sadpki-portal-v2.ebuajk.com/api/v2/token/access里找，如果是老版SDK则在GET https://sadpki-portal.ebuajk.com/api/getUserInfo?merchantId=&serviceId=&platform=R18或者'route':'AccountHandler.Login'里找Token即可",
     "DeviceID": "同上"
   },
   {
