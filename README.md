@@ -43,9 +43,9 @@ pip install pycryptodome
 
 ## 一些碎碎念
 
-1. <details><summary>mitmdump -p 1825 -s main.py --quiet查看角色信息。</summary>打开 JJC / 复仇 / 好友 → 查看角色信息，打开佣兵团 → 汇总团战出刀情况</details>
+1. <details><summary>mitmdump -p 1825 -s main.py --quiet查询角色信息。</summary>打开 JJC / 复仇 / 好友 → 查询角色信息，打开佣兵团 → 查询团战出刀</details>
 
-2. <details><summary>python3 toolkit.py使用工具集。</summary>无需开启代理或运行 mitmdump，但首次使用前需要先抓取登录凭证（credential）。当前工具支持：团战数据汇总、出刀情况统计、周任务 2800 自动刷取、不进场刷 NPC、前排防守阵容查询，以及根据公会 ID 汇总出刀情况</details>
+2. <details><summary>python3 toolkit.py使用工具集。</summary>无需开启代理或运行 mitmdump，但首次使用前需要先抓取refreshToken。当前工具支持：查询团战数据、查询团战出刀、刷周任务2800、不进场刷NPC、刷亲密度、查询前排防守阵容，按公会ID查询团战出刀</details>
 
 3. 突然意识到星陨计划有PC端，因此不需要使用模拟器。模拟器的配置方法我放到最下了。
 
