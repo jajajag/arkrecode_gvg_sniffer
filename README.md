@@ -35,7 +35,7 @@ pip install pycryptodome
 
 1. 克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```
 
-2. 在命令行（PowerShell 或 Command Prompt）运行```ipconfig```查询你的 IPv4 地址。
+2. 在命令行（PowerShell 或 Command Prompt）运行```ipconfig```查询你的 IPv4 地址
 
 3. 打开 设置 → 网络和 Internet → 使用代理服务器 → 设置
 
@@ -50,11 +50,11 @@ pip install pycryptodome
 
 ## 离线模式
 
-1. 克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```
+1. 按照在线模式步骤 1–4 配置代理
 
-2. 按照在线模式步骤 2–4 配置代理，运行```mitmweb -p 1825```打开游戏抓取一次```refreshToken```。
+2. 运行```mitmweb -p 1825```打开游戏抓取一次```refreshToken```（仅需执行一次）
 
-3. 参考```utils/accounts_example.json```配置```accounts.json```，并放到项目目录下。之后无需再次抓取```refreshToken```。
+3. 参考```utils/accounts_example.json```配置```accounts.json```，并放到项目目录下
 
 4. 运行工具集```python3 toolkit.py```
 
@@ -70,15 +70,11 @@ pip install pycryptodome
 
 ## 一些碎碎念
 
-1. <details><summary>mitmdump -p 1825 -s main.py --quiet查询角色信息。</summary>打开 JJC / 复仇 / 好友 → 查询角色信息，打开佣兵团 → 查询团战出刀</details>
+1. 突然意识到星陨计划有PC端，因此不需要使用模拟器。模拟器的配置方法我放到最下了。
 
+2. 需要注意的是，改了代理之后，必须打开mitmproxy才能联网，因此平常不开mitmproxy的时候，需要在设置里把代理关掉。
 
-
-3. 突然意识到星陨计划有PC端，因此不需要使用模拟器。模拟器的配置方法我放到最下了。
-
-4. 需要注意的是，改了代理之后，必须打开mitmproxy才能联网，因此平常不开mitmproxy的时候，需要在设置里把代理关掉。
-
-5. 最近发现PC端和iOS都能双开星陨计划了，很爽。PC端我用的是[Sandboxie-Plus](https://sandboxie-plus.com/downloads/)，iOS是把官网下的IPA文件通过[EditIPA](https://jagritthukral.github.io/EditIPA/)这个网站修改Bundle Identifier再通过全能签安装。
+3. 最近发现PC端和iOS都能双开星陨计划了，很爽。PC端我用的是[Sandboxie-Plus](https://sandboxie-plus.com/downloads/)，iOS是把官网下的IPA文件通过[EditIPA](https://jagritthukral.github.io/EditIPA/)这个网站修改Bundle Identifier再通过全能签安装。
 
 ## 相关参考
 
