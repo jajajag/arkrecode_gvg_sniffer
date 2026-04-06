@@ -1,17 +1,12 @@
 [
   {
-    "cuid": "自己填",
-    "name": "自己填",
-    "data": {
-      "LoginID": "在Request的route为AccountHandler.Login的包里抓取",
-      "Token": "在Request的route为AccountHandler.Login的包里抓取",
-      "GuestID": "",
-      "Platform": "WindowsPlayer",
-      "Version": "",
-      "DeviceID": "在Request的route为AccountHandler.Login的包里抓取",
-      "LoginType": "Erolabs",
-      "IsNewSDK": 1
-    },
-    "route": "AccountHandler.Login"
+    "name": "账号1（自己填）",
+    "refreshToken": "抓包在POST https://sadpki-portal-v2.ebuajk.com/api/v2/token/access里找",
+    "DeviceID": "同上"
+  },
+  {
+    "name": "账号2（自己填）",
+    "refreshToken": "...",
+    "DeviceID": "..."
   }
 ]

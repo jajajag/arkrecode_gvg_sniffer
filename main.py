@@ -3,6 +3,8 @@ import threading
 from utils.analyzer import analyze_hits
 from utils.printer import print_report
 
+flag = True
+
 query_list = [
     "GuildWarHandler.QueryFullGuildWarData", # 团战数据
     "PVPHandler.QueryPVPData", # JJC数据
@@ -11,6 +13,7 @@ query_list = [
 ]
 
 def process(flow):
+    global flag
     if not flow.response:
         return
     if "RouterHandler.ashx" not in flow.request.url:
@@ -30,10 +33,12 @@ def process(flow):
 
     # 进佣兵团则进行团战总结，否则打印PVP数据
     if req.get("route") == "GuildWarHandler.QueryFullGuildWarData":
+        if not flag: return # 只打印一次
         threading.Thread(target=analyze_hits, 
                          args=(data, req['data']['AID'], 
                                req['data']['SessionID'],),
                          daemon=True).start()
+        flag = False
     else:
         threading.Thread(target=print_report, args=(data,), daemon=True).start()
 

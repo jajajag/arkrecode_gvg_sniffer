@@ -90,7 +90,7 @@ def print_player(index, player):
     avatar = get_role(info['LeaderSID'])
     print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}）')
 
-    if 'BattleSupportData' in player:
+    if 'BattleSupportData' in player and 'GuildSubInfo' in info:
         # Also query iap and guild id from player card
         print(f'IAP: {info["IAP"]}, GID: {info["GuildSubInfo"]["_id"]["$oid"]}')
 

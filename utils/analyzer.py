@@ -28,8 +28,12 @@ def analyze_hits(data, aid, session_id):
         name = pinfo['Name']
         iap = pinfo['IAP'] if 'IAP' in pinfo else None
         # Fetch battle logs for this player
-        logs = analyze_player(aid, session_id, cuid, name, iap)
-        rows += parse_battle_logs(logs, cuid, name)
+        try:
+            logs = analyze_player(aid, session_id, cuid, name, iap)
+            rows += parse_battle_logs(logs, cuid, name)
+        except Exception as e:
+            print(f'{cuid}-{name}获取失败: {e}')
+            continue
 
     # Sort rows by date and cuid
     rows.sort(key=lambda x: (x['date'], x['cuid']))

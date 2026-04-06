@@ -1,6 +1,7 @@
 from utils.analyzer import analyze_hits
 from utils.printer import print_report
 from utils.exporter import export_report
+import base64
 import json
 import os
 import random
@@ -10,6 +11,7 @@ import time
 requests.packages.urllib3.disable_warnings()
 
 url = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
+url_token = "https://sadpki-portal-v2.ebuajk.com/api/v2/token/access"
 headers = {
     'Content-Type': 'application/octet-stream',
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
@@ -19,20 +21,25 @@ def load_accounts():
     if not os.path.exists('accounts.json'):
         print('请参考utils/accounts_example.json创建accounts.json！')
         exit()
-    return json.load(open('accounts.json', 'r', encoding='utf-8'))
+    with open('accounts.json', 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def save_accounts(accounts):
+    with open('accounts.json', 'w', encoding='utf-8') as f:
+        json.dump(accounts, f, ensure_ascii=False, indent=2)
 
 def choose_account(accounts):
     if len(accounts) == 1:
-        return accounts[0]
+        return 0
 
     print('[选择账号]')
     for i, acc in enumerate(accounts):
-        print(f'{i + 1}. {acc.get("name")}（{acc.get("cuid")}）')
+        print(f'{i + 1}. {acc.get("name")}')
 
     while True:
         idx = input('> ')
         if idx.isdigit() and 0 < int(idx) <= len(accounts):
-            return accounts[int(idx) - 1]
+            return int(idx) - 1
 
 def choose_action():
     actions = [
@@ -40,6 +47,7 @@ def choose_action():
         '查团战总结',
         '刷每周任务',
         '刷NPC',
+        '刷亲密度',
         '查团战防守',
         '查团战总结（按公会ID）',
         '退出'
@@ -67,23 +75,46 @@ def run_bulletin():
     }
     return send(payload)['Info']['AvailableVersions'][-1]
 
-def run_login(account):
-    data = send(account)
-    aid = data['Info']['_id']['$oid']
-    session_id = data['SessionID']
-    cuid = data['Info']['CUID']
-    guild_data = {'GuildData': data['GuildData']}
-    npc_list = {}
-    for npc in data['PVPData']['NPCPVPInfoList']:
-        npc_list[npc['NPCID']] = max(npc['NextTime']['$date'], 
-                                   npc_list.get(npc['NPCID'], 0))
-    return aid, session_id, cuid, guild_data, npc_list
+def run_refresh_token(accounts, acc_idx):
+    device_id = accounts[acc_idx]['DeviceID']
+    refresh_token = accounts[acc_idx]['refreshToken']
+    local_headers = headers.copy()
+    local_headers['Authorization'] = f"Bearer {refresh_token}"
+    local_headers['DeviceId'] = device_id
+    time.sleep(random.uniform(1, 2))
+    resp = requests.post(url_token, headers=local_headers)
+    resp.encoding = 'utf-8'
+    data = resp.json()
+    accounts[acc_idx]['refreshToken'] = data['data']['refreshToken']
+    save_accounts(accounts)
+    return data
+
+def run_login(accounts, acc_idx, version):
+    # Parse token (now can be dumped from response)
+    #jwt = token.split(".")[1]
+    #jwt += "=" * (-len(jwt) % 4)
+    #token_data = json.loads(base64.urlsafe_b64decode(jwt))
+    #login_id = token_data['user_id']
+    token_data = run_refresh_token(accounts, acc_idx)
+    payload = {
+        'data': {
+            'LoginID': token_data['data']['userId'],
+            'Token': token_data['data']['accessToken'],
+            'Version': version,
+            'DeviceID': accounts[acc_idx]['DeviceID'],
+            'LoginType': 'Erolabs',
+            'IsNewSDK': 1
+        },
+        'route': 'AccountHandler.Login'
+    }
+    return send(payload)
 
 def run_clan_data(aid, session_id):
     payload = {
         'data': {
             'AID': aid,
-            'SessionID': session_id},
+            'SessionID': session_id
+        },
         'route': 'GuildWarHandler.QueryFullGuildWarData'
     }
     data = send(payload)
@@ -104,14 +135,14 @@ def run_weekly(aid, session_id, repeat=140):
         'route' : 'QuestHandler.RewardQuest'
     }
     for i in range(repeat):
-        print(send(payload))
+        send(payload)
+        print(f'正在刷每周任务...（{i + 1}/{repeat}）')
     print(f'刷完{repeat}次了！')
 
-def run_npc_helper(aid, session_id, npc):
+def run_npc_ticket(aid, session_id, npc):
     payload = {
         'data':{
             'NPCSceneID': f'HellNPC_{npc}',
-            #'IsRevenge': 0,
             'AID': aid,
             'SessionID': session_id
         },
@@ -119,6 +150,8 @@ def run_npc_helper(aid, session_id, npc):
     }
     # Spend ticket
     send(payload)
+
+def run_npc_battle(aid, session_id, npc, pos_map=None):
     payload = {
         'data': {
             'NPCSceneID': f'HellNPC_{npc}',
@@ -131,6 +164,9 @@ def run_npc_helper(aid, session_id, npc):
         },
         'route': 'PVPHandler.NPCPVPBattleEnd'
     }
+    if pos_map:
+        payload['data']['EndData']['StartBattleInfo']['CampData1'] = {
+                'PositionRoleMap': pos_map}
     return send(payload)
 
 def run_npc(aid, session_id, npc_list):
@@ -139,11 +175,24 @@ def run_npc(aid, session_id, npc_list):
     print(f'当前可挑战NPC：{targets}')
     for npc in targets:
         try:
-            data = run_npc_helper(aid, session_id, npc)
+            run_npc_ticket(aid, session_id, npc)
+            data = run_npc_battle(aid, session_id, npc)
             npc_list[npc] = float('inf')
             print(f'NPC {npc} 挑战结果：{data["IsWin"]}')
         except Exception as e:
             print('没有旗帜了，等会儿再试吧！')
+
+def run_affection(aid, session_id, npc_list, pos_map, repeat=10):
+    repeat = int(repeat) if str(repeat).strip().isdigit() else 10
+    now = int(time.time() * 1000)
+    targets = [npc for npc in npc_list if now > npc_list[npc]]
+    if not targets:
+        print('刷亲密度需要保留几个可以挑战的NPC！')
+        return
+    print(f'当前可挑战NPC：{targets}')
+    for i in range(repeat):
+        run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
+        print(f'正在刷亲密度...（{i + 1}/{repeat}）')
 
 def run_clan_summary_by_id(aid, session_id, gid):
     payload = {
@@ -163,16 +212,27 @@ def run_clan_summary_by_id(aid, session_id, gid):
 
 def main():
     accounts = load_accounts()
-    account = choose_account(accounts)
-    print(f'当前账号：{account.get("name")}（{account.get("cuid")}）')
+    acc_idx = choose_account(accounts)
+    print(f'当前账号：{accounts[acc_idx].get("name")}')
 
     version = run_bulletin()
-    account = {'data': account['data'], 'route': account['route']}
-    account['data']['Version'] = version
     print('登录中...')
-    aid, session_id, cuid, guild_data, npc_list = run_login(account)
+    data = run_login(accounts, acc_idx, version)
 
-    while (action := choose_action()) != 6:
+    # Preprocess data
+    aid = data['Info']['_id']['$oid']
+    session_id = data['SessionID']
+    cuid = data['Info']['CUID']
+    guild_data = {'GuildData': data['GuildData']}
+    npc_list = {}
+    for npc in data['PVPData']['NPCPVPInfoList']:
+        npc_list[npc['NPCID']] = max(npc['NextTime']['$date'], 
+                                   npc_list.get(npc['NPCID'], 0))
+    first_team = data['Teams']['Settings'][0]
+    pos_map = first_team['TeamSetting']['RolePosMap']
+    pos_map = {str(pos): {"_id": role_id} for role_id, pos in pos_map.items()}
+
+    while (action := choose_action()) != 7:
         if action == 0: # 输出团战数据
             run_clan_data(aid, session_id)
         elif action == 1: # 输出团战总结
@@ -181,9 +241,12 @@ def main():
             run_weekly(aid, session_id, repeat=140)
         elif action == 3: # 刷NPC
             run_npc(aid, session_id, npc_list)
-        elif action == 4: # 查团战防守
+        elif action == 4: # 刷亲密度
+            repeat = input('请输入刷亲密度次数（默认第一队刷10次）：')
+            run_affection(aid, session_id, npc_list, pos_map, repeat)
+        elif action == 5: # 查团战防守
             pass
-        elif action == 5: # 按公会ID查询团战总结
+        elif action == 6: # 按公会ID查询团战总结
             gid = input('请输入公会ID（可以在main.py通过好友查询）：')
             run_clan_summary_by_id(aid, session_id, gid)
 
