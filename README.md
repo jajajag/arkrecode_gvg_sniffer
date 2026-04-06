@@ -31,21 +31,48 @@ pip install pycryptodome
 打开site-packages中crypto的安装路径，将crypto改为Crypto（C大写）。
 </details>
 
-## 运行
+## 在线模式
 
-1. 在命令行（PowerShell或Command Prompt）用ipconfig查询你的IPv4地址。
+1. 克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```
 
-2. 打开设置->网络和Internet->使用代理服务器->设置。
+2. 在命令行（PowerShell 或 Command Prompt）运行```ipconfig```查询你的 IPv4 地址。
 
-3. 打开使用代理服务器，代理IP地址填上面查到的IPv4地址，端口随便填一个数字（比如1825）。
+3. 打开 设置 → 网络和 Internet → 使用代理服务器 → 设置
 
-4. ```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```本目录到本地，然后调用```mitmdump -p 1825 -s main.py --quiet```运行程序，打开游戏即可。
+4. 打开 **使用代理服务器**，代理 IP 地址填上面查到的 IPv4 地址，端口填一个数字（例如```1825```）
+
+5. 运行```mitmdump```并打开游戏```mitmdump -p 1825 -s main.py --quiet```
+
+当前支持功能：
+
+- 打开 JJC / 复仇 / 好友 → 查询角色信息  
+- 打开佣兵团 → 查询团战出刀  
+
+## 离线模式
+
+1. 克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```
+
+2. 按照在线模式步骤 2–4 配置代理，运行```mitmweb -p 1825```打开游戏抓取一次```refreshToken```。
+
+3. 参考```utils/accounts_example.json```配置```accounts.json```，并放到项目目录下。之后无需再次抓取```refreshToken```。
+
+4. 运行工具集```python3 toolkit.py```
+
+当前支持功能：
+
+- 查询团战数据
+- 查询团战出刀
+- 刷周任务 2800
+- 不进场刷 NPC
+- 刷亲密度
+- 查询团战防守
+- 按公会 ID 查询团战出刀
 
 ## 一些碎碎念
 
 1. <details><summary>mitmdump -p 1825 -s main.py --quiet查询角色信息。</summary>打开 JJC / 复仇 / 好友 → 查询角色信息，打开佣兵团 → 查询团战出刀</details>
 
-2. <details><summary>python3 toolkit.py使用工具集。</summary>无需开启代理或运行 mitmdump，但首次使用前需要先抓取refreshToken。当前工具支持：查询团战数据、查询团战出刀、刷周任务2800、不进场刷NPC、刷亲密度、查询前排防守阵容，按公会ID查询团战出刀</details>
+
 
 3. 突然意识到星陨计划有PC端，因此不需要使用模拟器。模拟器的配置方法我放到最下了。
 
