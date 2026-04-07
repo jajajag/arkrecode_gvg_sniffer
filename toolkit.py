@@ -43,13 +43,13 @@ def choose_account(accounts):
 
 def choose_action():
     actions = [
-        '查团战数据',
-        '查团战总结',
-        '刷每周任务',
-        '刷NPC',
+        '刷NPC（不进场）',
+        '刷佣兵团周任务（2800）',
         '刷亲密度',
-        '查团战防守',
-        '查团战总结（按公会ID）',
+        '查询团战数据',
+        '查询团战总结',
+        '查询团战总结（按公会ID）',
+        '查询团战防守',
         '退出'
     ]
 
@@ -121,40 +121,6 @@ def run_login(accounts, acc_idx, version):
     }
     return send(payload)
 
-def run_clan_data(aid, session_id):
-    payload = {
-        'data': {
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'GuildWarHandler.QueryFullGuildWarData'
-    }
-    try:
-        data = send(payload)
-    except Exception as e:
-        print('没有开团战！')
-        return
-    print_report(data)
-    export_report(data)
-
-def run_clan_summary(aid, session_id, guild_data):
-    analyze_hits(guild_data, aid, session_id)
-
-def run_weekly(aid, session_id, repeat=140):
-    payload = {
-        'data' : {
-            'RewardQuestInfos' : [{'ID' : 'GuildCheckIn', 'Index' : 0}],
-            'CommodityID' : '',
-            'AID' : aid,
-            'SessionID' : session_id
-        },
-        'route' : 'QuestHandler.RewardQuest'
-    }
-    for i in range(repeat):
-        send(payload)
-        print(f'正在刷每周任务...（{i + 1}/{repeat}）')
-    print(f'刷完{repeat}次了！')
-
 def run_npc_ticket(aid, session_id, npc):
     payload = {
         'data':{
@@ -198,6 +164,21 @@ def run_npc(aid, session_id, npc_list):
         except Exception as e:
             print('没有旗帜了，等会儿再试吧！')
 
+def run_weekly(aid, session_id, repeat=140):
+    payload = {
+        'data' : {
+            'RewardQuestInfos' : [{'ID' : 'GuildCheckIn', 'Index' : 0}],
+            'CommodityID' : '',
+            'AID' : aid,
+            'SessionID' : session_id
+        },
+        'route' : 'QuestHandler.RewardQuest'
+    }
+    for i in range(repeat):
+        send(payload)
+        print(f'正在刷每周任务...（{i + 1}/{repeat}）')
+    print(f'刷完{repeat}次了！')
+
 def run_affection(aid, session_id, npc_list, pos_map, repeat=10):
     repeat = int(repeat) if str(repeat).strip().isdigit() else 10
     now = int(time.time() * 1000)
@@ -209,6 +190,25 @@ def run_affection(aid, session_id, npc_list, pos_map, repeat=10):
     for i in range(repeat):
         run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
         print(f'正在刷亲密度...（{i + 1}/{repeat}）')
+
+def run_clan_data(aid, session_id):
+    payload = {
+        'data': {
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'GuildWarHandler.QueryFullGuildWarData'
+    }
+    try:
+        data = send(payload)
+    except Exception as e:
+        print('没有开团战！')
+        return
+    print_report(data)
+    export_report(data)
+
+def run_clan_summary(aid, session_id, guild_data):
+    analyze_hits(guild_data, aid, session_id)
 
 def run_clan_summary_by_id(aid, session_id, gid):
     payload = {
@@ -249,22 +249,22 @@ def main():
     pos_map = {str(pos): {"_id": role_id} for role_id, pos in pos_map.items()}
 
     while (action := choose_action()) != 7:
-        if action == 0: # 输出团战数据
-            run_clan_data(aid, session_id)
-        elif action == 1: # 输出团战总结
-            run_clan_summary(aid, session_id, guild_data)
-        elif action == 2: # 刷佣兵团周任务2800
-            run_weekly(aid, session_id, repeat=140)
-        elif action == 3: # 刷NPC
+        if action == 0:   # 刷NPC（不进场）
             run_npc(aid, session_id, npc_list)
-        elif action == 4: # 刷亲密度
+        elif action == 1: # 刷佣兵团周任务（2800）
+            run_weekly(aid, session_id, repeat=140)
+        elif action == 2: # 刷亲密度
             repeat = input('请输入刷亲密度次数（默认第一队刷10次）：')
             run_affection(aid, session_id, npc_list, pos_map, repeat)
-        elif action == 5: # 查团战防守
-            pass
-        elif action == 6: # 按公会ID查询团战总结
+        elif action == 3: # 查询团战数据
+            run_clan_data(aid, session_id)
+        elif action == 4: # 查询团战总结
+            run_clan_summary(aid, session_id, guild_data)
+        elif action == 5: # 查询团战总结（按公会ID）
             gid = input('请输入公会ID（可以在main.py通过好友查询）：')
             run_clan_summary_by_id(aid, session_id, gid)
+        elif action == 6: # 查询团战防守
+            pass
 
 if __name__ == '__main__':
     main()
