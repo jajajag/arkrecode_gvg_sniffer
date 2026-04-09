@@ -210,8 +210,9 @@ def run_guild_data(aid, session_id):
     print_report(data)
     export_report(data)
 
-def run_guild_summary(aid, session_id, guild_data):
-    gid = input('请输入公会ID（默认查询本公会）：')
+def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
+    if not gid:
+        gid = input('请输入公会ID（默认查询本公会）：')
     payload = {
         'data': {
             'GuildID': gid,
@@ -225,7 +226,7 @@ def run_guild_summary(aid, session_id, guild_data):
     except Exception as e:
         print('查询失败，请输入正确的公会ID！')
         return
-    return analyze_guild(guild_data, aid, session_id)
+    return analyze_guild(guild_data, aid, session_id, save_csv)
 
 def run_guild_defence(aid, session_id, cuid):
     num_def = input('请输入要查询的前排团战防守（最多前20）：')
@@ -243,7 +244,7 @@ def run_guild_defence(aid, session_id, cuid):
     for i in range(min(num_def, len(guilds))):
         print(f'正在查询第{i + 1}名公会的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
-        rows = run_guild_summary_by_id(aid, session_id, gid, save_csv=False)
+        rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
         analyze_defence(aid, session_id, cuid, rows)
 
 def main():
