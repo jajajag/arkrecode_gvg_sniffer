@@ -8,6 +8,8 @@ import random
 import requests
 import time
 
+EVENT = 'BH180'
+
 requests.packages.urllib3.disable_warnings()
 
 url = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
@@ -166,6 +168,61 @@ def run_npc(aid, session_id, npc_list):
         except Exception as e:
             print('没有旗帜了，等会儿再试吧！')
 
+def run_battle(aid, session_id, pos_map):
+    payload = {
+        'data': {
+            'BattleEndData': {
+                'StartBattleInfo': {
+                    'SceneData': {'StaticID': ''}, 
+                    'CampData1': {'PositionRoleMap': pos_map},
+                }, 
+                'Result': 'Win', 
+            }, 
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'SceneHandler.FinishScene'
+    }
+    start_battle_info = payload['data']['BattleEndData']['StartBattleInfo']
+    scene = start_battle_info['SceneData']
+    # Handle input
+    elems = [('火', 'Fire'), ('水', 'Ice'), ('木', 'Earth'), 
+             ('光', 'Light'), ('暗', 'Dark')]
+    print(' '.join(f'{i+1}. {elems[i][0]}讨伐' for i in range(5)))
+    print(' '.join(f'{i+6}. {elems[i][0]}元素' for i in range(5)))
+    print('11. 活动EX 12. 一键活动')
+    c = input('选择: ').strip()
+    if not c.isdigit() or not (1 <= (c := int(c)) <= 12):
+        print('无效选择！')
+        return
+    scene['StaticID'] = f'{("Hunt","Elf")[c>5]}{elems[c%5-1][1]}_{(11,4)[c>5]}'
+    repeat = input('次数（默认刷10次）：')
+    repeat = int(repeat) if str(repeat).strip().isdigit() else 10
+
+    if c >= 11:
+        sup = input('助战UID（默认不借人）: ').strip()
+        if sup.strip().isdigit():
+            start_battle_info['Support'] = {
+                'PlayerRoleData': {
+                    'PlayerInfo': {
+                        'CUID': int(sup),
+                    },
+                    'RoleData': {'StaticID':'H001'}
+                },
+            }
+        scene['StaticID'] = f'{EVENT}_1_13'
+    if c == 12: # Pass event 1 - 12
+        repeat = 12
+
+    try:
+        for i in range(repeat):
+            if c == 12: scene['StaticID'] = f'{EVENT}_1_{i+1}'
+            data = send(payload)
+            energy = data['CostItems'][0]['NowItem']['Count']
+            print(f'挑战成功，剩余体力：{energy}')
+    except Exception as e:
+        print('体力或者活动代码出错！')
+
 def run_weekly(aid, session_id, repeat=140):
     payload = {
         'data' : {
@@ -278,7 +335,7 @@ def main():
             # 刷NPC（不进场）
             3: lambda: run_npc(aid, session_id, npc_list),
             # 刷活动讨伐
-            4: lambda: None,
+            4: lambda: run_battle(aid, session_id, pos_map),
             # 刷佣兵团周任务（2800）
             5: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度
