@@ -357,7 +357,7 @@ def run_battle(aid, session_id, pos_map):
             energy = data['CostItems'][0]['NowItem']['Count']
             print(f'挑战成功，剩余体力：{energy}')
     except Exception:
-        print('体力或者活动代码出错！')
+        print('体力不足，装备已满，或者活动代码出错！')
 
 def run_weekly(aid, session_id, repeat=140):
     payload = {
