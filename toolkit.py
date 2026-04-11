@@ -128,13 +128,13 @@ def run_login(accounts, acc_idx, version):
 
 def run_secret(aid, session_id, secret_data):
     buy_list = [
-        {'Count':1, 'StaticID': 'EC11'}, # 芯片
-        {'Count':1, 'StaticID': 'EC21'},
-        {'Count':1, 'StaticID': 'EC31'},
-        {'Count':1, 'StaticID': 'EC41'},
-        {'Count':1, 'StaticID': 'EC51'},
-        {'Count':1, 'StaticID': 'EC61'},
-        {'Count':5, 'StaticID': '5'}, # 绿票
+        {'Count': 1, 'StaticID': 'EC11'}, # 芯片
+        {'Count': 1, 'StaticID': 'EC21'},
+        {'Count': 1, 'StaticID': 'EC31'},
+        {'Count': 1, 'StaticID': 'EC41'},
+        {'Count': 1, 'StaticID': 'EC51'},
+        {'Count': 1, 'StaticID': 'EC61'},
+        {'Count': 5, 'StaticID': '5'}, # 绿票
         {'Count': 50, 'StaticID': '6'}, # 黄票
     ]
     payload_refresh = {
@@ -341,7 +341,7 @@ def run_battle(aid, session_id, pos_map):
                     'PlayerInfo': {
                         'CUID': int(sup),
                     },
-                    'RoleData': {'StaticID':'H001'}
+                    'RoleData': {'StaticID': 'H001'}
                 },
             }
         scene['StaticID'] = f'{EVENT}_1_13'
