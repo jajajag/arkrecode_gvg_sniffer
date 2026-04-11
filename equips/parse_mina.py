@@ -1,4 +1,4 @@
-# 装备模板文件来源于蜜娜
+# 装备模板文件来源于蜜娜（记得支持蜜娜）
 # 装备模板来源于太上天魔
 # 由ChatGPT生成
 from Crypto.Cipher import AES
