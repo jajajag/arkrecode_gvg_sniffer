@@ -1,3 +1,4 @@
+from equips.equip_matcher import match_equip
 from utils.analyzer import analyze_guild, analyze_defence
 from utils.printer import print_report
 from utils.exporter import export_report
@@ -13,7 +14,7 @@ EVENT = 'BH180'
 requests.packages.urllib3.disable_warnings()
 
 url = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
-url_token = "https://sadpki-portal-v2.ebuajk.com/api/v2/token/access"
+url_token = 'https://sadpki-portal-v2.ebuajk.com/api/v2/token/access'
 headers = {
     'Content-Type': 'application/octet-stream',
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
@@ -45,7 +46,7 @@ def choose_account(accounts):
 
 def choose_action():
     actions = [
-        '刷日常',
+        '刷日常（神秘商店）',
         '刷星源商店',
         '刷NPC（不进场）',
         '刷活动讨伐',
@@ -83,7 +84,7 @@ def run_refresh_token(accounts, acc_idx):
     device_id = accounts[acc_idx]['DeviceID']
     refresh_token = accounts[acc_idx]['refreshToken']
     local_headers = headers.copy()
-    local_headers['Authorization'] = f"Bearer {refresh_token}"
+    local_headers['Authorization'] = f'Bearer {refresh_token}'
     local_headers['DeviceId'] = device_id
     time.sleep(random.uniform(1, 2))
     resp = requests.post(url_token, headers=local_headers)
@@ -94,8 +95,8 @@ def run_refresh_token(accounts, acc_idx):
     return data
 
 def run_old_sdk(accounts, acc_idx, token):
-    jwt = token.split(".")[1]
-    jwt += "=" * (-len(jwt) % 4)
+    jwt = token.split('.')[1]
+    jwt += '=' * (-len(jwt) % 4)
     token_data = json.loads(base64.urlsafe_b64decode(jwt))
     login_id = token_data['user_id']
     if 'exp' in token_data:
@@ -124,6 +125,139 @@ def run_login(accounts, acc_idx, version):
         'route': 'AccountHandler.Login'
     }
     return send(payload)
+
+def run_secret(aid, session_id, secret_data):
+    buy_list = [
+        {'Count':1, 'StaticID': 'EC11'}, # 芯片
+        {'Count':1, 'StaticID': 'EC21'},
+        {'Count':1, 'StaticID': 'EC31'},
+        {'Count':1, 'StaticID': 'EC41'},
+        {'Count':1, 'StaticID': 'EC51'},
+        {'Count':1, 'StaticID': 'EC61'},
+        {'Count':5, 'StaticID': '5'}, # 绿票
+        {'Count': 50, 'StaticID': '6'}, # 黄票
+    ]
+    payload_refresh = {
+        'data': {
+            'StoreID': 'SecretShop',
+            'IsUseGold': 1,
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'StoreHandler.ResetRandomStore'
+    }
+    while True:
+        for record in secret_data:
+            payload_buy = {
+                'data': {
+                    'Record': {'DropResult': {}},
+                    'Count': 1,
+                    'AID': aid,
+                    'SessionID': session_id
+                },
+                'route': 'StoreHandler.BuyCommodity'
+            }
+            item = record['DropResult']['Items'][0]
+            drop = payload_buy['data']['Record']['DropResult']
+            if 'Item' in item and item['Item'] in buy_list:
+                drop['Items'] = [{'Item': item['Item']}]
+                payload_buy['data']['Record']['StaticID'] = record['StaticID']
+            elif 'Equipment' in item and item['Equipment']['ClassLV'] >= 4:
+                found = match_equip(item['Equipment'], is_gold=True)
+                if not found: continue
+                drop['Items'] = [{'Equipment': item['Equipment']}]
+                payload_buy['data']['Record']['StaticID'] = record['StaticID']
+            else:
+                continue
+            try:
+                send(payload_buy)
+                print(f'{item} 成功！')
+            except Exception:
+                print(f'{item} 失败！')
+        try:
+            secret_data = send(payload_refresh)
+            secret_data = secret_data['Records']
+            print('刷新成功！')
+        except Exception:
+            print('刷新次数已满！')
+            return
+
+def run_daily(aid, session_id, secret_data):
+    payloads = [
+        {'route': 'ArkReactorHandler.RewardArkReactor'}, # Force lab
+        {'route': 'ArkStarForceLabHandler.ChargeTesseract'},
+        {'route': 'ArkStarForceLabHandler.RewardPotion'},
+        {'route': 'ArkStarForceLabHandler.RewardStarForce'},
+        {'route': 'GuildHandler.GuildMemberCheckIn'}, # Guild daily
+        {'route': 'GuildHandler.DonateCourage',
+         'data': {'ItemID': '28', 'Count': 3}},
+        {'route': 'GuildHandler.DonateGold',
+         'data': {'ItemID': '1', 'Count': 10}},
+        {'route': 'GuildHandler.GuildMemberDayCheckReward'},
+        {'route': 'MailHandler.QueryNewestMails'}, # Monthly pack
+        {'route': 'MonthSignInHandler.SignIn'}, # Monthly sign-in
+        {'route': 'SceneHandler.PurityScene', # Abyss
+         'data': {'StaticID': 'Abyss_80'}}, 
+        {'route': 'StoreHandler.BuyCommodity', # 'Store': 'FriendShip'
+         'data': {'Record': {'StaticID': 'FriendShip3'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity',
+         'data': {'Record': {'StaticID': 'FriendShip4'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity',
+         'data': {'Record': {'StaticID': 'FriendShip6'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity',
+         'data': {'Record': {'StaticID': 'FriendShip7'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity', # 'Store': 'VIPGift'
+         'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick1'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity',
+         'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick2'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity',
+         'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick3'}, 'Count': 1}},
+        {'route': 'StoreHandler.BuyCommodity', # 'Store': 'MedalHonor'
+         'data': {'Record': {'StaticID': 'MedalHonor2'}, 'Count': 3}},
+    ]
+    for payload in payloads:
+        payload_new = {
+            'route': payload['route'],
+            'data': {
+                **payload.get('data', {}),
+                'AID': aid,
+                'SessionID': session_id,
+            }
+        }
+        try:
+            send(payload_new)
+            print(f'{payload} 成功！')
+        except Exception:
+            print(f'{payload} 失败！')
+    # 刷神秘商店
+    print('正在刷神秘商店...')
+    run_secret(aid, session_id, secret_data)
+
+def run_rainbow(aid, session_id):
+    payload = {
+        'data': {
+            'CommodityID': 'RainbowStarSourceBox10',
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'CustomEquipHandler.Query'
+    }
+    while True:
+        try:
+            data = send(payload)
+            payload['route'] = 'CustomEquipHandler.RefreshEquip'
+            equips = data['Data']['CustomEquipDropList']
+            equips = [e['Equipment'] for e in equips]
+            found = [match_equip(e, is_gold=False) for e in equips]
+            found = [e for e in found if e]
+            if found:
+                choice = input('找到极品装备，是否继续刷新？（y/N）')
+                if choice.strip().upper() != 'Y': return
+            else:
+                print('刷新成功！')
+        except Exception:
+            print('刷新次数已满！')
+            return
 
 def run_npc_ticket(aid, session_id, npc):
     payload = {
@@ -165,7 +299,7 @@ def run_npc(aid, session_id, npc_list):
             data = run_npc_battle(aid, session_id, npc)
             npc_list[npc] = float('inf')
             print(f'NPC {npc} 挑战结果：{data["IsWin"]}')
-        except Exception as e:
+        except Exception:
             print('没有旗帜了，等会儿再试吧！')
 
 def run_battle(aid, session_id, pos_map):
@@ -220,7 +354,7 @@ def run_battle(aid, session_id, pos_map):
             data = send(payload)
             energy = data['CostItems'][0]['NowItem']['Count']
             print(f'挑战成功，剩余体力：{energy}')
-    except Exception as e:
+    except Exception:
         print('体力或者活动代码出错！')
 
 def run_weekly(aid, session_id, repeat=140):
@@ -261,7 +395,7 @@ def run_guild_data(aid, session_id):
     }
     try:
         data = send(payload)
-    except Exception as e:
+    except Exception:
         print('没有开团战！')
         return
     print_report(data)
@@ -280,7 +414,7 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     }
     try:
         if gid.strip(): guild_data = send(payload)
-    except Exception as e:
+    except Exception:
         print('查询失败，请输入正确的公会ID！')
         return
     return analyze_guild(guild_data, aid, session_id, save_csv)
@@ -324,14 +458,16 @@ def main():
                                    npc_list.get(npc['NPCID'], 0))
     first_team = data['Teams']['Settings'][0]
     pos_map = first_team['TeamSetting']['RolePosMap']
-    pos_map = {str(pos): {"_id": role_id} for role_id, pos in pos_map.items()}
+    pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
+    secret_data = [item for item in data['StoreRecordContainer']['Records'] \
+            if item['Store'] == 'SecretShop']
 
     while (action := choose_action()) != 0:
         actions = {
-            # 刷日常
-            1: lambda: None,
+            # 刷日常（神秘商店）
+            1: lambda: run_daily(aid, session_id, secret_data),
             # 刷星源商店
-            2: lambda: None,
+            2: lambda: run_rainbow(aid, session_id),
             # 刷NPC（不进场）
             3: lambda: run_npc(aid, session_id, npc_list),
             # 刷活动讨伐
