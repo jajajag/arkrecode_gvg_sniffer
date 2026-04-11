@@ -1,4 +1,6 @@
 from equips.equip_matcher import match_equip
+# 装备模板文件来源于蜜娜（请大家支持蜜娜）
+# 装备模板来源于太上天魔
 from utils.analyzer import analyze_guild, analyze_defence
 from utils.printer import print_report
 from utils.exporter import export_report
