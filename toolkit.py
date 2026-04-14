@@ -190,13 +190,16 @@ def run_daily(aid, session_id, secret_data):
         {'route': 'ArkStarForceLabHandler.ChargeTesseract'},
         {'route': 'ArkStarForceLabHandler.RewardPotion'},
         {'route': 'ArkStarForceLabHandler.RewardStarForce'},
+        {'route': 'ArkStarForceLabHandler.RewardTesseract'},
         {'route': 'GuildHandler.GuildMemberCheckIn'}, # Guild daily
         {'route': 'GuildHandler.DonateCourage',
          'data': {'ItemID': '28', 'Count': 3}},
         {'route': 'GuildHandler.DonateGold',
          'data': {'ItemID': '1', 'Count': 10}},
         {'route': 'GuildHandler.GuildMemberDayCheckReward'},
-        {'route': 'MailHandler.QueryNewestMails'}, # Monthly pack
+        {'route': 'MailHandler.QueryNewestMails'}, # 月卡
+        {'route': 'TimingMealHandler.SentMeal'},
+        #{'route': 'MailHandler.QueryNewestMails'},
         {'route': 'MonthSignInHandler.SignIn'}, # Monthly sign-in
         {'route': 'SceneHandler.PurityScene', # Abyss
          'data': {'StaticID': 'Abyss_80'}}, 
@@ -295,14 +298,14 @@ def run_npc(aid, session_id, npc_list):
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     print(f'当前可挑战NPC：{targets}')
-    for npc in targets:
-        try:
+    try:
+        for npc in targets:
             run_npc_ticket(aid, session_id, npc)
             data = run_npc_battle(aid, session_id, npc)
             npc_list[npc] = float('inf')
             print(f'NPC {npc} 挑战结果：{data["IsWin"]}')
-        except Exception:
-            print('没有旗帜了，等会儿再试吧！')
+    except Exception:
+        print('没有旗帜了，等会儿再试吧！')
 
 def run_battle(aid, session_id, pos_map):
     payload = {
