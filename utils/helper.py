@@ -168,7 +168,7 @@ ROLE = {
     "H166": ["Shien", "紫烟"],
     "H167": ["Neko Matsuri", "猫祭"],
     "H168": ["Successor Mikael", "继任者弥卡伊勒"],
-    #"H170": ["Sweet Dreams Anheeun"],
+    "H170": ["Sweet Dreams Anheeun", "甜蜜美梦安熙恩"],
     #"H171": ["Gagarin"],
     "H172": ["Pumpkin Pixie Layla", "南瓜鬼怪莱拉"],
     #"H173": ["Chrono Agent Aoi"],
