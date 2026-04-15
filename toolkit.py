@@ -11,7 +11,7 @@ import random
 import requests
 import time
 
-EVENT = 'BH180'
+PICKUP = 'H179'
 
 requests.packages.urllib3.disable_warnings()
 
@@ -199,8 +199,9 @@ def run_daily(aid, session_id, secret_data):
         {'route': 'GuildHandler.GuildMemberDayCheckReward'},
         {'route': 'MailHandler.QueryNewestMails'}, # 月卡
         {'route': 'TimingMealHandler.SentMeal'},
-        #{'route': 'MailHandler.QueryNewestMails'},
+        {'route': 'MailHandler.QueryNewestMails'},
         {'route': 'MonthSignInHandler.SignIn'}, # Monthly sign-in
+        {'route': 'WeekSignInHandler.SignIn'}, # Weekly sign-in
         {'route': 'SceneHandler.PurityScene', # Abyss
          'data': {'StaticID': 'Abyss_80'}}, 
         {'route': 'StoreHandler.BuyCommodity', # 'Store': 'FriendShip'
@@ -256,8 +257,8 @@ def run_rainbow(aid, session_id):
             found = [match_equip(e, is_gold=False) for e in equips]
             found = [e for e in found if e]
             if found:
-                choice = input('找到极品装备，是否继续刷新？（y/N）')
-                if choice.strip().upper() != 'Y': return
+                choice = input('找到极品装备，是否继续刷新？（y/N）').strip()
+                if choice.upper() != 'Y': return
             else:
                 print('刷新成功！')
         except Exception:
@@ -313,9 +314,9 @@ def run_battle(aid, session_id, pos_map):
             'BattleEndData': {
                 'StartBattleInfo': {
                     'SceneData': {'StaticID': ''}, 
-                    'CampData1': {'PositionRoleMap': pos_map},
+                    'CampData1': {'PositionRoleMap': pos_map}
                 }, 
-                'Result': 'Win', 
+                'Result': 'Win'
             }, 
             'AID': aid,
             'SessionID': session_id
@@ -324,38 +325,51 @@ def run_battle(aid, session_id, pos_map):
     }
     start_battle_info = payload['data']['BattleEndData']['StartBattleInfo']
     scene = start_battle_info['SceneData']
-    # Handle input
+    camp1 = start_battle_info['CampData1']
     elems = [('火', 'Fire'), ('水', 'Ice'), ('木', 'Earth'), 
              ('光', 'Light'), ('暗', 'Dark')]
-    print(' '.join(f'{i+1}. {elems[i][0]}讨伐' for i in range(5)))
-    print(' '.join(f'{i+6}. {elems[i][0]}元素' for i in range(5)))
+    print(' '.join(f'{i + 1}. {name}讨伐' for i, (name, _) in enumerate(elems)))
+    print(' '.join(f'{i + 6}. {name}元素' for i, (name, _) in enumerate(elems)))
     print('11. 活动EX 12. 一键活动')
+    
     c = input('选择: ').strip()
     if not c.isdigit() or not (1 <= (c := int(c)) <= 12):
         print('无效选择！')
         return
-    scene['StaticID'] = f'{("Hunt","Elf")[c>5]}{elems[c%5-1][1]}_{(11,4)[c>5]}'
-    repeat = input('次数（默认刷10次）：')
-    repeat = int(repeat) if str(repeat).strip().isdigit() else 10
-
-    if c >= 11:
+    if c <= 11: # Handle #battles
+        repeat_str = input('次数（默认刷10次）：').strip()
+        repeat = int(repeat_str) if repeat_str.isdigit() else 10
+    if c >= 11: # Handle support
         sup = input('助战UID（默认不借人）: ').strip()
-        if sup.strip().isdigit():
+        if sup.isdigit():
             start_battle_info['Support'] = {
                 'PlayerRoleData': {
-                    'PlayerInfo': {
-                        'CUID': int(sup),
-                    },
+                    'PlayerInfo': {'CUID': int(sup)},
                     'RoleData': {'StaticID': 'H001'}
-                },
+                }
             }
-        scene['StaticID'] = f'{EVENT}_1_13'
-    if c == 12: # Pass event 1 - 12
-        repeat = 12
+    
+    if c <= 10:
+        idx = (c - 1) % 5
+        prefix = 'Hunt' if c <= 5 else 'Elf'
+        suffix = 11 if c <= 5 else 4
+        sid = f'{prefix}{elems[idx][1]}_{suffix}'
+        runs = [{'static_id': sid, 'pos_map': pos_map} for _ in range(repeat)]
+    elif c == 11:
+        sid = f'B{PICKUP}_1_13'
+        runs = [{'static_id': sid, 'pos_map': pos_map} for _ in range(repeat)]
+    else: # c == 12
+        npc_map = {'0': {'StaticID': f'AcStory{PICKUP}', 'LV': 60}}
+        runs = [
+            {'static_id': f'B{PICKUP}_1_{i + 1}',
+             'pos_map': npc_map if i == 0 else pos_map}
+            for i in range(12)
+        ]
 
     try:
-        for i in range(repeat):
-            if c == 12: scene['StaticID'] = f'{EVENT}_1_{i+1}'
+        for run in runs:
+            scene['StaticID'] = run['static_id']
+            camp1['PositionRoleMap'] = run['pos_map']
             data = send(payload)
             energy = data['CostItems'][0]['NowItem']['Count']
             print(f'挑战成功，剩余体力：{energy}')
@@ -378,8 +392,8 @@ def run_weekly(aid, session_id, repeat=140):
     print(f'刷完{repeat}次了！')
 
 def run_affection(aid, session_id, npc_list, pos_map):
-    repeat = input('请输入刷亲密度次数（默认第一队刷10次）：')
-    repeat = int(repeat) if str(repeat).strip().isdigit() else 10
+    repeat = input('请输入刷亲密度次数（默认第一队刷10次）：').strip()
+    repeat = int(repeat) if str(repeat).isdigit() else 10
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     if not targets:
@@ -408,7 +422,7 @@ def run_guild_data(aid, session_id):
 
 def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     if not gid:
-        gid = input('请输入公会ID（默认查询本公会）：')
+        gid = input('请输入公会ID（默认查询本公会）：').strip()
     payload = {
         'data': {
             'GuildID': gid,
@@ -418,15 +432,15 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
         'route': 'GuildHandler.QueryPartialGuildDataForGuildWar'
     }
     try:
-        if gid.strip(): guild_data = send(payload)
+        if gid: guild_data = send(payload)
     except Exception:
         print('查询失败，请输入正确的公会ID！')
         return
     return analyze_guild(guild_data, aid, session_id, save_csv)
 
 def run_guild_defence(aid, session_id, cuid):
-    num_def = input('请输入要查询的前排团战防守（最多前20）：')
-    num_def = int(num_def) if str(num_def).strip().isdigit() else 20
+    num_def = input('请输入要查询的前排团战防守（最多前20）：').strip()
+    num_def = int(num_def) if str(num_def).isdigit() else 20
     payload = {
         'data': {
             'AID': aid,
