@@ -197,11 +197,12 @@ def run_daily(aid, session_id, secret_data):
         {'route': 'GuildHandler.DonateGold',
          'data': {'ItemID': '1', 'Count': 10}},
         {'route': 'GuildHandler.GuildMemberDayCheckReward'},
-        {'route': 'MailHandler.QueryNewestMails'}, # 月卡
-        {'route': 'TimingMealHandler.SentMeal'},
-        {'route': 'MailHandler.QueryNewestMails'},
+        #{'route': 'MailHandler.QueryNewestMails'}, # 月卡
+        #{'route': 'TimingMealHandler.SentMeal'},
+        #{'route': 'MailHandler.QueryNewestMails'},
         {'route': 'MonthSignInHandler.SignIn'}, # Monthly sign-in
-        {'route': 'WeekSignInHandler.SignIn'}, # Weekly sign-in
+        {'route': 'WeekSignInHandler.SignIn', # Weekly sign-in
+         'data': {'ActivityID': f'ActivitySignIn{PICKUP}'}},
         {'route': 'SceneHandler.PurityScene', # Abyss
          'data': {'StaticID': 'Abyss_80'}}, 
         {'route': 'StoreHandler.BuyCommodity', # 'Store': 'FriendShip'
@@ -220,6 +221,8 @@ def run_daily(aid, session_id, secret_data):
          'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick3'}, 'Count': 1}},
         {'route': 'StoreHandler.BuyCommodity', # 'Store': 'MedalHonor'
          'data': {'Record': {'StaticID': 'MedalHonor2'}, 'Count': 3}},
+        #{'route': 'SupportFriendHandler.QuerySupFriendContainer'},
+        {'route': 'SupportFriendHandler.GetReward'},
     ]
     for payload in payloads:
         payload_new = {
@@ -336,9 +339,8 @@ def run_battle(aid, session_id, pos_map):
     if not c.isdigit() or not (1 <= (c := int(c)) <= 12):
         print('无效选择！')
         return
-    if c <= 11: # Handle #battles
-        repeat_str = input('次数（默认刷10次）：').strip()
-        repeat = int(repeat_str) if repeat_str.isdigit() else 10
+    repeat_str = input('次数（默认刷10次）：').strip()
+    repeat = int(repeat_str) if repeat_str.isdigit() else 10
     if c >= 11: # Handle support
         sup = input('助战UID（默认不借人）: ').strip()
         if sup.isdigit():
@@ -354,17 +356,17 @@ def run_battle(aid, session_id, pos_map):
         prefix = 'Hunt' if c <= 5 else 'Elf'
         suffix = 11 if c <= 5 else 4
         sid = f'{prefix}{elems[idx][1]}_{suffix}'
-        runs = [{'static_id': sid, 'pos_map': pos_map} for _ in range(repeat)]
+        runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
     elif c == 11:
         sid = f'B{PICKUP}_1_13'
-        runs = [{'static_id': sid, 'pos_map': pos_map} for _ in range(repeat)]
+        runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
     else: # c == 12
         npc_map = {'0': {'StaticID': f'AcStory{PICKUP}', 'LV': 60}}
         runs = [
             {'static_id': f'B{PICKUP}_1_{i + 1}',
              'pos_map': npc_map if i == 0 else pos_map}
             for i in range(12)
-        ]
+        ] * repeat
 
     try:
         for run in runs:
