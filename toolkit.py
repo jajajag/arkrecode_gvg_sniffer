@@ -186,26 +186,28 @@ def run_secret(aid, session_id, secret_data):
 
 def run_daily(aid, session_id, secret_data):
     payloads = [
-        {'route': 'ArkReactorHandler.RewardArkReactor'}, # Force lab
+        # Force lab
+        {'route': 'ArkReactorHandler.RewardArkReactor'},
         {'route': 'ArkStarForceLabHandler.ChargeTesseract'},
         {'route': 'ArkStarForceLabHandler.RewardPotion'},
         {'route': 'ArkStarForceLabHandler.RewardStarForce'},
         {'route': 'ArkStarForceLabHandler.RewardTesseract'},
-        {'route': 'GuildHandler.GuildMemberCheckIn'}, # Guild daily
+        # Guild daily
+        {'route': 'GuildHandler.GuildMemberCheckIn'},
         {'route': 'GuildHandler.DonateCourage',
          'data': {'ItemID': '28', 'Count': 3}},
         {'route': 'GuildHandler.DonateGold',
          'data': {'ItemID': '1', 'Count': 10}},
         {'route': 'GuildHandler.GuildMemberDayCheckReward'},
-        #{'route': 'MailHandler.QueryNewestMails'}, # 月卡
-        #{'route': 'TimingMealHandler.SentMeal'},
-        #{'route': 'MailHandler.QueryNewestMails'},
-        {'route': 'MonthSignInHandler.SignIn'}, # Monthly sign-in
-        {'route': 'WeekSignInHandler.SignIn', # Weekly sign-in
-         'data': {'ActivityID': f'ActivitySignIn{PICKUP}'}},
-        {'route': 'SceneHandler.PurityScene', # Abyss
+        # Monthly sign-in
+        {'route': 'MonthSignInHandler.SignIn'},
+        # Abyss
+        {'route': 'SceneHandler.PurityScene',
          'data': {'StaticID': 'Abyss_80'}}, 
-        {'route': 'StoreHandler.BuyCommodity', # 'Store': 'FriendShip'
+        # Monthly pack
+        {'route': 'ServerStatusHandler.Query'},
+        {'route': 'StoreHandler.BuyCommodity', 
+        # Store (FriendShip)
          'data': {'Record': {'StaticID': 'FriendShip3'}, 'Count': 1}},
         {'route': 'StoreHandler.BuyCommodity',
          'data': {'Record': {'StaticID': 'FriendShip4'}, 'Count': 1}},
@@ -213,16 +215,21 @@ def run_daily(aid, session_id, secret_data):
          'data': {'Record': {'StaticID': 'FriendShip6'}, 'Count': 1}},
         {'route': 'StoreHandler.BuyCommodity',
          'data': {'Record': {'StaticID': 'FriendShip7'}, 'Count': 1}},
-        {'route': 'StoreHandler.BuyCommodity', # 'Store': 'VIPGift'
+        {'route': 'StoreHandler.BuyCommodity',
+        # Store (VIPGift)
          'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick1'}, 'Count': 1}},
         {'route': 'StoreHandler.BuyCommodity',
          'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick2'}, 'Count': 1}},
         {'route': 'StoreHandler.BuyCommodity',
          'data': {'Record': {'StaticID': 'VIPGIFT_VIPQuick3'}, 'Count': 1}},
-        {'route': 'StoreHandler.BuyCommodity', # 'Store': 'MedalHonor'
+        # Store (MedalHonor)
+        {'route': 'StoreHandler.BuyCommodity',
          'data': {'Record': {'StaticID': 'MedalHonor2'}, 'Count': 3}},
-        #{'route': 'SupportFriendHandler.QuerySupFriendContainer'},
+        # Support, TimingMeal, and Weekly sign-in
         {'route': 'SupportFriendHandler.GetReward'},
+        {'route': 'TimingMealHandler.SentMeal'},
+        {'route': 'WeekSignInHandler.SignIn',
+         'data': {'ActivityID': f'ActivitySignIn{PICKUP}'}},
     ]
     for payload in payloads:
         payload_new = {
