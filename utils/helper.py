@@ -1,3 +1,5 @@
+PICKUP = "H179"
+
 # https://arkrecodewiki.miraheze.org/wiki/Members/Infotable
 ROLE = {
     "H001": ["Shani", "夏妮"],

@@ -1,17 +1,14 @@
-from equips.equip_matcher import match_equip
-# 装备模板文件来源于蜜娜（请大家支持蜜娜）
-# 装备模板来源于太上天魔
+from equips.equip_matcher import match_equip # 装备模板文件来源于蜜娜
 from utils.analyzer import analyze_guild, analyze_defence
-from utils.printer import print_report
 from utils.exporter import export_report
+from utils.printer import print_report
+from utils.helper import PICKUP
 import base64
 import json
 import os
 import random
 import requests
 import time
-
-PICKUP = 'H179'
 
 requests.packages.urllib3.disable_warnings()
 
@@ -42,7 +39,7 @@ def choose_account(accounts):
         print(f'{i + 1}. {acc.get("name")}')
 
     while True:
-        idx = input('> ')
+        idx = input('> ').strip()
         if idx.isdigit() and 0 < int(idx) <= len(accounts):
             return int(idx) - 1
 
@@ -65,7 +62,7 @@ def choose_action():
         print(f'{(i + 1) % 10}. {a}')
     
     while True:
-        c = input('> ')
+        c = input('> ').strip()
         if c.isdigit() and 0 <= int(c) < len(actions):
             return int(c)
 
@@ -184,7 +181,54 @@ def run_secret(aid, session_id, secret_data):
             print('刷新次数已满！')
             return
 
-def run_daily(aid, session_id, secret_data):
+def run_guild_support(aid, session_id, sup_items, cuid):
+    payload_guild = {
+        'data': {
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'GuildHandler.QueryFullGuildData'
+    }
+    data = send(payload_guild)
+    payload = {
+        'data': {
+            'GuildAidItemInfoID': '',
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'GuildHandler.SupportGuildAid'
+    }
+    is_requested = False
+    try:
+        for item in data['GuildData']['GuildAidItemInfoList']:
+            if item['NowCount'] >= 8:
+                continue
+            if item['ItemID'] not in sup_items or sup_items[item['ItemID']] < 2:
+                continue
+            if item['Requester']['CUID'] == cuid:
+                is_requested = True
+                continue
+            if cuid in item['SupporterList']:
+                continue
+            payload['data']['GuildAidItemInfoID'] = item['_id']['$oid']
+            send(payload)
+            sup_items[item['ItemID']] -= 2
+            print(f'支援{item["ItemID"]}成功！')
+    except Exception:
+        print('支援失败或支援上限！')
+    payload_support = {
+        'data': {
+            'ItemID': min(sup_items, key=sup_items.get),
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'GuildHandler.RequestGuildAid'
+    }
+    if not is_requested:
+        send(payload_support)
+        print(f'请求{payload_support["data"]["ItemID"]}成功！')
+
+def run_daily(aid, session_id, secret_data, sup_items, cuid):
     payloads = [
         # Force lab
         {'route': 'ArkReactorHandler.RewardArkReactor'},
@@ -230,6 +274,14 @@ def run_daily(aid, session_id, secret_data):
         {'route': 'TimingMealHandler.SentMeal'},
         {'route': 'WeekSignInHandler.SignIn',
          'data': {'ActivityID': f'ActivitySignIn{PICKUP}'}},
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos': [
+             {'ID': 'DailyScore10', 'Index': 0},
+             {'ID': 'DailyScore20', 'Index': 0},
+             {'ID': 'DailyScore30', 'Index': 0},
+             {'ID': 'DailyScore50', 'Index': 0},
+             {'ID': 'DailyScore80', 'Index': 0},
+             {'ID': 'DailyScore100', 'Index': 0}]}},
     ]
     for payload in payloads:
         payload_new = {
@@ -248,6 +300,7 @@ def run_daily(aid, session_id, secret_data):
     # 刷神秘商店
     print('正在刷神秘商店...')
     run_secret(aid, session_id, secret_data)
+    run_guild_support(aid, session_id, sup_items, cuid)
 
 def run_rainbow(aid, session_id):
     payload = {
@@ -475,25 +528,35 @@ def main():
     print('登录中...')
     data = run_login(accounts, acc_idx, version)
 
-    # Preprocess data
+    # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
     session_id = data['SessionID']
+    # 1
+    secret_data = [item for item in data['StoreRecordContainer']['Records'] \
+            if item['Store'] == 'SecretShop']
+    sup_items = {'CR14': 0, 'CR24': 0, 'CR34': 0, 'CR44': 0, 'CR54': 0}
+    sup_items.update({
+        x['StaticID']: x['Count'] for x in data['ItemContainer']['Items']
+        if x.get('StaticID') in sup_items
+    })
+    # 1, 9
     cuid = data['Info']['CUID']
-    guild_data = {'GuildData': data['GuildData']}
+    # 3, 5
     npc_list = {}
     for npc in data['PVPData']['NPCPVPInfoList']:
         npc_list[npc['NPCID']] = max(npc['NextTime']['$date'], 
                                    npc_list.get(npc['NPCID'], 0))
+    # 4, 6
     first_team = data['Teams']['Settings'][0]
     pos_map = first_team['TeamSetting']['RolePosMap']
     pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
-    secret_data = [item for item in data['StoreRecordContainer']['Records'] \
-            if item['Store'] == 'SecretShop']
+    # 8
+    guild_data = {'GuildData': data['GuildData']}
 
     while (action := choose_action()) != 0:
         actions = {
             # 刷日常（神秘商店）
-            1: lambda: run_daily(aid, session_id, secret_data),
+            1: lambda: run_daily(aid, session_id, secret_data, sup_items, cuid),
             # 刷星源商店
             2: lambda: run_rainbow(aid, session_id),
             # 刷NPC（不进场）
