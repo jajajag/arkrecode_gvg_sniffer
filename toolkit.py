@@ -149,36 +149,30 @@ def run_secret(aid, session_id, secret_data):
         },
         'route': 'StoreHandler.ResetRandomStore'
     }
+    payload_buy = {
+        'data': {
+            'Record': {'_id': '', 'StaticID': ''},
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'StoreHandler.BuyCommodity'
+    }
     while True:
         for record in secret_data:
-            payload_buy = {
-                'data': {
-                    'Record': {'DropResult': {}},
-                    'Count': 1,
-                    'AID': aid,
-                    'SessionID': session_id
-                },
-                'route': 'StoreHandler.BuyCommodity'
-            }
             item = record['DropResult']['Items'][0]
-            drop = payload_buy['data']['Record']['DropResult']
-            if 'Item' in item and item['Item'] in buy_list:
-                drop['Items'] = [{'Item': item['Item']}]
-            elif 'Equipment' in item and item['Equipment']['ClassLV'] >= 4 \
-                    and item['Equipment']['StaticID'][:4] in equip_list:
-                # We only purchase LV85 legend equips
-                found = match_equip(item['Equipment'], is_gold=True)
-                if not found: continue
-                item['Equipment']['_id'] = item['Equipment']['_id']['$oid']
-                drop['Items'] = [{'Equipment': item['Equipment']}]
-            else:
+            # Skip if neither in buy_list nor a desired equipment
+            if not (('Item' in item and item['Item'] in buy_list) or
+                    ('Equipment' in item and item['Equipment']['ClassLV'] >= 4
+                     and item['Equipment']['StaticID'][:4] in equip_list
+                     and match_equip(item['Equipment'], is_gold=True))):
                 continue
+            payload_buy['data']['Record']['_id'] = record['_id']['$oid']
             payload_buy['data']['Record']['StaticID'] = record['StaticID']
             try:
                 send(payload_buy)
-                print(f'{item} 成功！')
+                print(f'{item}购买成功！')
             except Exception:
-                print(f'{item} 失败！')
+                print(f'{item}购买失败！')
         try:
             secret_data = send(payload_refresh)
             secret_data = secret_data['Records']
@@ -210,13 +204,10 @@ def run_guild_support(aid, session_id, sup_items, cuid):
     }
     try:
         for item in data['GuildData']['GuildAidItemInfoList']:
-            if item['NowCount'] >= 8:
-                continue
-            if item['ItemID'] not in sup_items or sup_items[item['ItemID']] < 2:
-                continue
-            if item['Requester']['CUID'] == cuid:
-                continue
-            if cuid in item['SupporterList']:
+            if (item['NowCount'] >= 8
+                or sup_items.get(item['ItemID'], 0) < 2
+                or item['Requester']['CUID'] == cuid
+                or cuid in item['SupporterList']):
                 continue
             payload['data']['GuildAidItemInfoID'] = item['_id']['$oid']
             send(payload)
@@ -293,6 +284,14 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid):
              {'ID': 'DailyScore50', 'Index': 0},
              {'ID': 'DailyScore80', 'Index': 0},
              {'ID': 'DailyScore100', 'Index': 0}]}},
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos': [
+             {'ID': 'WeekScore20', 'Index': 0},
+             {'ID': 'WeekScore40', 'Index': 0},
+             {'ID': 'WeekScore60', 'Index': 0},
+             {'ID': 'WeekScore80', 'Index': 0},
+             {'ID': 'WeekScore100', 'Index': 0},
+             {'ID': 'WeekScore120', 'Index': 0}]}},
     ]
     for payload in payloads:
         payload_new = {
@@ -305,9 +304,9 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid):
         }
         try:
             send(payload_new)
-            print(f'{payload} 成功！')
+            print(f'{payload}任务成功！')
         except Exception:
-            print(f'{payload} 失败！')
+            print(f'{payload}任务失败！')
     # 刷神秘商店
     print('正在刷神秘商店...')
     run_secret(aid, session_id, secret_data)
@@ -506,7 +505,7 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     }
     try:
         if gid: guild_data = send(payload)
-        analyze_guild(guild_data, aid, session_id, save_csv)
+        return analyze_guild(guild_data, aid, session_id, save_csv)
     except Exception:
         print('查询失败，未加入佣兵团或佣兵团ID错误！')
 
@@ -522,7 +521,6 @@ def run_guild_defence(aid, session_id, cuid):
     }
     data = send(payload)
     guilds = data['GuildWarCampaignInfoList']
-    def_rows = []
     for i in range(min(num_def, len(guilds))):
         print(f'正在查询第{i + 1}名公会的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
