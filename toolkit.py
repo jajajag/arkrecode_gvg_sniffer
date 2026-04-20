@@ -170,15 +170,15 @@ def run_secret(aid, session_id, secret_data):
             payload_buy['data']['Record']['StaticID'] = record['StaticID']
             try:
                 send(payload_buy)
-                print(f'{item}购买成功！')
+                print(f'购买成功：{item}')
             except Exception:
-                print(f'{item}购买失败！')
+                print(f'购买失败：{item}')
         try:
             secret_data = send(payload_refresh)
             secret_data = secret_data['Records']
-            print('刷新成功！')
+            print('商店刷新成功！')
         except Exception:
-            print('刷新次数已满！')
+            print('商店刷新结束：次数已满！')
             return
 
 def run_guild_support(aid, session_id, sup_items, cuid):
@@ -190,9 +190,10 @@ def run_guild_support(aid, session_id, sup_items, cuid):
         'route': 'GuildHandler.QueryFullGuildData'
     }
     try:
+        print('正在支援佣兵团...')
         data = send(payload_guild)
     except Exception:
-        print('没有加入公会！')
+        print('查询失败：未加入佣兵团！')
         return
     payload = {
         'data': {
@@ -212,9 +213,9 @@ def run_guild_support(aid, session_id, sup_items, cuid):
             payload['data']['GuildAidItemInfoID'] = item['_id']['$oid']
             send(payload)
             sup_items[item['ItemID']] -= 2
-            print(f'支援{item["ItemID"]}成功！')
+            print(f'支援成功：{item["ItemID"]}')
     except Exception:
-        print('支援失败或支援上限！')
+        print('支援结束：已达上限！')
     payload_support = {
         'data': {
             'ItemID': min(sup_items, key=sup_items.get),
@@ -225,9 +226,9 @@ def run_guild_support(aid, session_id, sup_items, cuid):
     }
     try:
         send(payload_support)
-        print(f'请求{payload_support["data"]["ItemID"]}成功！')
+        print(f'请求成功：{payload_support["data"]["ItemID"]}')
     except Exception:
-        print('请求失败或请求上限！')
+        print('请求失败：今日已请求过！')
 
 def run_daily(aid, session_id, secret_data, sup_items, cuid):
     payloads = [
@@ -304,9 +305,9 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid):
         }
         try:
             send(payload_new)
-            print(f'{payload}任务成功！')
+            print(f'{payload} 成功！')
         except Exception:
-            print(f'{payload}任务失败！')
+            print(f'{payload} 失败！')
     # 刷神秘商店
     print('正在刷神秘商店...')
     run_secret(aid, session_id, secret_data)
@@ -321,6 +322,7 @@ def run_rainbow(aid, session_id):
         },
         'route': 'CustomEquipHandler.Query'
     }
+    print('正在刷新星源商店...')
     while True:
         try:
             data = send(payload)
@@ -330,12 +332,12 @@ def run_rainbow(aid, session_id):
             found = [match_equip(e, is_gold=False) for e in equips]
             found = [e for e in found if e]
             if found:
-                choice = input('找到极品装备，是否继续刷新？（y/N）').strip()
+                choice = input('找到极品装备！是否继续刷新？(y/N)：').strip()
                 if choice.upper() != 'Y': return
             else:
                 print('刷新成功！')
         except Exception:
-            print('刷新次数已满！')
+            print('刷新结束：次数已满！')
             return
 
 def run_npc_ticket(aid, session_id, npc):
@@ -377,9 +379,9 @@ def run_npc(aid, session_id, npc_list):
             run_npc_ticket(aid, session_id, npc)
             data = run_npc_battle(aid, session_id, npc)
             npc_list[npc] = float('inf')
-            print(f'NPC {npc} 挑战结果：{data["IsWin"]}')
+            print(f'NPC {npc} 挑战{"成功" if data["IsWin"] else "失败"}！')
     except Exception:
-        print('没有旗帜了，等会儿再试吧！')
+        print('挑战结束：没有旗帜！')
 
 def run_battle(aid, session_id, pos_map):
     payload = {
@@ -405,14 +407,14 @@ def run_battle(aid, session_id, pos_map):
     print(' '.join(f'{i + 6}. {name}元素' for i, (name, _) in enumerate(elems)))
     print('11. 活动EX 12. 一键活动')
     
-    c = input('选择: ').strip()
+    c = input('请选择关卡编号：').strip()
     if not c.isdigit() or not (1 <= (c := int(c)) <= 12):
         print('无效选择！')
         return
-    repeat_str = input('次数（默认刷10次）：').strip()
+    repeat_str = input('请输入挑战次数（默认10次）：').strip()
     repeat = int(repeat_str) if repeat_str.isdigit() else 10
     if c >= 11: # Handle support
-        sup = input('助战UID（默认不借人）: ').strip()
+        sup = input('请输入助战UID（默认不借人）: ').strip()
         if sup.isdigit():
             start_battle_info['Support'] = {
                 'PlayerRoleData': {
@@ -438,6 +440,7 @@ def run_battle(aid, session_id, pos_map):
             for i in range(12)
         ] * repeat
 
+    print('开始刷活动讨伐...')
     try:
         for run in runs:
             scene['StaticID'] = run['static_id']
@@ -446,7 +449,7 @@ def run_battle(aid, session_id, pos_map):
             energy = data['CostItems'][0]['NowItem']['Count']
             print(f'挑战成功，剩余体力：{energy}')
     except Exception:
-        print('体力不足，装备已满，或者活动代码出错！')
+        print('挑战失败：体力不足，装备已满，或活动代码错误！')
 
 def run_weekly(aid, session_id, repeat=140):
     payload = {
@@ -461,20 +464,21 @@ def run_weekly(aid, session_id, repeat=140):
     for i in range(repeat):
         send(payload)
         print(f'正在刷每周任务...（{i + 1}/{repeat}）')
-    print(f'刷完{repeat}次了！')
+    print(f'每周任务完成！共{repeat}次')
 
 def run_affection(aid, session_id, npc_list, pos_map):
-    repeat = input('请输入刷亲密度次数（默认第一队刷10次）：').strip()
+    repeat = input('请输入刷亲密度次数（默认第一队10次）：').strip()
     repeat = int(repeat) if str(repeat).isdigit() else 10
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     if not targets:
-        print('刷亲密度需要保留几个可以挑战的NPC！')
+        print('刷亲密度失败：请先保留至少一个可挑战的NPC！')
         return
     print(f'当前可挑战NPC：{targets}')
     for i in range(repeat):
         run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
         print(f'正在刷亲密度...（{i + 1}/{repeat}）')
+    print('亲密度刷完了！')
 
 def run_guild_data(aid, session_id):
     payload = {
@@ -487,14 +491,14 @@ def run_guild_data(aid, session_id):
     try:
         data = send(payload)
     except Exception:
-        print('没有开团战！')
+        print('查询失败：未加入佣兵团或未开启团战！')
         return
     print_report(data)
     export_report(data)
 
 def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     if not gid:
-        gid = input('请输入佣兵团ID（默认查询本团）：').strip()
+        gid = input('请输入佣兵团 GID（默认查询本团）：').strip()
     payload = {
         'data': {
             'GuildID': gid,
@@ -504,10 +508,11 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
         'route': 'GuildHandler.QueryPartialGuildDataForGuildWar'
     }
     try:
+        print('正在查询团战总结...')
         if gid: guild_data = send(payload)
         return analyze_guild(guild_data, aid, session_id, save_csv)
     except Exception:
-        print('查询失败，未加入佣兵团或佣兵团ID错误！')
+        print('查询失败：未加入佣兵团，未开启团战，或佣兵团 GID 错误！')
 
 def run_guild_defence(aid, session_id, cuid):
     num_def = input('请输入要查询的前排团战防守（最多前20）：').strip()
@@ -522,10 +527,11 @@ def run_guild_defence(aid, session_id, cuid):
     data = send(payload)
     guilds = data['GuildWarCampaignInfoList']
     for i in range(min(num_def, len(guilds))):
-        print(f'正在查询第{i + 1}名公会的防守数据...')
+        print(f'正在查询第{i + 1}名佣兵团的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
         analyze_defence(aid, session_id, cuid, rows)
+    print('防守数据查询完成！')
 
 def main():
     accounts = load_accounts()
@@ -534,7 +540,12 @@ def main():
 
     version = run_bulletin()
     print('登录中...')
-    data = run_login(accounts, acc_idx, version)
+    try:
+        data = run_login(accounts, acc_idx, version)
+        print('登录成功！')
+    except Exception:
+        print('登录失败！')
+        return
 
     # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
