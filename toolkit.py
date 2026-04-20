@@ -127,15 +127,19 @@ def run_login(accounts, acc_idx, version):
 
 def run_secret(aid, session_id, secret_data):
     buy_list = [
-        {'Count': 1, 'StaticID': 'EC11'}, # 芯片
+        # Ampleons
+        {'Count': 1, 'StaticID': 'EC11'},
         {'Count': 1, 'StaticID': 'EC21'},
         {'Count': 1, 'StaticID': 'EC31'},
         {'Count': 1, 'StaticID': 'EC41'},
         {'Count': 1, 'StaticID': 'EC51'},
         {'Count': 1, 'StaticID': 'EC61'},
-        {'Count': 5, 'StaticID': '5'}, # 绿票
-        {'Count': 50, 'StaticID': '6'}, # 黄票
+        # Recruit contract and mysterious contract
+        {'Count': 5, 'StaticID': '5'},
+        {'Count': 50, 'StaticID': '6'},
     ]
+    # LV85 equipments
+    equip_list = {'E010', 'E016', 'E022', 'E028', 'E034'}
     payload_refresh = {
         'data': {
             'StoreID': 'SecretShop',
@@ -160,14 +164,16 @@ def run_secret(aid, session_id, secret_data):
             drop = payload_buy['data']['Record']['DropResult']
             if 'Item' in item and item['Item'] in buy_list:
                 drop['Items'] = [{'Item': item['Item']}]
-                payload_buy['data']['Record']['StaticID'] = record['StaticID']
-            elif 'Equipment' in item and item['Equipment']['ClassLV'] >= 4:
+            elif 'Equipment' in item and item['Equipment']['ClassLV'] >= 4 \
+                    and item['Equipment']['StaticID'][:4] in equip_list:
+                # We only purchase LV85 legend equips
                 found = match_equip(item['Equipment'], is_gold=True)
                 if not found: continue
+                item['Equipment']['_id'] = item['Equipment']['_id']['$oid']
                 drop['Items'] = [{'Equipment': item['Equipment']}]
-                payload_buy['data']['Record']['StaticID'] = record['StaticID']
             else:
                 continue
+            payload_buy['data']['Record']['StaticID'] = record['StaticID']
             try:
                 send(payload_buy)
                 print(f'{item} 成功！')
@@ -189,7 +195,11 @@ def run_guild_support(aid, session_id, sup_items, cuid):
         },
         'route': 'GuildHandler.QueryFullGuildData'
     }
-    data = send(payload_guild)
+    try:
+        data = send(payload_guild)
+    except Exception:
+        print('没有加入公会！')
+        return
     payload = {
         'data': {
             'GuildAidItemInfoID': '',
@@ -198,7 +208,6 @@ def run_guild_support(aid, session_id, sup_items, cuid):
         },
         'route': 'GuildHandler.SupportGuildAid'
     }
-    is_requested = False
     try:
         for item in data['GuildData']['GuildAidItemInfoList']:
             if item['NowCount'] >= 8:
@@ -206,7 +215,6 @@ def run_guild_support(aid, session_id, sup_items, cuid):
             if item['ItemID'] not in sup_items or sup_items[item['ItemID']] < 2:
                 continue
             if item['Requester']['CUID'] == cuid:
-                is_requested = True
                 continue
             if cuid in item['SupporterList']:
                 continue
@@ -224,9 +232,11 @@ def run_guild_support(aid, session_id, sup_items, cuid):
         },
         'route': 'GuildHandler.RequestGuildAid'
     }
-    if not is_requested:
+    try:
         send(payload_support)
         print(f'请求{payload_support["data"]["ItemID"]}成功！')
+    except Exception:
+        print('请求失败或请求上限！')
 
 def run_daily(aid, session_id, secret_data, sup_items, cuid):
     payloads = [
@@ -274,6 +284,7 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid):
         {'route': 'TimingMealHandler.SentMeal'},
         {'route': 'WeekSignInHandler.SignIn',
          'data': {'ActivityID': f'ActivitySignIn{PICKUP}'}},
+        # Daily / Weekly rewards
         {'route': 'QuestHandler.RewardQuest',
          'data': {'RewardQuestInfos': [
              {'ID': 'DailyScore10', 'Index': 0},
@@ -484,7 +495,7 @@ def run_guild_data(aid, session_id):
 
 def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     if not gid:
-        gid = input('请输入公会ID（默认查询本公会）：').strip()
+        gid = input('请输入佣兵团ID（默认查询本团）：').strip()
     payload = {
         'data': {
             'GuildID': gid,
@@ -495,10 +506,9 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     }
     try:
         if gid: guild_data = send(payload)
+        analyze_guild(guild_data, aid, session_id, save_csv)
     except Exception:
-        print('查询失败，请输入正确的公会ID！')
-        return
-    return analyze_guild(guild_data, aid, session_id, save_csv)
+        print('查询失败，未加入佣兵团或佣兵团ID错误！')
 
 def run_guild_defence(aid, session_id, cuid):
     num_def = input('请输入要查询的前排团战防守（最多前20）：').strip()
@@ -551,7 +561,7 @@ def main():
     pos_map = first_team['TeamSetting']['RolePosMap']
     pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
     # 8
-    guild_data = {'GuildData': data['GuildData']}
+    guild_data = {'GuildData': data.get('GuildData', {})}
 
     while (action := choose_action()) != 0:
         actions = {
