@@ -170,9 +170,9 @@ def run_secret(aid, session_id, secret_data):
             payload_buy['data']['Record']['StaticID'] = record['StaticID']
             try:
                 send(payload_buy)
-                print(f'购买成功：{item}')
+                print(f'购买成功：{item.get("Item") or item.get("Equipment")}')
             except Exception:
-                print(f'购买失败：{item}')
+                print(f'购买失败：{item.get("Item") or item.get("Equipment")}')
         try:
             secret_data = send(payload_refresh)
             secret_data = secret_data['Records']
@@ -330,8 +330,8 @@ def run_rainbow(aid, session_id):
             equips = data['Data']['CustomEquipDropList']
             equips = [e['Equipment'] for e in equips]
             found = [match_equip(e, is_gold=False) for e in equips]
-            found = [e for e in found if e]
-            if found:
+            if found := [e for e in found if e]:
+                print(*found, sep='\n')
                 choice = input('找到极品装备！是否继续刷新？(y/N)：').strip()
                 if choice.upper() != 'Y': return
             else:

@@ -43,7 +43,6 @@ def match_equip(equip, is_gold):
 
     for rule in RULE_INDEX.get(key, []) + RULE_INDEX.get(key_both, []):
         if all(sub_props.get(p, -1) >= v for p, v in rule['sub_props'].items()):
-            print(f'{eq_type} {set_name} {main_prop} -> {sub_props}')
-            return equip
+            return f'{eq_type} {set_name} {main_prop} -> {sub_props}'
 
     return None
