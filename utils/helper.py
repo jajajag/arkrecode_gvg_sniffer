@@ -1,4 +1,4 @@
-PICKUP = "H179"
+PICKUP = "H167"
 
 # https://arkrecodewiki.miraheze.org/wiki/Members/Infotable
 ROLE = {
@@ -171,7 +171,7 @@ ROLE = {
     "H167": ["Neko Matsuri", "猫祭"],
     "H168": ["Successor Mikael", "继任者弥卡伊勒"],
     "H170": ["Sweet Dreams Anheeun", "甜蜜美梦安熙恩"],
-    #"H171": ["Gagarin"],
+    "H171": ["Gagarin", "加加琳"],
     "H172": ["Pumpkin Pixie Layla", "南瓜鬼怪莱拉"],
     #"H173": ["Chrono Agent Aoi"],
     "H174": ["Cheerleader Berrica", "啦啦队蓓蕾卡"],
@@ -375,17 +375,17 @@ BOND = {
 }
 
 PROP = {
-    "AttackRate": ["攻", "大攻击"],
-    "AttackValue": ["攻", "小攻击"],
-    "CriticalDamageRate": ["爆", "暴伤"],
-    "CriticalRate": ["暴", "暴击"],
-    "DefenceRate": ["防", "大防御"],
-    "DefenceValue": ["防", "小防御"],
-    "EffectHitRate": ["命", "命中"],
-    "HPValue": ["生", "小生命"],
-    "HPRate": ["生", "大生命"],
-    "ResistanceRate": ["抗", "抗性"],
-    "SpeedValue": ["速", "速度"],
+    "AttackRate": ["攻", "大攻击", 1.8 * 100],
+    "AttackValue": ["攻", "小攻击", 0.17],
+    "CriticalDamageRate": ["爆", "暴伤", 1.8 * 100],
+    "CriticalRate": ["暴", "暴击", 2 * 100],
+    "DefenceRate": ["防", "大防御", 1.8 * 100],
+    "DefenceValue": ["防", "小防御", 0.2],
+    "EffectHitRate": ["命", "命中", 1.25 * 100],
+    "HPValue": ["生", "小生命", 0.05],
+    "HPRate": ["生", "大生命", 1.5 * 100],
+    "ResistanceRate": ["抗", "抗性", 1.25 * 100],
+    "SpeedValue": ["速", "速度", 3.5],
 }
 
 SET = {
@@ -427,6 +427,9 @@ def get_prop_short(prop: str) -> str:
 
 def get_prop_full(prop: str) -> str:
     return PROP[prop][1] if prop in PROP else prop
+
+def get_prop_score(prop: str) -> int:
+    return PROP[prop][2] if prop in PROP else 0
 
 def get_prop_set() -> dict:
     return {PROP[prop][0]: 0 for prop in sorted(PROP.keys(), reverse=True)}

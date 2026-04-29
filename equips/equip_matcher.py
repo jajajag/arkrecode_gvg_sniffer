@@ -1,4 +1,5 @@
 from collections import defaultdict
+from utils.helper import get_prop_score
 import json
 
 RULE_PATH = 'equips/equipments.json'
@@ -43,6 +44,7 @@ def match_equip(equip, is_gold):
 
     for rule in RULE_INDEX.get(key, []) + RULE_INDEX.get(key_both, []):
         if all(sub_props.get(p, -1) >= v for p, v in rule['sub_props'].items()):
-            return f'{eq_type} {set_name} {main_prop} -> {sub_props}'
+            eq_score = sum(v * get_prop_score(p) for p, v in sub_props.items())
+            return f'{eq_type} {set_name} {main_prop} {eq_score}-> {sub_props}'
 
     return None

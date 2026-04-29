@@ -524,7 +524,11 @@ def run_guild_defence(aid, session_id, cuid):
         },
         'route': 'GuildWarHandler.QueryNowGuildWarRank'
     }
-    data = send(payload)
+    try:
+        data = send(payload)
+    except Exception:
+        print('查询失败：未加入佣兵团！')
+        return
     guilds = data['GuildWarCampaignInfoList']
     for i in range(min(num_def, len(guilds))):
         print(f'正在查询第{i + 1}名佣兵团的防守数据...')
