@@ -2,7 +2,7 @@ from equips.equip_matcher import match_equip # 装备模板文件来源于蜜娜
 from utils.analyzer import analyze_guild, analyze_defence
 from utils.exporter import export_report
 from utils.printer import print_report
-from utils.helper import PICKUP
+from utils.helper import PICKUP, LV
 import base64
 import json
 import os
@@ -436,7 +436,7 @@ def run_battle(aid, session_id, pos_map):
         npc_map = {'0': {'StaticID': f'AcStory{PICKUP}', 'LV': 60}}
         runs = [
             {'static_id': f'B{PICKUP}_1_{i + 1}',
-             'pos_map': npc_map if i == 0 else pos_map}
+             'pos_map': npc_map if i == LV else pos_map}
             for i in range(12)
         ] * repeat
 

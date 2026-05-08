@@ -1,4 +1,5 @@
-PICKUP = "H167"
+# First level npc -> 0, second level npc -> 1
+PICKUP, LV = "H167", 1
 
 # https://arkrecodewiki.miraheze.org/wiki/Members/Infotable
 ROLE = {
