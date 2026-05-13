@@ -1,5 +1,5 @@
-# First level npc -> 0, second level npc -> 1
-PICKUP, LV = "H167", 1
+# First level npc -> 0, second level npc -> 1, etc.
+PICKUP, LV = "H173", 3
 
 # https://arkrecodewiki.miraheze.org/wiki/Members/Infotable
 ROLE = {
@@ -135,7 +135,7 @@ ROLE = {
     "H130": ["Seaside Noclyn", "碧海的诺可琳"],
     "H131": ["Berrica", "蓓蕾卡"],
     "H132": ["Nenookaasi", "妮诺楷西"],
-    #"H133": ["Noah"],
+    "H133": ["Noah", "挪亚"],
     "H134": ["Obsidian", "奥柏丝蒂恩"],
     "H135": ["Bartoz", "巴尔托丝"],
     "H136": ["Heroic", "赫萝薇克"],
@@ -174,7 +174,7 @@ ROLE = {
     "H170": ["Sweet Dreams Anheeun", "甜蜜美梦安熙恩"],
     "H171": ["Gagarin", "加加琳"],
     "H172": ["Pumpkin Pixie Layla", "南瓜鬼怪莱拉"],
-    #"H173": ["Chrono Agent Aoi"],
+    "H173": ["Chrono Agent Aoi", "时界巡者Aoi"],
     "H174": ["Cheerleader Berrica", "啦啦队蓓蕾卡"],
     "H175": ["Junior Innkeeper Silbal", "小女将希蓓尔"],
     "H176": ["Sweetheart Dawn", "蜜茶多恩"],
@@ -309,7 +309,7 @@ BOND = {
     "A0204": ["Desperate Desire", "迫切的激情"],
     "A0207": ["Bashful Proof", "羞涩的实证"],
     "A0210": ["Candid Affection", "坦率的恋慕"],
-    #"A0213": ["A0213"],
+    "A0213": ["Submissive Nemesis", "顺服的劲敌"],
     "A0219": ["Breakthrough Attempt", "突破的尝试"],
     "A0222": ["Backstreet Friction", "暗巷的交锋"],
     "A0231": ["Treacherous Snare", "不义的陷阱"],
@@ -335,7 +335,7 @@ BOND = {
     "A0317": ["Hidden Passion", "隐藏的炽热"],
     "A0320": ["Covert Strategy", "秘密的战略"],
     "A0332": ["Reckless Temptation", "狂放的禁果"],
-    #"A0335": ["A0335"],
+    "A0335": ["Provocative Reversal", "逆转的撩拨"],
     "A0338": ["Fervent Cheer", "热烈的声援"],
     "A0341": ["Winter Night's Chime", "雪夜的铃声"],
     "A0344": ["A Sweet Confection", "特制的甜点"],
