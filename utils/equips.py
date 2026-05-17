@@ -210,8 +210,10 @@ def load_equip(db_path='data.db'):
             SELECT * FROM equip_templates WHERE orphan >= ? AND coherence >= ?
         ''', (MIN_ORPHAN, MIN_COHERENCE)).fetchall()
         conn.close()
+        print(f'共加载 {len(rows)} 套装备模板！')
     except Exception:
         # Return empty index if table doesn't exist
+        print(f'装备模板表不存在，请先运行 9 收集装备模板！')
         return defaultdict(list)
     # Load equip_type, set, and main_prop
     index = defaultdict(list)

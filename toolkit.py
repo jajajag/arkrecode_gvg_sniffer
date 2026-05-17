@@ -530,6 +530,8 @@ def run_pvp_update(aid, session_id, week):
 
 # 更新前20名佣兵团的防守数据
 def run_gvg_update(aid, session_id, cuid):
+    num_def = input('请输入要查询的前排团战防守（最多前20，0则跳过）：').strip()
+    num_def = int(num_def) if str(num_def).isdigit() else 20
     payload = {
         'data': {
             'AID': aid,
@@ -544,7 +546,7 @@ def run_gvg_update(aid, session_id, cuid):
         return
     guilds = data['GuildWarCampaignInfoList']
     # Query for the top 20 guilds
-    for i in range(20):
+    for i in range(min(num_def, len(guilds))):
         print(f'正在查询第{i + 1}名佣兵团的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
