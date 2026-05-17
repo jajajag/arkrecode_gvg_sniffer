@@ -1,5 +1,5 @@
-from equips.equip_matcher import match_equip # 装备模板文件来源于蜜娜
-from utils.analyzer import analyze_guild, analyze_defence
+from utils.analyzer import analyze_guild, analyze_defence_db
+from utils.equips import save_pvp_equips, update_equip_templates, match_equip
 from utils.exporter import export_report
 from utils.printer import print_report
 from utils.helper import PICKUP, LV
@@ -21,7 +21,7 @@ headers = {
 
 def load_accounts():
     if not os.path.exists('accounts.json'):
-        print('请参考utils/accounts_example.json创建accounts.json！')
+        print('请参考scripts/accounts_example.json创建accounts.json！')
         exit()
     with open('accounts.json', 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -53,7 +53,7 @@ def choose_action():
         '刷亲密度',
         '查询团战数据',
         '查询团战总结',
-        '查询团战防守',
+        '查询团战防守（更新装备模板）',
         '退出'
     ]
 
@@ -138,8 +138,6 @@ def run_secret(aid, session_id, secret_data):
         {'Count': 5, 'StaticID': '5'},
         {'Count': 50, 'StaticID': '6'},
     ]
-    # LV85 equipments
-    equip_list = {'E010', 'E016', 'E022', 'E028', 'E034'}
     payload_refresh = {
         'data': {
             'StoreID': 'SecretShop',
@@ -162,9 +160,7 @@ def run_secret(aid, session_id, secret_data):
             item = record['DropResult']['Items'][0]
             # Skip if neither in buy_list nor a desired equipment
             if not (('Item' in item and item['Item'] in buy_list) or
-                    ('Equipment' in item and item['Equipment']['ClassLV'] >= 4
-                     and item['Equipment']['StaticID'][:4] in equip_list
-                     and match_equip(item['Equipment'], is_gold=True))):
+                    ('Equipment' in item and match_equip(item['Equipment']))):
                 continue
             payload_buy['data']['Record']['_id'] = record['_id']['$oid']
             payload_buy['data']['Record']['StaticID'] = record['StaticID']
@@ -328,8 +324,7 @@ def run_rainbow(aid, session_id):
             data = send(payload)
             payload['route'] = 'CustomEquipHandler.RefreshEquip'
             equips = data['Data']['CustomEquipDropList']
-            equips = [e['Equipment'] for e in equips]
-            found = [match_equip(e, is_gold=False) for e in equips]
+            found = [match_equip(e['Equipment']) for e in equips]
             if found := [e for e in found if e]:
                 print(*found, sep='\n')
                 choice = input('找到极品装备！是否继续刷新？(y/N)：').strip()
@@ -514,9 +509,27 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     except Exception:
         print('查询失败：未加入佣兵团，未开启团战，或佣兵团 GID 错误！')
 
-def run_guild_defence(aid, session_id, cuid):
-    num_def = input('请输入要查询的前排团战防守（最多前20）：').strip()
-    num_def = int(num_def) if str(num_def).isdigit() else 20
+# 更新前100名玩家的竞技场装备数据
+def run_pvp_update(aid, session_id, week):
+    payload = {
+        'data': {
+            'Week': week,
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'PVPHandler.GetPVPRankList'
+    }
+    try:
+        print('正在更新装备数据...')
+        data = send(payload)
+    except Exception:
+        print('查询失败：排名可能在结算中！')
+        return
+    save_pvp_equips(data)
+    print('装备数据更新完成！')
+
+# 更新前20名佣兵团的防守数据
+def run_gvg_update(aid, session_id, cuid):
     payload = {
         'data': {
             'AID': aid,
@@ -530,12 +543,19 @@ def run_guild_defence(aid, session_id, cuid):
         print('查询失败：未加入佣兵团！')
         return
     guilds = data['GuildWarCampaignInfoList']
-    for i in range(min(num_def, len(guilds))):
+    # Query for the top 20 guilds
+    for i in range(20):
         print(f'正在查询第{i + 1}名佣兵团的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
-        analyze_defence(aid, session_id, cuid, rows)
+        analyze_defence_db(aid, session_id, cuid, rows)
     print('防守数据查询完成！')
+
+# 更新竞技场和团战数据（同时更新装备模板）
+def run_gvg_pvp_update(aid, session_id, cuid, week):
+    run_pvp_update(aid, session_id, week)
+    update_equip_templates()
+    run_gvg_update(aid, session_id, cuid)
 
 def main():
     accounts = load_accounts()
@@ -575,6 +595,8 @@ def main():
     pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
     # 8
     guild_data = {'GuildData': data.get('GuildData', {})}
+    # 9
+    week = data['PVPData']['PVPRankInfo']['RankWeek']
 
     while (action := choose_action()) != 0:
         actions = {
@@ -594,8 +616,8 @@ def main():
             7: lambda: run_guild_data(aid, session_id),
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
-            # 查询团战防守
-            9: lambda: run_guild_defence(aid, session_id, cuid),
+            # 查询团战防守（更新装备模板）
+            9: lambda: run_gvg_pvp_update(aid, session_id, cuid, week),
         }
         actions.get(action, lambda: None)()
 

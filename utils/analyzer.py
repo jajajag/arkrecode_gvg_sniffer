@@ -15,6 +15,7 @@ headers = {
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
 }
 
+# 1. 团战总结
 def analyze_guild(data, aid, session_id, save_csv=True):
     if 'GuildWarData' in data: # 从自己公会查询
         plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
@@ -82,38 +83,21 @@ def parse_battle_logs(logs, cuid, name):
         if item['AttackerPlayerInfo']['CUID'] == cuid:
             is_attack = True
             win = item['AttackerResult']['Result']
-            # Check self guild
-            if 'GuildSubInfo' in item['AttackerPlayerInfo']:
-                guild = item['AttackerPlayerInfo']['GuildSubInfo']['Name']
-            else:
-                guild = ''
+            guild = item['AttackerPlayerInfo'].get(
+                    'GuildSubInfo', {}).get('Name', '')
             enemy_name = item['DefenderPlayerInfo']['Name']
             enemy_cuid = item['DefenderPlayerInfo']['CUID']
-            # Check enemy guild
-            if 'GuildSubInfo' in item['DefenderPlayerInfo']:
-                enemy_guild = item['DefenderPlayerInfo']['GuildSubInfo']['Name']
-            else:
-                enemy_guild = ''
+            enemy_guild = item['DefenderPlayerInfo'].get(
+                    'GuildSubInfo', {}).get('Name', '')
         else:
             is_attack = False
             win = item['DefenderResult']['Result']
-            if 'GuildSubInfo' in item['DefenderPlayerInfo']:
-                guild = item['DefenderPlayerInfo']['GuildSubInfo']['Name']
-            else:
-                guild = ''
+            guild = item['DefenderPlayerInfo'].get(
+                    'GuildSubInfo', {}).get('Name', '')
             enemy_name = item['AttackerPlayerInfo']['Name']
             enemy_cuid = item['AttackerPlayerInfo']['CUID']
-            if 'GuildSubInfo' in item['AttackerPlayerInfo']:
-                enemy_guild = item['AttackerPlayerInfo']['GuildSubInfo']['Name']
-            else:
-                enemy_guild = ''
-
-        if win == 'Win':
-            win = 2
-        elif win == 'Lose':
-            win = 0
-        else:
-            win = 1
+            enemy_guild = item['AttackerPlayerInfo'].get(
+                    'GuildSubInfo', {}).get('Name', '')
 
         rows.append({
             'date': dt_str,
@@ -121,7 +105,7 @@ def parse_battle_logs(logs, cuid, name):
             'name': name,
             'is_attack': is_attack,
             'battle_id': battle_id,
-            'win': win,
+            'win': {'Lose': 0, 'Draw': 1, 'Win': 2}[win],
             'guild': guild,
             'enemy_cuid': enemy_cuid,
             'enemy_name': enemy_name,
@@ -145,8 +129,9 @@ def analyze_hit(aid, session_id, cuid, battle_id):
     resp.encoding = 'utf-8'
     return resp.json()
 
-def analyze_defence(aid, session_id, cuid, rows):
-    filename, seen, new_rows = '团战防守.csv', set(), []
+# 2. 团战防守（csv）
+def analyze_defence_csv(aid, session_id, cuid, rows, filename='团战防守.csv'):
+    seen, new_rows = set(), []
 
     if os.path.exists(filename):
         with open(filename, 'r', encoding='utf-8-sig') as f:
@@ -154,11 +139,35 @@ def analyze_defence(aid, session_id, cuid, rows):
                 seen.add(r['battle_id'])
 
     for row in rows:
-        if row['is_attack']: continue
+        #if row['is_attack']: continue
         if row['battle_id'] in seen: continue
         try:
             logs = analyze_hit(aid, session_id, cuid, row['battle_id'])
-            new_rows += parse_def_logs(logs)
+            # Parse logs to extract team compositions and battle results
+            for r in parse_def_logs(logs):
+                # Pad teams to ensure they have 3 members
+                atk_team = (r['atk_team'] + [{}] * 3)[:3]
+                def_team = (r['def_team'] + [{}] * 3)[:3]
+                new_rows.append({
+                    'date': datetime.fromtimestamp(r['start_ts'] / 1000,
+                        tz=timezone.utc).strftime('%Y-%m-%d'),
+                    'atk_1': get_role(atk_team[0].get('role_id', '')),
+                    'atk_2': get_role(atk_team[1].get('role_id', '')),
+                    'atk_3': get_role(atk_team[2].get('role_id', '')),
+                    'def_1': get_role(def_team[0].get('role_id', '')),
+                    'def_2': get_role(def_team[1].get('role_id', '')),
+                    'def_3': get_role(def_team[2].get('role_id', '')),
+                    'win': r['win'],
+                    'dead': ''.join(str(i) for i, u in enumerate(
+                        def_team[:3] + atk_team[:3], start=1) if u.get('dead')),
+                    'atk_cuid': r['atk_cuid'],
+                    'atk_name': r['atk_name'],
+                    'atk_guild': r['atk_guild'],
+                    'def_cuid': r['def_cuid'],
+                    'def_name': r['def_name'],
+                    'def_guild': r['def_guild'],
+                    'battle_id': r['battle_id'],
+                })
             seen.add(row['battle_id'])
         except Exception as e:
             print(f"battle {row['battle_id']} 获取失败: {e}")
@@ -175,68 +184,122 @@ def analyze_defence(aid, session_id, cuid, rows):
         if not f.tell():
             w.writeheader()
         w.writerows(new_rows)
-        print(f'Saved: {filename} (rows={len(new_rows)})')
 
-    return new_rows
+    print(f'Saved: {filename} (rows={len(new_rows)})')
+
+# 3. 团战防守（db）
+def analyze_defence_db(aid, session_id, cuid, rows, db_path='data.db'):
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+    # Create table for single battle
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS gvg_rounds (
+            battle_id TEXT, round_idx INTEGER, start_ts INTEGER,
+            atk_cuid INTEGER, atk_name TEXT, atk_guild TEXT,
+            def_cuid INTEGER, def_name TEXT, def_guild TEXT,
+            win INTEGER, PRIMARY KEY (battle_id, round_idx)
+        )
+    ''')
+    # Create table for units in each battle
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS gvg_units (
+            battle_id TEXT, round_idx INTEGER, side TEXT, pos INTEGER,
+            role_id TEXT, star INTEGER, awaken INTEGER, imprint INTEGER,
+            dead INTEGER, PRIMARY KEY (battle_id, round_idx, side, pos)
+        )
+    ''')
+
+    for row in rows:
+        #if row['is_attack']: continue
+        battle_id = row['battle_id']
+        # Check if battle_id already exists in DB
+        exists = conn.execute(
+                'SELECT 1 FROM gvg_rounds WHERE battle_id = ? LIMIT 1',
+                (battle_id,)).fetchone()
+        if exists: continue
+        try:
+            logs = analyze_hit(aid, session_id, cuid, battle_id)
+            parsed_rows = parse_def_logs(logs)
+            for r in parsed_rows:
+                # Insert battle info
+                conn.execute('''
+                    INSERT OR IGNORE INTO gvg_rounds (
+                        battle_id, round_idx, start_ts, atk_cuid, atk_name,
+                        atk_guild, def_cuid, def_name, def_guild, win
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    r['battle_id'], r['round_idx'], r['start_ts'],
+                    r['atk_cuid'], r['atk_name'], r['atk_guild'],
+                    r['def_cuid'], r['def_name'], r['def_guild'], int(r['win'])
+                ))
+                for side, team in [('atk', r['atk_team']),
+                                   ('def', r['def_team'])]:
+                    for unit in team:
+                        # Insert unit info
+                        conn.execute('''
+                            INSERT OR IGNORE INTO gvg_units (
+                                battle_id, round_idx, side, pos,
+                                role_id, star, awaken, imprint, dead
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', (
+                            r['battle_id'], r['round_idx'], side, unit['pos'],
+                            unit['role_id'], unit['star'], unit['awaken'],
+                            unit['imprint'], int(unit['dead'])
+                        ))
+            conn.commit()
+        except Exception as e:
+            print(f"battle {battle_id} 获取失败: {e}")
+    conn.close()
+    print(f'Saved to DB: {db_path}')
 
 def parse_def_logs(logs):
     logs, rows = logs['Logs'][0], []
 
-    ts = logs['StartTime']['$date']
-    dt_utc = datetime.fromtimestamp(ts / 1000, tz=timezone.utc)
-    dt_str = dt_utc.strftime('%Y-%m-%d')
+    battle_id = logs['_id']['$oid']
+    start_ts = logs['StartTime']['$date']
 
     atker = logs['AttackerPlayerInfo']
-    defer = logs['DefenderPlayerInfo']
     atk_cuid = atker['CUID']
     atk_name = atker['Name']
-    atk_guild = atker['GuildSubInfo']['Name'] if 'GuildSubInfo' in atker else ''
+    atk_guild = atker.get('GuildSubInfo', {}).get('Name', '')
+    defer = logs['DefenderPlayerInfo']
     def_cuid = defer['CUID']
     def_name = defer['Name']
-    def_guild = defer['GuildSubInfo']['Name'] if 'GuildSubInfo' in defer else ''
+    def_guild = defer.get('GuildSubInfo', {}).get('Name', '')
 
-    for item in logs['EndDatas']:
-        camp1 = item['StartBattleInfo']['CampData1']['PositionRoleMap']
-        camp2 = item['StartBattleInfo']['CampData2']['PositionRoleMap']
-        atk_roles = sorted(camp1.values(), key=lambda x: x['StaticID'])
-        def_roles = sorted(camp2.values(), key=lambda x: x['StaticID'])
-        # Pad with empty roles if less than 3
-        padding = {'StaticID': '', '_id': {'$oid': ''}}
-        atk_roles = atk_roles + [padding] * (3 - len(atk_roles))
-        def_roles = def_roles + [padding] * (3 - len(def_roles))
+    for round_idx, item in enumerate(logs['EndDatas'], start=1):
+        battle_info = item['StartBattleInfo']
+        camp1 = battle_info['CampData1']['PositionRoleMap']
+        camp2 = battle_info['CampData2']['PositionRoleMap']
 
-        dead_ids, dead = set(), []
-        if 'Camp1DeadList' in item:
-            dead_ids.update(item['Camp1DeadList'])
-        if 'Camp2DeadList' in item:
-            dead_ids.update(item['Camp2DeadList'])
-        for i, role in enumerate(def_roles, start=1):
-            if role['_id']['$oid'] in dead_ids:
-                dead.append(str(i))
-        for i, role in enumerate(atk_roles, start=4):
-            if role['_id']['$oid'] in dead_ids:
-                dead.append(str(i))
+        dead_ids = set(item.get('Camp1DeadList', []))
+        dead_ids.update(item.get('Camp2DeadList', []))
 
-        win = True if item['Result'] == 'Win' else False
-        battle_id = logs['_id']['$oid']
+        atk_team, def_team = [
+            sorted([{
+                    'pos': int(pos),
+                    'role_id': role['StaticID'],
+                    'star': role['Star'],
+                    'awaken': role['AwakenLV'],
+                    'imprint': role['ImprintLV'],
+                    'dead': role['_id']['$oid'] in dead_ids,
+                } for pos, role in camp.items()
+            ], key=lambda x: x['pos']) for camp in (camp1, camp2)
+        ]
 
         rows.append({
-            'date': dt_str,
-            'def_1': get_role(def_roles[0]['StaticID']),
-            'def_2': get_role(def_roles[1]['StaticID']),
-            'def_3': get_role(def_roles[2]['StaticID']),
-            'atk_1': get_role(atk_roles[0]['StaticID']),
-            'atk_2': get_role(atk_roles[1]['StaticID']),
-            'atk_3': get_role(atk_roles[2]['StaticID']),
-            'win': win,
-            'dead': ''.join(dead),
-            'def_cuid': def_cuid,
-            'def_name': def_name,
-            'def_guild': def_guild,
+            'battle_id': battle_id,
+            'round_idx': round_idx,
+            'start_ts': start_ts,
             'atk_cuid': atk_cuid,
             'atk_name': atk_name,
             'atk_guild': atk_guild,
-            'battle_id': battle_id,
+            'atk_team': atk_team,
+            'def_cuid': def_cuid,
+            'def_name': def_name,
+            'def_guild': def_guild,
+            'def_team': def_team,
+            'win': item['Result'] == 'Win',
         })
 
     return rows

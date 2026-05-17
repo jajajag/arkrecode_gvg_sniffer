@@ -2,3 +2,4 @@
 *.csv
 *.swp
 accounts.json
+data.db
