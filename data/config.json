@@ -1,0 +1,21 @@
+{
+  "catalog": {
+    "catalog_name": "catalog_112447",
+    "url": "https://erdpu.gzxhcjz.com/GamePatch/Android/catalog_112447.json"
+  },
+  "master_db": {
+    "catalog_name": "catalog_112447",
+    "files": [
+      {
+        "path": "data/staticdata/catalog_112447/staticdata_1010111d0d4f010bbd28e8b610be04cc.bundle",
+        "size": 2405597,
+        "mtime_ns": 1780385843420314400
+      },
+      {
+        "path": "data/staticdata/catalog_112447/text_bf56bf649a4b147556c59cf7f3bf32f8.bundle",
+        "size": 31466404,
+        "mtime_ns": 1780385843229580800
+      }
+    ]
+  }
+}

@@ -26,6 +26,7 @@ CATALOG_DIR = DATA_DIR / "catalogs"
 STATICDATA_DIR = DATA_DIR / "staticdata"
 CONFIG = DATA_DIR / "config.json"
 DEFAULT_EXTS = (".bundle", ".unity3d", ".assets", ".ab", "")
+TEXT_TABLES = {"CHS", "CHT", "DEU", "ENG", "FRA", "JPN", "KOR", "SPA", "THA", "VIE"}
 
 
 def _qident(name: str) -> str:
@@ -257,6 +258,8 @@ def _extract_file(path: Path, conn: sqlite3.Connection, seen_tables: dict[str, i
         try:
             data = obj.read()
             asset_name = _clean_ident(getattr(data, "m_Name", ""), f"textasset_{obj.path_id}")
+            if asset_name in TEXT_TABLES and asset_name != "CHS":
+                continue
             columns, rows = _parse_table(_safe_text(getattr(data, "m_Script", "")))
             if not columns and not rows:
                 continue
@@ -319,11 +322,11 @@ def build_master_db(
             try:
                 tables, rows = _extract_file(path, conn, seen_tables)
                 if tables:
-                    print(f"{path}: {tables} tables, {rows} rows")
+                    print(f"已读取 staticdata：{path.name}（{tables}表 / {rows}行）")
                 total_tables += tables
                 total_rows += rows
             except Exception as exc:
-                print(f"WARN: skipped {path}: {exc}")
+                print(f"WARN: skipped {path.name}: {exc}")
         conn.commit()
     finally:
         conn.close()
@@ -335,7 +338,7 @@ def build_master_db(
     config["master_db"] = fingerprint
     _save_config(config)
     build_master_data(out_path, MASTER_DATA)
-    print(f"Done: wrote {total_tables} tables / {total_rows} rows -> {out_path}")
+    print(f"完成：写入 {total_tables} 表 / {total_rows} 行 -> {out_path.name}")
     return total_tables, total_rows
 
 
