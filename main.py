@@ -1,6 +1,6 @@
 import json
 import threading
-from utils.analyzer import analyze_guild
+from utils.analyzer import analyze_gvg
 from utils.printer import print_report
 
 flag = True
@@ -34,7 +34,7 @@ def process(flow):
     # 进佣兵团则进行团战总结，否则打印PVP数据
     if req.get("route") == "GuildWarHandler.QueryFullGuildWarData":
         if not flag: return # 只打印一次
-        threading.Thread(target=analyze_guild, 
+        threading.Thread(target=analyze_gvg, 
                          args=(data, req['data']['AID'], 
                                req['data']['SessionID'],),
                          daemon=True).start()

@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
-from .helper import *
 import csv
-import json
 import os
 import random
 import requests
@@ -16,7 +14,7 @@ headers = {
 }
 
 # 1. 团战总结
-def analyze_guild(data, aid, session_id, save_csv=True):
+def analyze_gvg(data, aid, session_id, save_csv=True):
     if 'GuildWarData' in data: # 从自己公会查询
         plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
         guild_name = data['GuildWarData']['MyCampData']['GuildInfo']['Name']
@@ -45,8 +43,9 @@ def analyze_guild(data, aid, session_id, save_csv=True):
 
     # CSV filename
     dt_str = datetime.now().strftime('%Y-%m-%d')
-    filename = f'{dt_str} {guild_name}团战总结.csv'
+    filename = os.path.join('data', f'{dt_str} {guild_name}团战总结.csv')
     if save_csv:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'w', newline='', encoding='utf-8-sig') as fp:
             w = csv.DictWriter(fp, fieldnames=fieldnames)
             w.writeheader()
@@ -114,81 +113,8 @@ def parse_battle_logs(logs, cuid, name):
 
     return rows
 
-def analyze_hit(aid, session_id, cuid, battle_id):
-    payload = {
-        'data': {
-            'TargetCUID': cuid,
-            'TargetID': battle_id,
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'GuildWarHandler.QueryGuildWarBattleLogByID'
-    }
-    time.sleep(random.uniform(1, 2))
-    resp = requests.post(url, json=payload, headers=headers, verify=False)
-    resp.encoding = 'utf-8'
-    return resp.json()
-
-# 2. 团战防守（csv）
-def analyze_defence_csv(aid, session_id, cuid, rows, filename='团战防守.csv'):
-    seen, new_rows = set(), []
-
-    if os.path.exists(filename):
-        with open(filename, 'r', encoding='utf-8-sig') as f:
-            for r in csv.DictReader(f):
-                seen.add(r['battle_id'])
-
-    for row in rows:
-        #if row['is_attack']: continue
-        if row['battle_id'] in seen: continue
-        try:
-            logs = analyze_hit(aid, session_id, cuid, row['battle_id'])
-            # Parse logs to extract team compositions and battle results
-            for r in parse_def_logs(logs):
-                # Pad teams to ensure they have 3 members
-                atk_team = (r['atk_team'] + [{}] * 3)[:3]
-                def_team = (r['def_team'] + [{}] * 3)[:3]
-                new_rows.append({
-                    'date': datetime.fromtimestamp(r['start_ts'] / 1000,
-                        tz=timezone.utc).strftime('%Y-%m-%d'),
-                    'atk_1': get_role(atk_team[0].get('role_id', '')),
-                    'atk_2': get_role(atk_team[1].get('role_id', '')),
-                    'atk_3': get_role(atk_team[2].get('role_id', '')),
-                    'def_1': get_role(def_team[0].get('role_id', '')),
-                    'def_2': get_role(def_team[1].get('role_id', '')),
-                    'def_3': get_role(def_team[2].get('role_id', '')),
-                    'win': r['win'],
-                    'dead': ''.join(str(i) for i, u in enumerate(
-                        def_team[:3] + atk_team[:3], start=1) if u.get('dead')),
-                    'atk_cuid': r['atk_cuid'],
-                    'atk_name': r['atk_name'],
-                    'atk_guild': r['atk_guild'],
-                    'def_cuid': r['def_cuid'],
-                    'def_name': r['def_name'],
-                    'def_guild': r['def_guild'],
-                    'battle_id': r['battle_id'],
-                })
-            seen.add(row['battle_id'])
-        except Exception as e:
-            print(f"battle {row['battle_id']} 获取失败: {e}")
-
-    # Sort rows by date
-    new_rows.sort(key=lambda x: (x['date'], x['battle_id']))
-    fieldnames = ['date', 'def_1', 'def_2', 'def_3', 'atk_1', 'atk_2', 'atk_3',
-                  'win', 'dead', 'def_cuid', 'def_name', 'def_guild',
-                  'atk_cuid', 'atk_name', 'atk_guild', 'battle_id']
-
-    # CSV filename
-    with open(filename, 'a', newline='', encoding='utf-8-sig') as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames)
-        if not f.tell():
-            w.writeheader()
-        w.writerows(new_rows)
-
-    print(f'Saved: {filename} (rows={len(new_rows)})')
-
-# 3. 团战防守（db）
-def analyze_defence_db(aid, session_id, cuid, rows, db_path='data.db'):
+# 2. 团战防守
+def analyze_gvg_defence(aid, session_id, cuid, rows, db_path='data/data.db'):
     import sqlite3
     conn = sqlite3.connect(db_path)
     # Create table for single battle
@@ -252,6 +178,21 @@ def analyze_defence_db(aid, session_id, cuid, rows, db_path='data.db'):
     conn.close()
     print(f'Saved to DB: {db_path}')
 
+def analyze_hit(aid, session_id, cuid, battle_id):
+    payload = {
+        'data': {
+            'TargetCUID': cuid,
+            'TargetID': battle_id,
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'GuildWarHandler.QueryGuildWarBattleLogByID'
+    }
+    time.sleep(random.uniform(1, 2))
+    resp = requests.post(url, json=payload, headers=headers, verify=False)
+    resp.encoding = 'utf-8'
+    return resp.json()
+
 def parse_def_logs(logs):
     logs, rows = logs['Logs'][0], []
 
@@ -303,3 +244,73 @@ def parse_def_logs(logs):
         })
 
     return rows
+
+# 3. 竞技场装备总结
+def analyze_pvp_equips(data, db_path='data/data.db'):
+    import sqlite3
+    conn = sqlite3.connect(db_path)
+
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS pvp_equips (
+            equip_id TEXT PRIMARY KEY, cuid INTEGER, player_name TEXT,
+            equip_type TEXT, static_id TEXT, set_name TEXT,
+            class_lv INTEGER, lv INTEGER, main_prop TEXT, main_value REAL,
+            sub1_prop TEXT, sub1_value REAL, sub2_prop TEXT, sub2_value REAL,
+            sub3_prop TEXT, sub3_value REAL, sub4_prop TEXT, sub4_value REAL
+        )
+    ''')
+    # 1. Go through players' defence teams
+    for item in data['PVPRankInfoList']:
+        player_info = item['PlayerInfo']
+        cuid = player_info['CUID']
+        player_name = player_info['Name']
+
+        role_map = item['PVPInfo']['DefenceTeam']['PositionRoleMap']
+
+        # 2. Go through roles
+        for role in role_map.values():
+            equip_map = role.get('EquipmentMap', {})
+
+            # 3. Go through equipments
+            for equip_type, equip in equip_map.items():
+                equip_id = equip['_id']['$oid']
+
+                new_lv = equip['LV']
+                old_lv = conn.execute(
+                    'SELECT lv FROM pvp_equips WHERE equip_id = ?',
+                    (equip_id,)
+                ).fetchone()
+                # Skip if existing record has same or higher level
+                if old_lv and new_lv <= old_lv[0]:
+                    continue
+
+                main_prop = equip['MainProp']
+                # Pad subprops to ensure we have 4 entries
+                subprops = equip['SubProps']['SourceValues']
+                subprops = (subprops + [{}] * 4)[:4]
+
+                conn.execute('''
+                    INSERT OR REPLACE INTO pvp_equips (
+                        equip_id, cuid, player_name, equip_type, static_id,
+                        set_name, class_lv, lv, main_prop, main_value,
+                        sub1_prop, sub1_value, sub2_prop, sub2_value,
+                        sub3_prop, sub3_value, sub4_prop, sub4_value
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (
+                    equip_id, cuid, player_name, equip_type,
+                    equip['StaticID'], equip['Set'], equip['ClassLV'], new_lv,
+                    main_prop['PropertyType'], main_prop['Value'],
+                    subprops[0].get('PropertyType', ''),
+                    subprops[0].get('Value', 0),
+                    subprops[1].get('PropertyType', ''),
+                    subprops[1].get('Value', 0),
+                    subprops[2].get('PropertyType', ''),
+                    subprops[2].get('Value', 0),
+                    subprops[3].get('PropertyType', ''),
+                    subprops[3].get('Value', 0),
+                ))
+
+    conn.commit()
+    conn.close()
+
+    print(f'Saved PVP equips to DB: {db_path}')

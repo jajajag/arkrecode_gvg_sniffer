@@ -54,7 +54,7 @@ pip install pycryptodome
 
 2. 运行```mitmweb -p 1825```打开游戏抓取一次```refreshToken```（仅需执行一次）
 
-3. 参考```utils/accounts_example.json```配置```accounts.json```，并放到项目目录下
+3. 参考```data/accounts_example.json```配置```data/accounts.json```
 
 4. 运行工具集```python3 toolkit.py```
 

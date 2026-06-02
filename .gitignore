@@ -3,3 +3,8 @@
 *.swp
 accounts.json
 data.db
+/data/catalogs
+data/master.json
+/data/staticdata
+data/master.db
+data/config.json

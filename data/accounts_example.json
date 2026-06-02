@@ -6,7 +6,7 @@
   },
   {
     "name": "账号2（自己填）",
-    "refreshToken": "或者直接运行mitmdump -p 1825 -s "scripts/fetch_token.py" --quiet打印Token",
+    "refreshToken": "或者直接运行mitmdump -p 1825 -s 'scripts/fetch_token.py' --quiet打印Token",
     "DeviceID": "..."
   }
 ]

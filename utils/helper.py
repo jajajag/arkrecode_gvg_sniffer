@@ -1,443 +1,428 @@
-# First level npc -> 0, second level npc -> 1, etc.
-PICKUP, LV = "H173", 3
+from __future__ import annotations
 
-# https://arkrecodewiki.miraheze.org/wiki/Members/Infotable
-ROLE = {
-    "H001": ["Shani", "夏妮"],
-    "H002": ["Feliz", "菲莉斯"],
-    "H003": ["Noclyn", "诺可琳"],
-    "H004": ["Rosalie", "萝莎莱"],
-    "H005": ["Naranthir", "奈兰希尔"],
-    "H006": ["Lucia", "璐茜娅"],
-    "H007": ["Ariel", "艾瑞儿"],
-    "H008": ["Hestia", "赫赛迪雅"],
-    "H009": ["Rafael", "菈法瑞"],
-    "H010": ["Janis", "吉妮兹"],
-    "H011": ["Erica", "爱莉卡"],
-    "H012": ["Theresa", "泰里莎"],
-    "H013": ["Gaeta", "盖妲"],
-    "H014": ["Celeste", "莎莉丝特"],
-    "H015": ["Dawn", "多恩"],
-    "H016": ["Apathy", "埃帕蒂"],
-    "H017": ["Preema", "普利蔓"],
-    "H018": ["Odea", "奥德雅"],
-    "H019": ["Claire", "克莱儿"],
-    "H020": ["Bernice", "柏妮丝"],
-    "H021": ["Clone Janis", "复制体吉妮兹"],
-    "H022": ["Jocelyn", "乔瑟琳"],
-    "H023": ["Divergent Opaeni", "异变的奥普怀妮"],
-    "H024": ["Divergent Apathy", "异变的埃帕蒂"],
-    "H025": ["Lucima", "璐茜玛"],
-    "H026": ["Carolyn", "卡洛琳"],
-    "H027": ["Opaeni", "奥普怀妮"],
-    "H028": ["Giselle", "吉赛尔"],
-    "H029": ["Joyce", "乔依丝"],
-    "H030": ["Julia", "茱莉亚"],
-    "H031": ["Matilda", "玛蒂尔达"],
-    "H032": ["Milian", "蜜丽恩"],
-    "H033": ["Ith", "伊娥丝"],
-    "H034": ["Galornia", "格萝妮娅"],
-    "H035": ["Dorin", "朵琳"],
-    "H036": ["Moira", "茉伊拉"],
-    "H037": ["Dildri", "迪尔德丽"],
-    "H038": ["Kothir", "寇希尔"],
-    "H039": ["Haluti", "哈鲁缇"],
-    "H040": ["Anheeun", "安熙恩"],
-    "H041": ["Eimi", "艾米"],
-    "H042": ["Kalici", "卡丽希"],
-    "H043": ["Bartholo", "芭索萝"],
-    "H044": ["Lina", "莉娜"],
-    "H045": ["Lottie", "洛蒂"],
-    "H046": ["Louis", "路易丝"],
-    "H047": ["Trist", "翠丝特"],
-    "H048": ["Clara", "克拉菈"],
-    "H049": ["Ermes", "艾乐莱思"],
-    "H050": ["Clone Carolyn", "复制体卡洛琳"],
-    "H051": ["Clone Bartholo", "复制体芭索萝"],
-    "H052": ["Clone Giselle", "复制体吉赛尔"],
-    "H053": ["Clone Matilda", "复制体玛蒂尔达"],
-    "H054": ["Clone Clara", "复制体克拉菈"],
-    "H055": ["Divergent Apostle", "异变的使徒"],
-    "H056": ["Clone Kalici", "复制体卡丽希"],
-    "H057": ["Vengeful Kothir", "复仇的寇希尔"],
-    "H058": ["Vengeful Louis", "复仇的路易丝"],
-    "H059": ["Clone Dildri", "复制体迪尔德丽"],
-    "H060": ["Apostle", "使徒"],
-    "H061": ["Berserk Galornia", "疯狂的格萝妮娅"],
-    "H062": ["Clone Joyce", "复制体乔依丝"],
-    "H063": ["Maeve", "梅芙"],
-    "H064": ["Silvina", "西尔维纳"],
-    "H065": ["Bonnie", "邦妮"],
-    "H066": ["Tracy", "翠西"],
-    "H067": ["Silbal", "希蓓尔"],
-    "H068": ["Patea", "派狄亚"],
-    "H069": ["Olga", "欧尔嘉"],
-    "H070": ["Vanessa", "瓦妮莎"],
-    "H071": ["Euphemia", "尤菲米亚"],
-    "H072": ["Mikael", "弥卡伊勒"],
-    "H073": ["Jen", "珍"],
-    "H074": ["Scarlett", "史嘉蕾"],
-    "H075": ["Lana", "拉娜"],
-    "H076": ["Rubi", "露比"],
-    "H077": ["Grace", "葛瑞丝"],
-    "H078": ["Altemia", "欧戴摩亚"],
-    "H079": ["Belyn", "贝琳"],
-    "H080": ["Ingloroe", "茵罗洛"],
-    "H081": ["Blossom", "布洛瑟姆"],
-    "H082": ["Tina", "缇娜"],
-    "H083": ["Queenie", "奎妮"],
-    "H084": ["Taya", "塔亚"],
-    "H085": ["Zaphael", "萨菲尔"],
-    "H086": ["Antiya", "安特亚"],
-    "H087": ["Yerica", "耶莉卡"],
-    "H088": ["Cindy", "辛狄"],
-    "H089": ["Pamela", "帕梅勒"],
-    "H090": ["Marsha", "玛夏"],
-    "H091": ["Petit", "皮提特"],
-    "H092": ["Financier", "费南雪"],
-    "H093": ["Katilda", "凯蒂达"],
-    "H094": ["Pantasia", "潘黛希亚"],
-    "H095": ["Hinorie", "希诺莉"],
-    "H096": ["Petra", "佩忒菈"],
-    "H097": ["Janice", "贾妮丝"],
-    "H098": ["Neva", "涅瓦"],
-    "H099": ["Layla", "莱拉"],
-    "H100": ["Taryn", "塔琳"],
-    "H101": ["Veritte", "维尔莉特"],
-    "H102": ["Mulier", "穆丽儿"],
-    "H103": ["Yibee", "伊比"],
-    "H104": ["Haleth", "华勒弗"],
-    "H105": ["Pennecus", "潘倪克思"],
-    "H106": ["Senica", "瑟妮卡"],
-    "H107": ["Runiata", "卢妮艾塔"],
-    "H108": ["Laiisma", "莱莎曼德"],
-    "H109": ["Heidi", "哈蒂"],
-    "H110": ["Gerrimore", "洁莉摩尔"],
-    "H111": ["Delina", "黛琳娜"],
-    "H112": ["Darlene", "玳莲"],
-    "H113": ["Felicia", "菲莉西娅"],
-    "H114": ["Olive", "奥丽芙"],
-    "H115": ["Shani in Despair", "绝望的夏妮"],
-    "H116": ["Guardian Ariel", "守护者艾瑞儿"],
-    "H117": ["Edalia", "厄德莱雅"],
-    "H118": ["Anastasia", "安泰西亚"],
-    "H119": ["Aoi Hinamori", "Aoi Hinamori"],
-    "H120": ["Drizella", "崔西里亚"],
-    "H121": ["Akaoni", "赤鬼伯伯"],
-    "H122": ["Cosma", "柯丝玛尔"],
-    "H123": ["Springtime Celeste", "新春的莎莉丝特"],
-    "H124": ["Aubrynn", "欧贝恩丝"],
-    "H125": ["Darlene the Radiant", "光明女神玳莲"],
-    "H126": ["Gail", "盖儿"],
-    "H127": ["Naksha", "纳克莎"],
-    "H128": ["Eva", "伊娃"],
-    "H129": ["Abyss", "亚毕丝"],
-    "H130": ["Seaside Noclyn", "碧海的诺可琳"],
-    "H131": ["Berrica", "蓓蕾卡"],
-    "H132": ["Nenookaasi", "妮诺楷西"],
-    "H133": ["Noah", "挪亚"],
-    "H134": ["Obsidian", "奥柏丝蒂恩"],
-    "H135": ["Bartoz", "巴尔托丝"],
-    "H136": ["Heroic", "赫萝薇克"],
-    "H137": ["Amamiya Sakuya", "天宫咲夜"],
-    "H138": ["Belle", "贝儿"],
-    "H139": ["Kumome", "蛛美"],
-    "H140": ["Chouko", "蝶子"],
-    "H141": ["Projekt Melody", "Projekt Melody"],
-    "H142": ["HongKongDoll", "HongKongDoll"],
-    "H143": ["Saika", "彩伽"],
-    "H144": ["Annin Miru", "杏仁ミル"],
-    "H145": ["Akane", "朱音"],
-    "H146": ["Christmas Mirabelle", "圣诞的蜜拉贝儿"],
-    "H147": ["Shinonome ft. Fang", "东云ft.坊桥夜泊"],
-    "H148": ["Springtime Mina", "新春的蜜娜"],
-    "H149": ["Radiant Vow Rubi", "璀璨誓约的露比"],
-    "H150": ["Radiant Vow Ith", "璀璨誓约的伊娥丝"],
-    "H151": ["Summertime Joyce", "夏日的乔依丝"],
-    "H152": ["Summertime Petra", "夏日的珮忒菈"],
-    "H153": ["Bunny Girl Erica", "兔女郎爱莉卡"],
-    #"H154": ["Gabriel"],
-    #"H155": ["Ramiel"],
-    "H156": ["Urd", "乌尔德"],
-    #"H157": ["Mandragora"],
-    #"H158": ["Rufina"],
-    #"H159": ["Jolanta"],
-    "H160": ["Chloe", "可伊"],
-    #"H161": ["Reborn Ith"],
-    "H162": ["Swimsuit Specter Janis", "泳池魅影吉妮兹"],
-    "H163": ["Redeemer Lucia", "归还者璐茜娅"],
-    #"H164": ["Tashmetum"],
-    "H165": ["Spider Lily Julia", "彼岸花茱莉亚"],
-    "H166": ["Shien", "紫烟"],
-    "H167": ["Neko Matsuri", "猫祭"],
-    "H168": ["Successor Mikael", "继任者弥卡伊勒"],
-    "H170": ["Sweet Dreams Anheeun", "甜蜜美梦安熙恩"],
-    "H171": ["Gagarin", "加加琳"],
-    "H172": ["Pumpkin Pixie Layla", "南瓜鬼怪莱拉"],
-    "H173": ["Chrono Agent Aoi", "时界巡者Aoi"],
-    "H174": ["Cheerleader Berrica", "啦啦队蓓蕾卡"],
-    "H175": ["Junior Innkeeper Silbal", "小女将希蓓尔"],
-    "H176": ["Sweetheart Dawn", "蜜茶多恩"],
-    "H177": ["Memoria Marsha", "追忆的玛夏"],
-    "H178": ["Noisy Star Heidi", "喧闹之星哈蒂"],
-    "H179": ["Combat Mechanic Trist", "重装助手翠丝特"],
-    "H180": ["Spirited Red Rabbit Bartholo", "烈酒赤兔芭索萝"],
-    #"H181": ["Resolute Lana"],
-    "H182": ["Mitsuki", "望月"],
-    #"H183": ["Mead"],
-    #"H184": ["Yuri"],
-    #"H185": ["Lucifer"],
-    #"H186": ["Little Devil Lottie"],
-    #"H187": ["Gorgeous Summer Flower Carolyn"],
-    #"H188": ["Yukie"],
-    #"H189": ["Speedy Silvina"],
-    #"H190": ["Milaka"],
-    #"H191": ["Noir"],
-    #"H192": ["Ephemeral Love Darlene"],
-    #"H193": ["Summer Breeze Giselle"],
-    #"H194": ["Christmas Dream Clara"],
-    #"H195": ["Celebration Queen Ermes"],
-    #"H196": ["Blazing Heart Rubi"],
-    #"H197": ["Rescue Angel Euphemia"],
-    #"H198": ["Enforcer Veritte"],
-    #"H199": ["Wanderer Apathy"],
-    #"H200": ["New Year's Wish Ingloroe"],
-    #"H201": ["Hope"],
-    #"H202": ["Anisdora"],
-    #"H203": ["Yonina"],
-    #"H204": ["Springtime Splendor Kalici"],
-    #"H205": ["Dusty"],
-    #"H206": ["Ongmaru"],
-    #"H207": ["Noble Lady"],
-    #"H208": ["Andromeda"],
-    "H601": ["Riria", "莉莉娅"],
-    #"H602": ["Mero"],
-    "H603": ["Kagura", "神乐"],
-    #"H604": ["Mizuki"],
-    #"H605": ["Shizuna"],
-    "H606": ["Luna", "露娜"],
-    #"H607": ["Joki"],
-    #"H608": ["Nina"],
-    #"H609": ["Icey"],
-    #"H610": ["Tiffany"],
-    #"H611": ["Natasha"],
-    "H612": ["Sora", "空"],
-    "H613": ["Saku", "咲"],
-    #"H614": ["Aurora"],
-    #"H804": ["Mina"],
-    #"H806": ["Mirabelle"],
-    "H809": ["Teddy Ith", "伊娥丝熊熊"],
-    "H810": ["Radiant Vow Teddy Ith", "璀璨誓约的伊娥丝熊熊"],
-    "H811": ["Teddy Lucia", "璐茜娅熊熊"],
+import json
+import math
+import re
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
+
+
+MASTER_JSON = Path("data/master.json")
+
+BASE = ("HP", "Attack", "Defence", "Speed")
+EXTRA = ("CriticalRate", "CriticalDamageRate", "EffectHitRate", "ResistanceRate", "PinchRate")
+STATS = (*BASE, *EXTRA)
+
+VALUE_PROP = {
+    "HPValue": "HP",
+    "AttackValue": "Attack",
+    "DefenceValue": "Defence",
+    "SpeedValue": "Speed",
+}
+RATE_PROP = {
+    "HPRate": "HP",
+    "AttackRate": "Attack",
+    "DefenceRate": "Defence",
+    "SpeedRate": "Speed",
+    "CriticalRate": "CriticalRate",
+    "CriticalDamageRate": "CriticalDamageRate",
+    "EffectHitRate": "EffectHitRate",
+    "ResistanceRate": "ResistanceRate",
+    "PinchRate": "PinchRate",
 }
 
-# https://arkrecodewiki.miraheze.org/wiki/Bonds/Infotable
-BOND = {
-    "A0001": ["Pleasure of Exploration", "驰骋的快感"],
-    "A0002": ["Blissful Moment", "幸福的时刻"],
-    "A0003": ["Lover's Portrait", "爱人的画像"],
-    "A0004": ["The Cruel Truth", "残酷的真相"],
-    "A0005": ["Altruistic Businessman", "忘利的商人"],
-    "A0006": ["Ferocity", "生猛的刺激"],
-    "A0007": ["Bondage and Control", "束缚与控制"],
-    "A0008": ["Gluttony's Price", "贪吃的后果"],
-    "A0009": ["The Real Lead", "真正的主角"],
-    "A0010": ["Endless Sampling", "无尽的采样"],
-    "A0011": ["Unforgettable Punishment", "难忘的惩罚"],
-    "A0012": ["Restraint and Indulgence", "拘束与放荡"],
-    "A0013": ["The Allure of the Toe Tip", "足尖的诱惑"],
-    "A0014": ["The Power of Passion", "热情的力量"],
-    "A0015": ["The Other Side of Calm", "冷静的反面"],
-    "A0016": ["Effective Treatment", "高效的治疗"],
-    "A0017": ["Idol's Heart", "偶像的心声"],
-    "A0018": ["Deep Kiss and Posterior", "深吻与后庭"],
-    "A0019": ["Backward Glance", "催促的回眸"],
-    "A0020": ["Unmanned Storefront", "无人的店面"],
-    "A0021": ["Hidden Affection", "潜藏的爱意"],
-    "A0022": ["The First Flutter", "初次的悸动"],
-    "A0023": ["Pleasure of Anticipation", "战前的欢愉"],
-    "A0024": ["Love's Resonance", "爱意的共鸣"],
-    "A0025": ["Rage and Desire", "狂暴与欲望"],
-    "A0026": ["Counterstroke", "强势的反扑"],
-    "A0027": ["Call of the Wild", "狂野的呼唤"],
-    "A0028": ["Necessary Enhancements", "必要的强化"],
-    "A0029": ["Loving Caress", "爱怜的疼惜"],
-    "A0030": ["Pleasure of Restraint", "压抑的愉悦"],
-    "A0031": ["A Mission of Kindness", "善意的委托"],
-    "A0032": ["More Than a Sample", "不只是取样"],
-    "A0033": ["Alluring Kitten", "诱人的猫咪"],
-    "A0034": ["An Inhuman Experience", "非人的体验"],
-    "A0035": ["Sharp-Tongued Pride", "毒舌的傲娇"],
-    "A0036": ["Passionate Treatment", "激情的治疗"],
-    "A0037": ["Corner of The Market", "市集的角落"],
-    "A0038": ["Waves of Arousal", "情动的浪潮"],
-    "A0039": ["Internet Famous", "网红的流量"],
-    "A0040": ["Unexpected Shyness", "意外的娇羞"],
-    "A0041": ["Princess' Desire", "公主的渴望"],
-    "A0042": ["Saintess' Secret", "圣女的秘密"],
-    "A0043": ["Stress Reliever", "纾压的管道"],
-    "A0044": ["Forest Clash", "密林的激战"],
-    "A0045": ["Glazed Eyes", "迷离的双眼"],
-    "A0046": ["A Little Pleasure", "小小的虐待"],
-    "A0047": ["Master and Pet", "主人与宠物"],
-    "A0048": ["Malicious Symbol", "恶毒的媚药"],
-    "A0049": ["In Vino", "酒醉的借口"],
-    "A0050": ["Sex Tape", "欢愉的影像"],
-    "A0051": ["Love Mark", "恩爱的抚痕"],
-    "A0052": ["Fallen Miracle", "堕落的奇迹"],
-    "A0053": ["Suggestive Tentacles", "暧昧的触手"],
-    "A0054": ["Frail Threat", "病娇的威胁"],
-    "A0055": ["Divine Frenzy", "神恩的狂热"],
-    "A0056": ["Sense Memory", "感官的记忆"],
-    "A0057": ["Secret Kink", "私密的癖好"],
-    "A0058": ["Just the Two of Us", "独处的心愿"],
-    "A0122": ["Succubus Incoming", "魅魔的逆袭"],
-    "A0125": ["Christmas Gift", "圣诞节礼物"],
-    "A0131": ["Novel Sensation", "新奇的感受"],
-    "A0142": ["Delicious Braised Meat", "美味的封肉"],
-    "A0153": ["Director's Mask", "部长的假面"],
-    "A0156": ["Pursuit of Perfection", "完美的渴求"],
-    "A0159": ["The Commander's Trade", "团长的交易"],
-    "A0160": ["The Jester's Invitation", "小丑的邀约"],
-    "A0162": ["Intoxicated Limbo", "醉与醒之间"],
-    "A0168": ["Sweet Contrast", "反差的甜美"],
-    "A0171": ["Sisterly Chemistry", "姐妹的默契"],
-    "A0174": ["Therapeutic Night Raid", "疗愈的夜袭"],
-    "A0177": ["Queen's Pastime", "女王的消遣"],
-    "A0192": ["Desire for Enhancement", "强化的渴望"],
-    "A0201": ["Reluctant Compromise", "挣扎的妥协"],
-    "A0204": ["Desperate Desire", "迫切的激情"],
-    "A0207": ["Bashful Proof", "羞涩的实证"],
-    "A0210": ["Candid Affection", "坦率的恋慕"],
-    "A0213": ["Submissive Nemesis", "顺服的劲敌"],
-    "A0219": ["Breakthrough Attempt", "突破的尝试"],
-    "A0222": ["Backstreet Friction", "暗巷的交锋"],
-    "A0231": ["Treacherous Snare", "不义的陷阱"],
-    "A0237": ["Cyber Clash", "赛博攻防战"],
-    "A0240": ["Exclusive Service", "专有的服务"],
-    "A0243": ["Bashful Plea", "羞涩的请求"],
-    "A0246": ["Breached Defenses", "失守的防线"],
-    "A0249": ["Domination and Submission", "征服与臣服"],
-    "A0252": ["Lonely Salvation", "寂寞的救赎"],
-    "A0257": ["Source of Inspiration", "灵感的来源"],
-    "A0260": ["Forbidden Passion", "激情的禁果"],
-    "A0263": ["Pristine Sincerity", "纯白的真心"],
-    "A0269": ["Honesty Training", "坦率训练课"],
-    "A0272": ["Sensual Sands", "热情的沙浴"],
-    "A0275": ["Secret Compensation", "私密的报答"],
-    "A0284": ["Breathless Domination", "窒息的征服"],
-    #"A0287": ["A0287"],
-    #"A0290": ["A0290"],
-    #"A0293": ["A0293"],
-    "A0302": ["Poolside Secrets", "泳池畔私语"],
-    "A0305": ["Workplace Whispers", "办公室秘辛"],
-    #"A0308": ["A0308"],
-    "A0317": ["Hidden Passion", "隐藏的炽热"],
-    "A0320": ["Covert Strategy", "秘密的战略"],
-    "A0332": ["Reckless Temptation", "狂放的禁果"],
-    "A0335": ["Provocative Reversal", "逆转的撩拨"],
-    "A0338": ["Fervent Cheer", "热烈的声援"],
-    "A0341": ["Winter Night's Chime", "雪夜的铃声"],
-    "A0344": ["A Sweet Confection", "特制的甜点"],
-    "A0347": ["Bittersweet Past", "酸苦的过往"],
-    "A0350": ["Soothing Black Silk", "黑丝的抚慰"],
-    "A0353": ["Secret Development", "隐秘的开发"],
-    "A0356": ["Hopping Passion", "悦动的烈情"],
-    "A0377": ["An Innocent Ploy", "少女的心机"],
-    #"A0380": ["A0380"],
-    #"A0386": ["A0386"],
-    #"A0389": ["A0389"],
-    "A0392": ["Sunlit Afternoon", "温煦的午后"],
-    #"A0395": ["A0395"],
-    #"A0398": ["A0398"],
-    #"A0401": ["A0401"],
-    #"A0404": ["A0404"],
-    #"A0407": ["A0407"],
-    "A0410": ["Rite of the Divine", "神圣的仪礼"],
-    "A0413": ["Flourishing Hibiscus", "盛开的扶桑"],
-    #"A0416": ["A0416"],
-    #"A0419": ["A0419"],
-    #"A0422": ["A0422"],
-    #"A0425": ["A0425"],
-    #"A0434": ["A0434"],
-    #"A0437": ["Taste of the Afternoon"],
-    #"A0440": ["A0440"],
-    #"A0443": ["A0443"],
-    #"A0452": ["Gentle Interrogation"],
-    #"A0455": ["A0455"],
-    #"A0458": ["A0458"],
-    #"A0473": ["A0473"],
-    #"A0476": ["A0476"],
-    #"A0479": ["A0479"],
-    #"A0482": ["A0482"],
-    #"A0485": ["A0485"],
-    "Carnival006": ["Hello, Loyal Customer!", "嗨！老主顾！"],
-    "Carnival012": ["Honey, Tea, and Chocolate", "蜜、茶、巧克力"],
+PROP_SCORE = {
+    "AttackRate": 180,
+    "AttackValue": 0.17,
+    "CriticalDamageRate": 180,
+    "CriticalRate": 200,
+    "DefenceRate": 180,
+    "DefenceValue": 0.2,
+    "EffectHitRate": 125,
+    "HPValue": 0.05,
+    "HPRate": 150,
+    "ResistanceRate": 125,
+    "SpeedValue": 3.5,
 }
 
-PROP = {
-    "AttackRate": ["攻", "大攻击", 1.8 * 100],
-    "AttackValue": ["攻", "小攻击", 0.17],
-    "CriticalDamageRate": ["爆", "暴伤", 1.8 * 100],
-    "CriticalRate": ["暴", "暴击", 2 * 100],
-    "DefenceRate": ["防", "大防御", 1.8 * 100],
-    "DefenceValue": ["防", "小防御", 0.2],
-    "EffectHitRate": ["命", "命中", 1.25 * 100],
-    "HPValue": ["生", "小生命", 0.05],
-    "HPRate": ["生", "大生命", 1.5 * 100],
-    "ResistanceRate": ["抗", "抗性", 1.25 * 100],
-    "SpeedValue": ["速", "速度", 3.5],
+EQUIP_KEYS = {
+    "Weapon": "UI_Equip_Weapon",
+    "Head": "UI_Equip_Helmet",
+    "Body": "UI_Equip_Armor",
+    "Necklace": "UI_Equip_Necklace",
+    "Ring": "UI_Equip_Ring",
+    "Shoes": "UI_Equip_Boots",
+}
+PROP_KEYS = {
+    "AttackRate": "UI_Equip_Attributes_AttackRate",
+    "AttackValue": "UI_Equip_Attack",
+    "CriticalDamageRate": "UI_PropertyCriticalDamage",
+    "CriticalRate": "UI_Equip_Critical",
+    "DefenceRate": "UI_Guild_Defense",
+    "DefenceValue": "UI_Guild_Defense",
+    "EffectHitRate": "UI_PropertyEffectHit",
+    "HPValue": "UI_Equip_Health",
+    "HPRate": "UI_Equip_Health",
+    "ResistanceRate": "UI_PropertyResistance",
+    "SpeedValue": "UI_PropertySpeed",
 }
 
-SET = {
-    "Attack": ["攻击", 4],
-    "Counter": ["反击", 4],
-    "Critical": ["暴击", 2],
-    "Defense": ["防御", 2],
-    "Destruction": ["暴伤", 4],
-    "Health": ["生命", 2],
-    "Hit": ["命中", 2],
-    "Immunity": ["免疫", 2],
-    "Injury": ["创伤", 4],
-    "Lifesteal": ["吸血", 4],
-    "Penetration": ["贯穿", 2],
-    "Pinch": ["追击", 2],
-    "Rage": ["暴怒", 4],
-    "Resist": ["抗性", 2],
-    "Revenge": ["复仇", 4],
-    "Riptide": ["飞流", 2],
-    "Speed": ["速度", 4],
-}
 
-EQUIP = {
-    "Weapon": "武器",
-    "Head": "头盔",
-    "Body": "铠甲",
-    "Necklace": "项链", 
-    "Ring": "戒指", 
-    "Shoes": "鞋子",
-}
+def num(value: Any, default: float = 0) -> float:
+    try:
+        return default if value in (None, "") else float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def intv(value: Any, default: int = 0) -> int:
+    try:
+        return default if value in (None, "") else int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+@lru_cache(maxsize=1)
+def master() -> dict[str, Any]:
+    if not MASTER_JSON.exists():
+        return {}
+    with MASTER_JSON.open("r", encoding="utf-8") as fp:
+        return json.load(fp)
+
+
+@lru_cache(maxsize=8192)
+def chs(key: str | None) -> str | None:
+    if not key:
+        return None
+    if not key.startswith(("T_", "UI_")):
+        return key
+    return master().get("localization", {}).get(key)
+
 
 def get_role(role_id: str) -> str:
-    return ROLE[role_id][1] if role_id in ROLE else role_id
+    row = master().get("roles", {}).get(role_id, {})
+    return chs(row.get("NAME")) or role_id
+
 
 def get_bond(bond_id: str) -> str:
-    return BOND[bond_id][1] if bond_id in BOND else bond_id
+    row = master().get("items", {}).get(bond_id, {})
+    return chs(row.get("Name")) or bond_id
 
-def get_prop_short(prop: str) -> str:
-    return PROP[prop][0] if prop in PROP else prop
 
-def get_prop_full(prop: str) -> str:
-    return PROP[prop][1] if prop in PROP else prop
+def equip_name(part: str) -> str:
+    return chs(EQUIP_KEYS.get(part)) or part
 
-def get_prop_score(prop: str) -> int:
-    return PROP[prop][2] if prop in PROP else 0
 
-def get_prop_set() -> dict:
-    return {PROP[prop][0]: 0 for prop in sorted(PROP.keys(), reverse=True)}
+def equip_parts() -> tuple[str, ...]:
+    return tuple(EQUIP_KEYS)
 
-def get_set(set_id: str) -> str:
-    return SET[set_id] if set_id in SET else set_id
 
-def get_equip(equip_id: str) -> str:
-    return EQUIP[equip_id] if equip_id in EQUIP else equip_id
+def prop_short(prop: str) -> str:
+    if prop == "CriticalDamageRate":
+        return "爆"
+    if prop == "CriticalRate":
+        return "暴"
+    if prop == "EffectHitRate":
+        return "命"
+    if prop == "ResistanceRate":
+        return "抗"
+    if prop == "SpeedValue":
+        return "速"
+
+    name = (chs(PROP_KEYS.get(prop)) or prop).replace("(%)", "").replace("（%）", "").replace(" ", "")
+    if "攻击" in name:
+        return "攻"
+    if "防御" in name:
+        return "防"
+    if "生命" in name:
+        return "生"
+    return name[:1] if name else prop
+
+
+def get_prop_score(prop: str) -> float:
+    return PROP_SCORE.get(prop, 0)
+
+
+@lru_cache(maxsize=128)
+def get_set(set_id: str) -> tuple[str, int]:
+    row = master().get("equipment_sets", {}).get(set_id)
+    if not row:
+        return set_id, 1
+    name = (chs(row.get("Name")) or set_id).removesuffix("套装")
+    return name, max(intv(row.get("Count"), 1), 1)
+
+
+def bucket() -> dict[str, float]:
+    return {stat: 0.0 for stat in STATS}
+
+
+def add_prop(flat: dict[str, float], rate: dict[str, float], prop: str | None, value: Any) -> None:
+    if not prop:
+        return
+    if prop in VALUE_PROP:
+        flat[VALUE_PROP[prop]] += num(value)
+    elif prop in RATE_PROP:
+        rate[RATE_PROP[prop]] += num(value)
+
+
+def role_row(role_id: str) -> dict[str, Any] | None:
+    return master().get("roles", {}).get(role_id)
+
+
+def role_prop(prop_id: str, level: int) -> dict[str, Any] | None:
+    rows = master().get("role_properties", {}).get(prop_id, [])
+    exact = next((row for row in rows if row.get("LV") == str(level)), None)
+    return exact or max(rows, key=lambda row: intv(row.get("LV")), default=None)
+
+
+def base_stats(role: dict[str, Any]) -> tuple[dict[str, float], dict[str, Any] | None]:
+    row = role_row(role.get("StaticID", ""))
+    if not row:
+        return bucket(), None
+
+    prop = role_prop(row.get("RolePropertyID") or "HERO", intv(role.get("LV") or role.get("Level"), 60))
+    return {stat: num(prop.get(stat) if prop else 0) * num(row.get(stat), 1) for stat in STATS}, row
+
+
+def add_awaken(role_id: str, awaken_lv: int, flat: dict[str, float], rate: dict[str, float]) -> None:
+    for row in master().get("role_awaken", {}).get(role_id, []):
+        if intv(row.get("LV")) > awaken_lv:
+            continue
+        for prop, stat in VALUE_PROP.items():
+            flat[stat] += num(row.get(prop))
+        for prop, stat in RATE_PROP.items():
+            rate[stat] += num(row.get(prop))
+
+
+def add_equips(equips: dict[str, Any] | None, flat: dict[str, float], rate: dict[str, float]) -> None:
+    for equip in (equips or {}).values():
+        main = equip.get("MainProp") or {}
+        add_prop(flat, rate, main.get("PropertyType"), main.get("Value", main.get("SValue")))
+        for prop in (equip.get("SubProps") or {}).get("SourceValues") or []:
+            add_prop(flat, rate, prop.get("PropertyType"), prop.get("Value", prop.get("SValue")))
+
+
+def add_sets(equips: dict[str, Any] | None, rate: dict[str, float]) -> None:
+    counts: dict[str, int] = {}
+    for equip in (equips or {}).values():
+        set_id = equip.get("Set")
+        if set_id:
+            counts[set_id] = counts.get(set_id, 0) + 1
+
+    sets = master().get("equipment_sets", {})
+    for set_id, owned in counts.items():
+        row = sets.get(set_id)
+        if not row:
+            continue
+        active = owned // max(intv(row.get("Count"), 1), 1)
+        if active <= 0:
+            continue
+        for prop, stat in RATE_PROP.items():
+            rate[stat] += num(row.get(prop)) * active
+
+
+def bond_value(base: float, max_value: float, level: int, *, floor: bool = False) -> float:
+    value = base if level <= 1 else base + (max_value - base) * min(max(level - 1, 0), 29) / 29
+    return math.floor(value + 1e-6) if floor else round(value)
+
+
+def add_bond(bond: dict[str, Any] | None, flat: dict[str, float]) -> None:
+    if not bond:
+        return
+    row = master().get("artifacts", {}).get(bond.get("StaticID"))
+    if not row:
+        return
+    level = intv(bond.get("LV"), 1)
+    flat["Attack"] += bond_value(num(row.get("Base.AttackValue")), num(row.get("Max.AttackValue")), level, floor=True)
+    flat["HP"] += bond_value(num(row.get("Base.HPValue")), num(row.get("Max.HPValue")), level, floor=True)
+
+
+def add_passive(raw: str | None, flat: dict[str, float], rate: dict[str, float]) -> None:
+    if not raw or "#" not in raw or raw.startswith("Fun#"):
+        return
+    prop, value = raw.split("#", 1)
+    add_prop(flat, rate, prop, value)
+
+
+def add_skills(role: dict[str, Any], flat: dict[str, float], rate: dict[str, float]) -> None:
+    skills = master().get("skills", {})
+    levels = master().get("skill_levels", {})
+    for skill in (role.get("Skills") or {}).get("Skills") or []:
+        skill_id = skill.get("StaticID")
+        if not skill_id:
+            continue
+        for i in range(1, 4):
+            add_passive((skills.get(skill_id) or {}).get(f"PassiveProp.DynamicField{i}"), flat, rate)
+        for row in levels.get(skill_id, []):
+            if intv(row.get("LV")) > intv(skill.get("Level"), 1):
+                continue
+            for i in range(1, 4):
+                add_passive(row.get(f"PassiveProp.DynamicField{i}"), flat, rate)
+
+
+def imprint(imprint_id: str | None, level: int) -> list[tuple[str, float]]:
+    row = master().get("role_imprints", {}).get(imprint_id or "")
+    if not row or level <= 0:
+        return []
+
+    props: list[tuple[str, float]] = []
+    for raw, times in ((row.get("Base.DynamicField1"), 1), (row.get("LevelAdd.DynamicField1"), max(level - 1, 0))):
+        if raw and "#" in raw:
+            prop, value = raw.split("#", 1)
+            props.append((prop, num(value) * times))
+    return props
+
+
+def team_bonuses(roles: list[dict[str, Any]]) -> dict[int, dict[str, dict[str, float]]]:
+    bonuses = {i: {"flat": bucket(), "rate": bucket()} for i in range(len(roles))}
+    for source_i, role in enumerate(roles):
+        if role.get("IsSelfImprint"):
+            continue
+        _, row = base_stats(role)
+        if not row:
+            continue
+        for prop, value in imprint(row.get("TeamImprint"), intv(role.get("ImprintLV"))):
+            for target_i in bonuses:
+                if target_i != source_i:
+                    add_prop(bonuses[target_i]["flat"], bonuses[target_i]["rate"], prop, value)
+    return bonuses
+
+
+def calculate_role_stats(role: dict[str, Any], team_bonus: dict[str, dict[str, float]] | None = None) -> dict[str, float]:
+    base, row = base_stats(role)
+    flat, rate = bucket(), bucket()
+
+    if team_bonus:
+        for stat, value in team_bonus.get("flat", {}).items():
+            flat[stat] += value
+        for stat, value in team_bonus.get("rate", {}).items():
+            rate[stat] += value
+
+    add_awaken(role.get("StaticID", ""), intv(role.get("AwakenLV")), flat, rate)
+    add_equips(role.get("EquipmentMap"), flat, rate)
+    add_sets(role.get("EquipmentMap"), rate)
+    add_bond(role.get("ArtifactData"), flat)
+    add_skills(role, flat, rate)
+
+    if row and role.get("IsSelfImprint"):
+        for prop, value in imprint(row.get("SelfImprint"), intv(role.get("ImprintLV"))):
+            add_prop(flat, rate, prop, value)
+
+    stats = {stat: base[stat] * (1 + rate[stat]) + flat[stat] for stat in BASE}
+    stats.update({stat: base[stat] + rate[stat] + flat[stat] for stat in EXTRA})
+    stats["CriticalRate"] = min(stats.get("CriticalRate", 0), 1)
+    stats["CriticalDamageRate"] = min(stats.get("CriticalDamageRate", 0), 3.5)
+    return stats
+
+
+def calculate_team_stats(roles: list[dict[str, Any]]) -> list[dict[str, float]]:
+    bonuses = team_bonuses(roles)
+    return [calculate_role_stats(role, bonuses.get(i)) for i, role in enumerate(roles)]
+
+
+def stat_int(value: float) -> int:
+    return round(value)
+
+
+def hp_int(value: float) -> int:
+    return round(value)
+
+
+def format_role_stats(stats: dict[str, float]) -> str:
+    return (
+        f'生命{hp_int(stats.get("HP", 0))} '
+        f'攻击{stat_int(stats.get("Attack", 0))} '
+        f'防御{stat_int(stats.get("Defence", 0))} '
+        f'速度{stat_int(stats.get("Speed", 0))} '
+        f'暴击{round(stats.get("CriticalRate", 0) * 100)}% '
+        f'暴伤{round(stats.get("CriticalDamageRate", 0) * 100)}% '
+        f'命中{round(stats.get("EffectHitRate", 0) * 100)}% '
+        f'抗性{round(stats.get("ResistanceRate", 0) * 100)}%'
+    )
+
+
+def _walk(value: Any):
+    if isinstance(value, dict):
+        yield value
+        for child in value.values():
+            yield from _walk(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from _walk(child)
+
+
+def pickup_from_login(login_data: dict[str, Any]) -> str | None:
+    now = login_data.get("Info", {}).get("LoginTime", {}).get("$date")
+    candidates: list[tuple[int, int, str]] = []
+    for node in _walk(login_data):
+        activity_id = node.get("ActivityID")
+        match = re.search(r"H\d+", activity_id or "") if isinstance(activity_id, str) else None
+        if not match:
+            continue
+        start = node.get("StartTime", {}).get("$date", 0)
+        end = node.get("EndTime", {}).get("$date", 0)
+        if now and start and end and not (start <= now <= end):
+            continue
+        suffix = match.group(0)
+        priority = 0
+        if activity_id == f"Branch{suffix}":
+            priority = 3
+        elif activity_id == f"ActivitySignIn{suffix}":
+            priority = 2
+        elif activity_id.startswith(("AcyivitySummon", "ActivitySummon")):
+            priority = 1
+        if not priority:
+            continue
+        candidates.append((priority, int(start or 0), suffix))
+    return max(candidates)[2] if candidates else None
+
+
+def get_pickup(login_data: dict[str, Any] | None = None) -> str:
+    if login_data:
+        pickup = pickup_from_login(login_data)
+        if pickup:
+            return pickup
+    branches = (
+        activity_id for activity_id, row in master().get("activities", {}).items()
+        if row.get("Type") == "SideStory" and re.fullmatch(r"BranchH\d+", activity_id or "")
+    )
+    pickup = max(branches, key=lambda value: intv(value.replace("BranchH", "")), default=None)
+    return pickup.replace("Branch", "") if pickup else "H602"
+
+
+def get_activity_scene_ids(pickup: str) -> list[str]:
+    prefix = f"B{pickup}_1_"
+    scene_ids = [
+        row.get("ID") for row in master().get("scenes", {}).get(f"Branch{pickup}", [])
+        if re.fullmatch(rf"{re.escape(prefix)}\d+", row.get("ID") or "")
+    ]
+    scene_ids.sort(key=lambda scene_id: intv(scene_id.removeprefix(prefix)))
+    return scene_ids or [f"B{pickup}_1_{i + 1}" for i in range(12)]
+
+
+def _parse_team(raw: str) -> list[dict[str, Any]]:
+    members = []
+    for match in re.finditer(r'M:"(?P<sid>[^"]+)"[^}]*?Pos:(?P<pos>\d+)[^}]*?LV:(?P<lv>\d+)', raw or ""):
+        members.append({"sid": match.group("sid"), "pos": int(match.group("pos")), "lv": int(match.group("lv"))})
+    return members
+
+
+def get_activity_npc_pos_map(pickup: str) -> tuple[int, dict[str, dict[str, Any]]]:
+    prefix = f"B{pickup}_1_"
+    rows = [
+        row for row in master().get("scenes", {}).get(f"Branch{pickup}", [])
+        if row.get("MyCampTeam")
+    ]
+    rows.sort(key=lambda row: intv((row.get("ID") or "").removeprefix(prefix)))
+
+    for row in rows:
+        members = _parse_team(row.get("MyCampTeam") or "")
+        if not members:
+            continue
+        preferred = [m for m in members if m["sid"] == f"AcStory{pickup}"]
+        source = preferred or members[:1]
+        index = int((row.get("ID") or "0_2").rsplit("_", 1)[-1]) - 1
+        return index, {str(i): {"StaticID": m["sid"], "LV": m["lv"]} for i, m in enumerate(source)}
+
+    return 1, {"0": {"StaticID": f"AcStory{pickup}", "LV": 60}}

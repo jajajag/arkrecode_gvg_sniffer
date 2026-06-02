@@ -23,8 +23,77 @@ TYPE_MAP = {
 VALID_EQUIPS = {'E010', 'E016', 'E022', 'E028', 'E034'}
 TEMPLATE = None
 
+# 保存PVP前百装备数据到数据库
+def save_pvp_equips(data, db_path='data.db'):
+    conn = sqlite3.connect(db_path)
+
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS pvp_equips (
+            equip_id TEXT PRIMARY KEY, cuid INTEGER, player_name TEXT,
+            equip_type TEXT, static_id TEXT, set_name TEXT,
+            class_lv INTEGER, lv INTEGER, main_prop TEXT, main_value REAL,
+            sub1_prop TEXT, sub1_value REAL, sub2_prop TEXT, sub2_value REAL,
+            sub3_prop TEXT, sub3_value REAL, sub4_prop TEXT, sub4_value REAL
+        )
+    ''')
+    # 1. Go through players' defence teams
+    for item in data['PVPRankInfoList']:
+        player_info = item['PlayerInfo']
+        cuid = player_info['CUID']
+        player_name = player_info['Name']
+
+        role_map = item['PVPInfo']['DefenceTeam']['PositionRoleMap']
+
+        # 2. Go through roles
+        for role in role_map.values():
+            equip_map = role.get('EquipmentMap', {})
+
+            # 3. Go through equipments
+            for equip_type, equip in equip_map.items():
+                equip_id = equip['_id']['$oid']
+
+                new_lv = equip['LV']
+                old_lv = conn.execute(
+                    'SELECT lv FROM pvp_equips WHERE equip_id = ?',
+                    (equip_id,)
+                ).fetchone()
+                # Skip if existing record has same or higher level
+                if old_lv and new_lv <= old_lv[0]:
+                    continue
+
+                main_prop = equip['MainProp']
+                # Pad subprops to ensure we have 4 entries
+                subprops = equip['SubProps']['SourceValues']
+                subprops = (subprops + [{}] * 4)[:4]
+
+                conn.execute('''
+                    INSERT OR REPLACE INTO pvp_equips (
+                        equip_id, cuid, player_name, equip_type, static_id,
+                        set_name, class_lv, lv, main_prop, main_value,
+                        sub1_prop, sub1_value, sub2_prop, sub2_value,
+                        sub3_prop, sub3_value, sub4_prop, sub4_value
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                ''', (
+                    equip_id, cuid, player_name, equip_type,
+                    equip['StaticID'], equip['Set'], equip['ClassLV'], new_lv,
+                    main_prop['PropertyType'], main_prop['Value'],
+                    subprops[0].get('PropertyType', ''),
+                    subprops[0].get('Value', 0),
+                    subprops[1].get('PropertyType', ''),
+                    subprops[1].get('Value', 0),
+                    subprops[2].get('PropertyType', ''),
+                    subprops[2].get('Value', 0),
+                    subprops[3].get('PropertyType', ''),
+                    subprops[3].get('Value', 0),
+                ))
+
+    conn.commit()
+    conn.close()
+
+    print(f'Saved PVP equips to DB: {db_path}')
+
 # 通过竞技场前百装备数据统计模板
-def update_equip_templates(db_path='data/data.db'):
+def update_equip_templates(db_path='data.db'):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
 
@@ -132,7 +201,7 @@ def orphan_score(prop, core, transactions):
 def equip_score(sub_props):
     return sum(v * get_prop_score(p) for p, v in sub_props.items())
 
-def load_equip(db_path='data/data.db'):
+def load_equip(db_path='data.db'):
     # Load templates from DB
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row

@@ -1,39 +1,29 @@
 from collections import Counter
 from datetime import datetime, timezone
-from .helper import *
 import csv
-import json
+import os
+
+from .helper import (
+    calculate_role_stats,
+    calculate_team_stats,
+    equip_name,
+    equip_parts,
+    get_bond,
+    get_role,
+    get_set,
+    hp_int,
+    prop_short,
+)
 
 
-def export_prop(row, equip_map):
-    if not equip_map: return
-
-    prop_set = {i: 0 for i in PROP}
-    for equip in equip_map:
-        if not equip_map[equip]['SubProps']:
-            continue
-        for prop in equip_map[equip]['SubProps']['SourceValues']:
-            prop_type = prop['PropertyType']
-            if 'Rate' in prop_type:
-                value = int(float(prop['Value']) * 100)
-            else:
-                value = int(float(prop['Value']))
-            prop_set[prop_type] += value
-    ret = []
-    for prop in prop_set:
-        if not prop_set[prop]: 
-            continue
-        if 'Rate' in prop:
-            ret.append(f'{prop_set[prop]}%{get_prop_short(prop)}')
-        else:
-            ret.append(f'{prop_set[prop]}{get_prop_short(prop)}')
-    row['副属性'] = ''.join(reversed(ret))
+def export_prop(row, stats):
+    row['生命'] = hp_int(stats.get('HP', 0))
 
 def export_equip(row, equip_map):
     if not equip_map: return
 
     sets = []
-    for equip in EQUIP:
+    for equip in equip_parts():
         if equip not in equip_map:
             continue
         prop_type = equip_map[equip]['MainProp']['PropertyType']
@@ -44,7 +34,7 @@ def export_equip(row, equip_map):
             prop = f'{int(float(prop))}'
         # We only care about main prop for shoes, ring, necklace
         if equip in ['Shoes', 'Ring', 'Necklace']:
-            row[EQUIP[equip]] = f'{prop}{get_prop_short(prop_type)}'
+            row[equip_name(equip)] = f'{prop}{prop_short(prop_type)}'
         sets.append(equip_map[equip]['Set'])
 
     sets = Counter(sets)
@@ -66,7 +56,8 @@ def export_skill(row, skills):
     skills = [str(skill) for skill in skills][:3]
     row['技能'] = ''.join(skills)
 
-def export_role(role):
+def export_role(role, stats=None):
+    stats = stats or calculate_role_stats(role)
     row = {'角色': f'{get_role(role["StaticID"])}'}
     bond = role['ArtifactData'] if 'ArtifactData' in role else None
     equip_map = role['EquipmentMap'] if 'EquipmentMap' in role else None
@@ -74,7 +65,7 @@ def export_role(role):
 
     export_bond(row, bond)
     export_equip(row, equip_map)
-    export_prop(row, equip_map)
+    export_prop(row, stats)
     export_skill(row, skills)
     row['星级'] = f'{role["Star"]}星觉醒{role["AwakenLV"]}'
     ip = role['ImprintLV']
@@ -84,10 +75,11 @@ def export_role(role):
 
 def export_team(team):
     team = team['PositionRoleMap']
+    roles = [team[i] for i in sorted(team.keys())]
+    stats = calculate_team_stats(roles)
     rows = []
-    for i in sorted(team.keys()):
-        role = team[i]
-        rows.append(export_role(role))
+    for role, role_stats in zip(roles, stats):
+        rows.append(export_role(role, role_stats))
     return rows
 
 def export_player(player):
@@ -125,7 +117,7 @@ def export_report(data):
             rows += export_player(player)
         fieldnames = [
             '昵称', '头像', '队伍', '角色', '羁绊', '套装', 
-            '鞋子', '戒指', '项链', '副属性',
+            '鞋子', '戒指', '项链', '生命',
             '技能', '星级', '潜能', 'UID'
         ]
 
@@ -135,8 +127,9 @@ def export_report(data):
         dt_str = dt_utc.strftime('%Y-%m-%d')
 
         # Write CSV
-        with open(f'{dt_str} {guild_name}.csv', 'w', newline='', 
-                  encoding='utf-8-sig') as fp:
+        filename = os.path.join('data', f'{dt_str} {guild_name}.csv')
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'w', newline='', encoding='utf-8-sig') as fp:
             w = csv.DictWriter(fp, fieldnames=fieldnames)
             w.writeheader()
             w.writerows(rows)

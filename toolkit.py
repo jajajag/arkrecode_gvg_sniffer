@@ -1,8 +1,9 @@
-from utils.analyzer import analyze_guild, analyze_defence_db
-from utils.equips import save_pvp_equips, update_equip_templates, match_equip
+from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
+from utils.equips import update_equip_templates, match_equip
 from utils.exporter import export_report
 from utils.printer import print_report
-from utils.helper import PICKUP, LV
+from utils.helper import get_activity_npc_pos_map, get_activity_scene_ids, get_pickup
+from utils.master import ensure_master_db
 import base64
 import json
 import os
@@ -19,15 +20,15 @@ headers = {
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
 }
 
-def load_accounts():
-    if not os.path.exists('accounts.json'):
-        print('请参考scripts/accounts_example.json创建accounts.json！')
+def load_accounts(account_path='data/accounts.json'):
+    if not os.path.exists(account_path):
+        print(f'请参考{account_path}创建accounts.json！')
         exit()
-    with open('accounts.json', 'r', encoding='utf-8') as f:
+    with open(account_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
-def save_accounts(accounts):
-    with open('accounts.json', 'w', encoding='utf-8') as f:
+def save_accounts(accounts, account_path='data/accounts.json'):
+    with open(account_path, 'w', encoding='utf-8') as f:
         json.dump(accounts, f, ensure_ascii=False, indent=2)
 
 def choose_account(accounts):
@@ -77,7 +78,11 @@ def run_bulletin():
         'data': {},
         'route': 'GameServerDBSettingHandler.QueryBulletinInfoResult'
     }
-    return send(payload)['Info']['AvailableVersions'][-1]
+    return send(payload)
+
+
+def get_login_version(bulletin):
+    return bulletin['Info']['AvailableVersions'][-1]
 
 def run_refresh_token(accounts, acc_idx):
     device_id = accounts[acc_idx]['DeviceID']
@@ -226,7 +231,7 @@ def run_guild_support(aid, session_id, sup_items, cuid):
     except Exception:
         print('请求失败：今日已请求过！')
 
-def run_daily(aid, session_id, secret_data, sup_items, cuid):
+def run_daily(aid, session_id, secret_data, sup_items, cuid, activity_pickup):
     payloads = [
         # Force lab
         {'route': 'ArkReactorHandler.RewardArkReactor'},
@@ -271,7 +276,7 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid):
         {'route': 'SupportFriendHandler.GetReward'},
         {'route': 'TimingMealHandler.SentMeal'},
         {'route': 'WeekSignInHandler.SignIn',
-         'data': {'ActivityID': f'ActivitySignIn{PICKUP}'}},
+         'data': {'ActivityID': f'ActivitySignIn{activity_pickup}'}},
         # Daily / Weekly rewards
         {'route': 'QuestHandler.RewardQuest',
          'data': {'RewardQuestInfos': [
@@ -378,7 +383,7 @@ def run_npc(aid, session_id, npc_list):
     except Exception:
         print('挑战结束：没有旗帜！')
 
-def run_battle(aid, session_id, pos_map):
+def run_battle(aid, session_id, pos_map, activity_pickup, activity_scene_ids, activity_npc_level, activity_npc_map):
     payload = {
         'data': {
             'BattleEndData': {
@@ -425,14 +430,13 @@ def run_battle(aid, session_id, pos_map):
         sid = f'{prefix}{elems[idx][1]}_{suffix}'
         runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
     elif c == 11:
-        sid = f'B{PICKUP}_1_13'
+        sid = activity_scene_ids[12] if len(activity_scene_ids) > 12 else f'B{activity_pickup}_1_13'
         runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
     else: # c == 12
-        npc_map = {'0': {'StaticID': f'AcStory{PICKUP}', 'LV': 60}}
         runs = [
-            {'static_id': f'B{PICKUP}_1_{i + 1}',
-             'pos_map': npc_map if i == LV else pos_map}
-            for i in range(12)
+            {'static_id': sid,
+             'pos_map': activity_npc_map if i == activity_npc_level else pos_map}
+            for i, sid in enumerate(activity_scene_ids[:12])
         ] * repeat
 
     print('开始刷活动讨伐...')
@@ -505,7 +509,7 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     try:
         print('正在查询团战总结...')
         if gid: guild_data = send(payload)
-        return analyze_guild(guild_data, aid, session_id, save_csv)
+        return analyze_gvg(guild_data, aid, session_id, save_csv)
     except Exception:
         print('查询失败：未加入佣兵团，未开启团战，或佣兵团 GID 错误！')
 
@@ -525,7 +529,7 @@ def run_pvp_update(aid, session_id, week):
     except Exception:
         print('查询失败：排名可能在结算中！')
         return
-    save_pvp_equips(data)
+    analyze_pvp_equips(data)
     print('装备数据更新完成！')
 
 # 更新前20名佣兵团的防守数据
@@ -550,7 +554,7 @@ def run_gvg_update(aid, session_id, cuid):
         print(f'正在查询第{i + 1}名佣兵团的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
-        analyze_defence_db(aid, session_id, cuid, rows)
+        analyze_gvg_defence(aid, session_id, cuid, rows)
     print('防守数据查询完成！')
 
 # 更新竞技场和团战数据（同时更新装备模板）
@@ -560,11 +564,13 @@ def run_gvg_pvp_update(aid, session_id, cuid, week):
     run_gvg_update(aid, session_id, cuid)
 
 def main():
+    bulletin = run_bulletin()
+    ensure_master_db(bulletin)
     accounts = load_accounts()
     acc_idx = choose_account(accounts)
     print(f'当前账号：{accounts[acc_idx].get("name")}')
 
-    version = run_bulletin()
+    version = get_login_version(bulletin)
     print('登录中...')
     try:
         data = run_login(accounts, acc_idx, version)
@@ -572,6 +578,11 @@ def main():
     except Exception:
         print('登录失败！')
         return
+
+    activity_pickup = get_pickup(data)
+    activity_scene_ids = get_activity_scene_ids(activity_pickup)
+    activity_npc_level, activity_npc_map = get_activity_npc_pos_map(activity_pickup)
+    print(f'当前活动：{activity_pickup}，NPC关卡：{activity_npc_level + 1}')
 
     # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
@@ -603,13 +614,13 @@ def main():
     while (action := choose_action()) != 0:
         actions = {
             # 刷日常（神秘商店）
-            1: lambda: run_daily(aid, session_id, secret_data, sup_items, cuid),
+            1: lambda: run_daily(aid, session_id, secret_data, sup_items, cuid, activity_pickup),
             # 刷星源商店
             2: lambda: run_rainbow(aid, session_id),
             # 刷NPC（不进场）
             3: lambda: run_npc(aid, session_id, npc_list),
             # 刷活动讨伐
-            4: lambda: run_battle(aid, session_id, pos_map),
+            4: lambda: run_battle(aid, session_id, pos_map, activity_pickup, activity_scene_ids, activity_npc_level, activity_npc_map),
             # 刷佣兵团周任务（2800）
             5: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度
