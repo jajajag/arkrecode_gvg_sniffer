@@ -1,4 +1,344 @@
 {
+  "equip_score_threshold": 35,
+  "high_command_quests": [
+    "War6",
+    "War9"
+  ],
+  "equip_templates": {
+    "输出": {
+      "necklace": [
+        "AttackRate",
+        "CriticalRate",
+        "CriticalDamageRate",
+        "AttackValue"
+      ],
+      "ring": [
+        "AttackRate",
+        "AttackValue"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "AttackRate",
+        "AttackValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "AttackRate",
+        "AttackValue",
+        "CriticalRate",
+        "CriticalDamageRate"
+      ]
+    },
+    "纯肉输出": {
+      "necklace": [
+        "HPRate",
+        "DefenceRate",
+        "CriticalRate",
+        "CriticalDamageRate"
+      ],
+      "ring": [
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "HPValue",
+        "DefenceRate",
+        "DefenceValue",
+        "CriticalRate",
+        "CriticalDamageRate"
+      ]
+    },
+    "半肉输出": {
+      "necklace": [
+        "AttackRate",
+        "CriticalRate",
+        "CriticalDamageRate"
+      ],
+      "ring": [
+        "AttackRate",
+        "HPRate",
+        "HPValue",
+        "AttackValue"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "AttackRate",
+        "HPRate",
+        "HPValue",
+        "AttackValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "AttackRate",
+        "AttackValue",
+        "HPRate",
+        "HPValue",
+        "DefenceRate",
+        "DefenceValue",
+        "CriticalRate",
+        "CriticalDamageRate"
+      ]
+    },
+    "生存": {
+      "necklace": [
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "ring": [
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "HPValue",
+        "DefenceRate",
+        "DefenceValue"
+      ]
+    },
+    "命中": {
+      "necklace": [
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "ring": [
+        "EffectHitRate"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "HPValue",
+        "DefenceRate",
+        "DefenceValue",
+        "EffectHitRate"
+      ]
+    },
+    "抗性": {
+      "necklace": [
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "ring": [
+        "ResistanceRate"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "HPValue",
+        "DefenceRate",
+        "DefenceValue",
+        "ResistanceRate"
+      ]
+    },
+    "双堆": {
+      "necklace": [
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "ring": [
+        "EffectHitRate",
+        "ResistanceRate",
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "HPValue"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "HPValue",
+        "DefenceRate",
+        "DefenceValue",
+        "EffectHitRate",
+        "ResistanceRate"
+      ]
+    },
+    "抗性输出": {
+      "necklace": [
+        "CriticalRate",
+        "CriticalDamageRate"
+      ],
+      "ring": [
+        "ResistanceRate"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "AttackRate"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "AttackRate",
+        "CriticalRate",
+        "CriticalDamageRate",
+        "ResistanceRate"
+      ]
+    },
+    "命中输出": {
+      "necklace": [
+        "CriticalRate",
+        "CriticalDamageRate"
+      ],
+      "ring": [
+        "EffectHitRate"
+      ],
+      "shoes": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "AttackRate"
+      ],
+      "subprops": [
+        "SpeedValue",
+        "HPRate",
+        "DefenceRate",
+        "AttackRate",
+        "CriticalRate",
+        "CriticalDamageRate",
+        "EffectHitRate"
+      ]
+    }
+  },
+  "equip_sets": {
+    "Attack": [
+      "输出"
+    ],
+    "Counter": [
+      "输出",
+      "纯肉输出",
+      "半肉输出",
+      "生存",
+      "抗性",
+      "抗性输出"
+    ],
+    "Critical": [
+      "输出"
+    ],
+    "Defense": [
+      "生存",
+      "抗性",
+      "双堆",
+      "纯肉输出"
+    ],
+    "Destruction": [
+      "输出",
+      "纯肉输出",
+      "半肉输出",
+      "抗性输出",
+      "命中输出"
+    ],
+    "Health": [
+      "生存",
+      "抗性",
+      "双堆",
+      "纯肉输出"
+    ],
+    "Hit": [
+      "命中",
+      "双堆",
+      "命中输出"
+    ],
+    "Immunity": [
+      "输出",
+      "纯肉输出",
+      "半肉输出",
+      "生存",
+      "命中",
+      "抗性",
+      "双堆",
+      "命中输出",
+      "抗性输出"
+    ],
+    "Injury": [
+      "纯肉输出",
+      "半肉输出",
+      "生存",
+      "抗性",
+      "抗性输出"
+    ],
+    "Lifesteal": [
+      "输出",
+      "纯肉输出",
+      "半肉输出",
+      "抗性输出"
+    ],
+    "Penetration": [
+      "输出",
+      "纯肉输出",
+      "半肉输出"
+    ],
+    "Pinch": [
+      "输出"
+    ],
+    "Rage": [
+      "输出"
+    ],
+    "Resist": [
+      "抗性",
+      "双堆",
+      "抗性输出"
+    ],
+    "Revenge": [
+      "双堆",
+      "抗性",
+      "抗性输出",
+      "生存",
+      "命中",
+      "半肉输出"
+    ],
+    "Speed": [
+      "命中输出",
+      "命中",
+      "双堆",
+      "输出",
+      "抗性输出",
+      "抗性",
+      "半肉输出"
+    ],
+    "Torrent": [
+      "输出"
+    ]
+  },
   "catalog": {
     "catalog_name": "catalog_112447",
     "url": "https://erdpu.gzxhcjz.com/GamePatch/Android/catalog_112447.json"

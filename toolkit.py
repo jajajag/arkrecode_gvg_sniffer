@@ -1,5 +1,5 @@
-from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
-from utils.equips import update_equip_templates, match_equip
+from utils.analyzer import analyze_gvg, analyze_gvg_defence
+from utils.equips import match_equip
 from utils.exporter import export_report
 from utils.printer import print_report
 from utils.helper import get_activity_npc_pos_map, get_activity_scene_ids, get_pickup
@@ -19,6 +19,12 @@ headers = {
     'Content-Type': 'application/octet-stream',
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
 }
+
+CONFIG_PATH = 'data/config.json'
+
+def load_config(config_path=CONFIG_PATH):
+    with open(config_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 def load_accounts(account_path='data/accounts.json'):
     if not os.path.exists(account_path):
@@ -54,7 +60,7 @@ def choose_action():
         '刷亲密度',
         '查询团战数据',
         '查询团战总结',
-        '查询团战防守（更新装备模板）',
+        '查询团战防守',
         '退出'
     ]
 
@@ -382,6 +388,45 @@ def run_npc(aid, session_id, npc_list):
             print(f'NPC {npc} 挑战{"成功" if data["IsWin"] else "失败"}！')
     except Exception:
         print('挑战结束：没有旗帜！')
+    run_high_command(aid, session_id)
+
+def run_high_command(aid, session_id):
+    quests = load_config().get('high_command_quests', [])
+    if not isinstance(quests, list):
+        return
+
+    for quest_id in quests:
+        if not quest_id:
+            continue
+        try:
+            reward_data = send({
+                'data': {
+                    'QuestStaticID': quest_id,
+                    'AID': aid,
+                    'SessionID': session_id
+                },
+                'route': 'ArkHighCommandHandler.RewardQuest'
+            })
+            quest = reward_data.get('FinishedQuest') or {}
+            dispatched_hero_ids = quest.get('DispatchedHeroIDs') or []
+            static_id = quest.get('StaticID') or quest_id
+            if not dispatched_hero_ids:
+                continue
+
+            send({
+                'data': {
+                    'Quest': {
+                        'StaticID': static_id,
+                        'DispatchedHeroIDs': dispatched_hero_ids
+                    },
+                    'AID': aid,
+                    'SessionID': session_id
+                },
+                'route': 'ArkHighCommandHandler.DispatchQuest'
+            })
+            print(f'派遣成功：{static_id}')
+        except Exception:
+            continue
 
 def run_battle(aid, session_id, pos_map, activity_pickup, activity_scene_ids, activity_npc_level, activity_npc_map):
     payload = {
@@ -513,25 +558,6 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     except Exception:
         print('查询失败：未加入佣兵团，未开启团战，或佣兵团 GID 错误！')
 
-# 更新前100名玩家的竞技场装备数据
-def run_pvp_update(aid, session_id, week):
-    payload = {
-        'data': {
-            'Week': week,
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'PVPHandler.GetPVPRankList'
-    }
-    try:
-        print('正在更新装备数据...')
-        data = send(payload)
-    except Exception:
-        print('查询失败：排名可能在结算中！')
-        return
-    analyze_pvp_equips(data)
-    print('装备数据更新完成！')
-
 # 更新前20名佣兵团的防守数据
 def run_gvg_update(aid, session_id, cuid):
     num_def = input('请输入要查询的前排团战防守（最多前20，0则跳过）：').strip()
@@ -556,12 +582,6 @@ def run_gvg_update(aid, session_id, cuid):
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
         analyze_gvg_defence(aid, session_id, cuid, rows)
     print('防守数据查询完成！')
-
-# 更新竞技场和团战数据（同时更新装备模板）
-def run_gvg_pvp_update(aid, session_id, cuid, week):
-    run_pvp_update(aid, session_id, week)
-    update_equip_templates()
-    run_gvg_update(aid, session_id, cuid)
 
 def main():
     bulletin = run_bulletin()
@@ -608,9 +628,6 @@ def main():
     pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
     # 8
     guild_data = {'GuildData': data.get('GuildData', {})}
-    # 9
-    week = data['PVPData']['PVPRankInfo']['RankWeek']
-
     while (action := choose_action()) != 0:
         actions = {
             # 刷日常（神秘商店）
@@ -629,8 +646,8 @@ def main():
             7: lambda: run_guild_data(aid, session_id),
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
-            # 查询团战防守（更新装备模板）
-            9: lambda: run_gvg_pvp_update(aid, session_id, cuid, week),
+            # 查询团战防守
+            9: lambda: run_gvg_update(aid, session_id, cuid),
         }
         actions.get(action, lambda: None)()
 

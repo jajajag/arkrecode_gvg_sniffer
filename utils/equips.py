@@ -1,192 +1,151 @@
-import numpy as np
-import sqlite3
-import warnings
-from collections import defaultdict
-from itertools import combinations
-from sklearn.decomposition import NMF
-from sklearn.exceptions import ConvergenceWarning
-from utils.helper import get_prop_score
+from __future__ import annotations
 
-warnings.filterwarnings('ignore', category=ConvergenceWarning)
+import json
+from functools import lru_cache
+from pathlib import Path
+from typing import Any
 
-# 最低40分，且满足模板孤立度和内聚度要求
-MIN_SCORE = 40
-MIN_ORPHAN = 0.08
-MIN_COHERENCE = 0.10
-# 传说装备
+from utils.helper import get_prop_score, num
+
+
 MIN_CLASS_LV = 4
-TYPE_MAP = {
-    '1': 'Weapon', '2': 'Head', '3': 'Body',
-    '4': 'Necklace', '5': 'Ring', '6': 'Shoes'
+CONFIG_JSON = Path("data/config.json")
+EQUIP_TYPE_MAP = {
+    "1": "Weapon",
+    "2": "Head",
+    "3": "Body",
+    "4": "Necklace",
+    "5": "Ring",
+    "6": "Shoes",
 }
-# 85级装备
-VALID_EQUIPS = {'E010', 'E016', 'E022', 'E028', 'E034'}
-TEMPLATE = None
+EQUIP_CONFIG_KEYS = {
+    "Necklace": "necklace",
+    "Ring": "ring",
+    "Shoes": "shoes",
+}
+LEFT_EQUIP_TYPES = frozenset(("Weapon", "Head", "Body"))
+RIGHT_EQUIP_TYPES = frozenset(("Necklace", "Ring", "Shoes"))
+VALID_EQUIP_PREFIXES = frozenset(("E010", "E016", "E022", "E028", "E034"))
+SPEED_REQUIRED_SETS = frozenset(("Speed", "Revenge"))
 
-# 通过竞技场前百装备数据统计模板
-def update_equip_templates(db_path='data/data.db'):
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
 
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS equip_templates (
-            set_name TEXT, equip_type TEXT, main_prop TEXT,
-            sub1_prop TEXT, sub2_prop TEXT, sub3_prop TEXT, sub4_prop TEXT,
-            sample_count INTEGER, topic_count INTEGER,
-            topic_mass REAL, coherence REAL, orphan REAL
-        )
-    ''')
-    try:
-        rows = conn.execute('''
-            SELECT * FROM pvp_equips WHERE lv = 15 AND class_lv >= 4
-              AND set_name != '' AND equip_type != '' AND main_prop != ''
-        ''').fetchall()
-    except Exception:
-        conn.close()
-        print(f'装备数据表不存在！')
-        return
+@lru_cache(maxsize=1)
+def config() -> dict[str, Any]:
+    with CONFIG_JSON.open("r", encoding="utf-8") as fp:
+        return json.load(fp)
 
-    groups = defaultdict(list)
-    all_props = set()
-    for row in rows:
-        # Group the equip by (set_name, equip_type, main_prop) and subprops
-        key = (row['set_name'], row['equip_type'], row['main_prop'])
-        subs = {row[f'sub{i}_prop'] for i in range(1, 5) if row[f'sub{i}_prop']}
-        if subs:
-            groups[key].append(subs)
-            all_props.update(subs)
 
-    prop_list = sorted(all_props)
-    prop_idx = {p: i for i, p in enumerate(prop_list)}
-    # Clear old templates
-    conn.execute('DELETE FROM equip_templates')
+def update_equip_templates(*_args: Any, **_kwargs: Any) -> None:
+    print("装备模板已改为读取 data/config.json，无需从竞技场装备生成。")
 
-    for (set_name, equip_type, main_prop), transactions in groups.items():
-        # Build NMF templates for this group of equips and insert into DB
-        for t in build_nmf_templates(transactions, prop_list, prop_idx):
-            core = (t['core'] + [''] * 4)[:4]
-            conn.execute('''
-                INSERT INTO equip_templates (
-                    set_name, equip_type, main_prop,
-                    sub1_prop, sub2_prop, sub3_prop, sub4_prop,
-                    sample_count, topic_count, topic_mass, coherence, orphan
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                set_name, equip_type, main_prop,
-                core[0], core[1], core[2], core[3],
-                len(transactions), t['topic_count'],
-                t['topic_mass'], t['coherence'], t['orphan']
-            ))
 
-    conn.commit()
-    conn.close()
-    print(f'Updated equip templates in DB: {db_path}')
+def equip_score(sub_props: dict[str, float]) -> float:
+    return sum(value * get_prop_score(prop) for prop, value in sub_props.items())
 
-# 用Non-negative Matrix Factorization (NMF)计算副属性模板
-def build_nmf_templates(transactions, prop_list, prop_idx):
-    if (n := len(transactions)) < 8: return []
-    X = np.zeros((n, len(prop_list)), dtype=float)
-    for i, subs in enumerate(transactions):
-        for prop in subs:
-            X[i, prop_idx[prop]] = 1.0
-    k = min(len(prop_list), max(2, n // 2))
-    model = NMF(n_components=k, solver='mu', max_iter=1000, random_state=42)
-    W = model.fit_transform(X)
-    H = model.components_
-    best_topics = W.argmax(axis=1)
-    topic_counts = np.bincount(best_topics, minlength=k)
-    # Process topics to find core subprops
-    candidates = []
-    for topic in range(k):
-        topic_count = int(topic_counts[topic])
-        topic_mass = topic_count / n
-        top_idx = np.argsort(-H[topic])[:4]
-        core = [prop_list[i] for i in top_idx if H[topic][i] > 1e-9]
-        if len(core) < 4: continue
-        # Exclude templates that are too diffuse or isolated
-        coherence = pairwise_coherence(core, transactions)
-        orphan = min(orphan_score(p, core, transactions) for p in core)
-        candidates.append({
-            'core': core, 'topic_count': topic_count, 'topic_mass': topic_mass,
-            'coherence': coherence, 'orphan': orphan
-        })
-    return candidates
 
-# 计算任意两副属性一起出现的概率，越低说明越分散
-def pairwise_coherence(core, transactions):
-    if not (pairs := list(combinations(core, 2))):
-        return 0.0
-    return sum(sum(1 for subs in transactions
-                   if a in subs and b in subs) / len(transactions)
-               for a, b in pairs) / len(pairs)
+def _equip_type(equip: dict[str, Any]) -> str | None:
+    static_id = str(equip.get("StaticID") or "")
+    return EQUIP_TYPE_MAP.get(static_id[-1:]) if static_id else None
 
-# 计算某副属性与其他属性一起出现的概率，越低说明越孤立
-def orphan_score(prop, core, transactions):
-    if not (others := [p for p in core if p != prop]):
-        return 0.0
-    return sum(sum(1 for subs in transactions
-                   if prop in subs and other in subs) / len(transactions)
-               for other in others) / len(others)
 
-# 计算装备副属性分数
-def equip_score(sub_props):
-    return sum(v * get_prop_score(p) for p, v in sub_props.items())
+def _main_prop(equip: dict[str, Any]) -> str:
+    return (equip.get("MainProp") or {}).get("PropertyType") or ""
 
-def load_equip(db_path='data/data.db'):
-    # Load templates from DB
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    try:
-        rows = conn.execute('''
-            SELECT * FROM equip_templates WHERE orphan >= ? AND coherence >= ?
-        ''', (MIN_ORPHAN, MIN_COHERENCE)).fetchall()
-        conn.close()
-        print(f'共加载 {len(rows)} 套装备模板！')
-    except Exception:
-        # Return empty index if table doesn't exist
-        print(f'装备模板表不存在，请先运行 9 收集装备模板！')
-        return defaultdict(list)
-    # Load equip_type, set, and main_prop
-    index = defaultdict(list)
-    for row in rows:
-        key = (row['equip_type'], row['set_name'], row['main_prop'])
-        core = frozenset(row[f'sub{i}_prop'] for i in range(1, 5) 
-                         if row[f'sub{i}_prop'])
-        index[key].append(core)
-    return index
 
-def match_equip(equip):
-    global TEMPLATE
-    if TEMPLATE is None: TEMPLATE = load_equip()
-    eq_type = TYPE_MAP[equip['StaticID'][-1]]
-    set_name = equip['Set']
-    main_prop = equip['MainProp']['PropertyType']
-    key = (eq_type, set_name, main_prop)
-    sub_props = {x['PropertyType'] for x in equip['SubProps']['SourceValues']}
-    sub_dict = {
-        x['PropertyType']: x['Value']
-        for x in equip['SubProps']['SourceValues']
-    }
-    # 1. Check if the equip is legendary
-    if equip['ClassLV'] < MIN_CLASS_LV:
+def _sub_values(equip: dict[str, Any]) -> dict[str, float]:
+    values: dict[str, float] = {}
+    for prop in (equip.get("SubProps") or {}).get("SourceValues") or []:
+        prop_type = prop.get("PropertyType")
+        if prop_type:
+            values[prop_type] = num(prop.get("Value", prop.get("SValue")))
+    return values
+
+
+def _min_score() -> float:
+    return num(config()["equip_score_threshold"])
+
+
+def _template_names_for_set(set_name: str) -> list[str]:
+    names = config().get("equip_sets", {}).get(set_name)
+    return names if isinstance(names, list) else []
+
+
+def _template(template_name: str) -> dict[str, Any]:
+    template = config().get("equip_templates", {}).get(template_name)
+    return template if isinstance(template, dict) else {}
+
+
+def _matches_template(eq_type: str, set_name: str, main_prop: str, sub_props: set[str]) -> str | None:
+    for template_name in _template_names_for_set(set_name):
+        template = _template(template_name)
+        allowed_subs = set(template.get("subprops") or ())
+        if not allowed_subs or not sub_props.issubset(allowed_subs):
+            continue
+
+        if eq_type in RIGHT_EQUIP_TYPES:
+            part_key = EQUIP_CONFIG_KEYS.get(eq_type)
+            if main_prop not in set(template.get(part_key) or ()):
+                continue
+        elif eq_type not in LEFT_EQUIP_TYPES:
+            continue
+
+        return template_name
+    return None
+
+
+def _format_match(
+    eq_type: str,
+    set_name: str,
+    main_prop: str,
+    score: float,
+    sub_props: set[str],
+    reason: str,
+) -> str:
+    score_text = f"{score:.1f}".rstrip("0").rstrip(".")
+    return f"{eq_type} {set_name} {main_prop} {score_text} [{reason}] -> {sorted(sub_props)}"
+
+
+def match_equip(equip: dict[str, Any]) -> str | None:
+    eq_type = _equip_type(equip)
+    if not eq_type:
         return None
-    # 2. Check if the equip is LV85
-    if equip['StaticID'][:4] not in VALID_EQUIPS:
+
+    # 1. 传说装备
+    if int(equip.get("ClassLV") or 0) < MIN_CLASS_LV:
         return None
-    speed = sub_dict.get('SpeedValue', 0)
-    # 3. 速度套和复仇套副属性速度必须大于等于4
-    if set_name in {'Speed', 'Revenge'} and eq_type != 'Shoes' and speed < 4:
+
+    # 2. 85级装备
+    static_id = str(equip.get("StaticID") or "")
+    if static_id[:4] not in VALID_EQUIP_PREFIXES:
         return None
-    # 4. 碰到非鞋子的5速直接拿
-    if eq_type != 'Shoes' and speed >= 5:
-        return f'{eq_type} {set_name} {main_prop} {score}-> {sub_props}'
-    # 5. Check min subprop score
-    score = equip_score({x['PropertyType']: x['Value'] 
-                         for x in equip['SubProps']['SourceValues']})
-    if score < MIN_SCORE:
+
+    set_name = equip.get("Set") or ""
+    main_prop = _main_prop(equip)
+    sub_dict = _sub_values(equip)
+    sub_props = set(sub_dict)
+    speed = sub_dict.get("SpeedValue", 0)
+
+    # 3. 速度套/复仇套速度要求
+    if set_name in SPEED_REQUIRED_SETS:
+        if eq_type == "Shoes":
+            if main_prop != "SpeedValue":
+                return None
+        elif speed < 4:
+            return None
+
+    score = equip_score(sub_dict)
+
+    # 4. 非鞋5速直接要
+    if eq_type != "Shoes" and speed >= 5:
+        return _format_match(eq_type, set_name, main_prop, score, sub_props, "5速")
+
+    # 5. 副属性分数门槛
+    if score < _min_score():
         return None
-    # 6. Check if subprops match a template
-    if sub_props in TEMPLATE.get(key, []):
-        return f'{eq_type} {set_name} {main_prop} {score}-> {sub_props}'
+
+    # 6. 套装 -> 模板 -> 主属性/副属性检查
+    template_name = _matches_template(eq_type, set_name, main_prop, sub_props)
+    if template_name:
+        return _format_match(eq_type, set_name, main_prop, score, sub_props, template_name)
 
     return None
