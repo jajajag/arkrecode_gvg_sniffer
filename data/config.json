@@ -1,9 +1,5 @@
 {
-  "equip_score_threshold": 35,
-  "high_command_quests": [
-    "War6",
-    "War9"
-  ],
+  "equip_score_min": 35,
   "equip_templates": {
     "输出": {
       "necklace": [

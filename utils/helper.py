@@ -408,7 +408,7 @@ def _parse_team(raw: str) -> list[dict[str, Any]]:
     return members
 
 
-def get_activity_npc_pos_map(pickup: str) -> tuple[int, dict[str, dict[str, Any]]]:
+def get_activity_npc_pos_maps(pickup: str) -> dict[int, dict[str, dict[str, Any]]]:
     prefix = f"B{pickup}_1_"
     rows = [
         row for row in master().get("scenes", {}).get(f"Branch{pickup}", [])
@@ -416,6 +416,7 @@ def get_activity_npc_pos_map(pickup: str) -> tuple[int, dict[str, dict[str, Any]
     ]
     rows.sort(key=lambda row: intv((row.get("ID") or "").removeprefix(prefix)))
 
+    npc_maps: dict[int, dict[str, dict[str, Any]]] = {}
     for row in rows:
         members = _parse_team(row.get("MyCampTeam") or "")
         if not members:
@@ -423,6 +424,19 @@ def get_activity_npc_pos_map(pickup: str) -> tuple[int, dict[str, dict[str, Any]
         preferred = [m for m in members if m["sid"] == f"AcStory{pickup}"]
         source = preferred or members[:1]
         index = int((row.get("ID") or "0_2").rsplit("_", 1)[-1]) - 1
-        return index, {str(i): {"StaticID": m["sid"], "LV": m["lv"]} for i, m in enumerate(source)}
+        npc_maps[index] = {str(i): {"StaticID": m["sid"], "LV": m["lv"]} for i, m in enumerate(source)}
 
-    return 1, {"0": {"StaticID": f"AcStory{pickup}", "LV": 60}}
+    return npc_maps or {1: {"0": {"StaticID": f"AcStory{pickup}", "LV": 60}}}
+
+
+def get_event(login_data: dict[str, Any]) -> dict[str, Any]:
+    pickup = get_pickup(login_data)
+    scene_ids = get_activity_scene_ids(pickup)
+    npc_maps = get_activity_npc_pos_maps(pickup)
+    return {
+        "pickup": pickup,
+        "scene_ids": scene_ids,
+        "npc_levels": sorted(npc_maps),
+        "npc_maps": npc_maps,
+        "ex_sid": scene_ids[12] if len(scene_ids) > 12 else f"B{pickup}_1_13",
+    }

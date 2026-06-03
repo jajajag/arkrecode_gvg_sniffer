@@ -62,7 +62,7 @@ def _sub_values(equip: dict[str, Any]) -> dict[str, float]:
 
 
 def _min_score() -> float:
-    return num(config()["equip_score_threshold"])
+    return num(config()["equip_score_min"])
 
 
 def _template_names_for_set(set_name: str) -> list[str]:

@@ -2,7 +2,7 @@ from utils.analyzer import analyze_gvg, analyze_gvg_defence
 from utils.equips import match_equip
 from utils.exporter import export_report
 from utils.printer import print_report
-from utils.helper import get_activity_npc_pos_map, get_activity_scene_ids, get_pickup
+from utils.helper import get_event
 from utils.master import ensure_master_db
 import base64
 import json
@@ -20,9 +20,7 @@ headers = {
     'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
 }
 
-CONFIG_PATH = 'data/config.json'
-
-def load_config(config_path=CONFIG_PATH):
+def load_config(config_path='data/config.json'):
     with open(config_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
@@ -136,7 +134,7 @@ def run_login(accounts, acc_idx, version):
     }
     return send(payload)
 
-def run_secret(aid, session_id, secret_data):
+def run_secret(aid, session_id, secrets):
     buy_list = [
         # Ampleons
         {'Count': 1, 'StaticID': 'EC11'},
@@ -167,7 +165,7 @@ def run_secret(aid, session_id, secret_data):
         'route': 'StoreHandler.BuyCommodity'
     }
     while True:
-        for record in secret_data:
+        for record in secrets:
             item = record['DropResult']['Items'][0]
             # Skip if neither in buy_list nor a desired equipment
             if not (('Item' in item and item['Item'] in buy_list) or
@@ -181,14 +179,14 @@ def run_secret(aid, session_id, secret_data):
             except Exception:
                 print(f'购买失败：{item.get("Item") or item.get("Equipment")}')
         try:
-            secret_data = send(payload_refresh)
-            secret_data = secret_data['Records']
+            secrets = send(payload_refresh)
+            secrets = secrets['Records']
             print('商店刷新成功！')
         except Exception:
             print('商店刷新结束：次数已满！')
             return
 
-def run_guild_support(aid, session_id, sup_items, cuid):
+def run_guild_support(aid, session_id, sups, cuid):
     payload_guild = {
         'data': {
             'AID': aid,
@@ -213,19 +211,19 @@ def run_guild_support(aid, session_id, sup_items, cuid):
     try:
         for item in data['GuildData']['GuildAidItemInfoList']:
             if (item['NowCount'] >= 8
-                or sup_items.get(item['ItemID'], 0) < 2
+                or sups.get(item['ItemID'], 0) < 2
                 or item['Requester']['CUID'] == cuid
                 or cuid in item['SupporterList']):
                 continue
             payload['data']['GuildAidItemInfoID'] = item['_id']['$oid']
             send(payload)
-            sup_items[item['ItemID']] -= 2
+            sups[item['ItemID']] -= 2
             print(f'支援成功：{item["ItemID"]}')
     except Exception:
         print('支援结束：已达上限！')
     payload_support = {
         'data': {
-            'ItemID': min(sup_items, key=sup_items.get),
+            'ItemID': min(sups, key=sups.get),
             'AID': aid,
             'SessionID': session_id
         },
@@ -237,7 +235,7 @@ def run_guild_support(aid, session_id, sup_items, cuid):
     except Exception:
         print('请求失败：今日已请求过！')
 
-def run_daily(aid, session_id, secret_data, sup_items, cuid, activity_pickup):
+def run_daily(aid, session_id, secrets, sups, cuid, event):
     payloads = [
         # Force lab
         {'route': 'ArkReactorHandler.RewardArkReactor'},
@@ -282,7 +280,7 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid, activity_pickup):
         {'route': 'SupportFriendHandler.GetReward'},
         {'route': 'TimingMealHandler.SentMeal'},
         {'route': 'WeekSignInHandler.SignIn',
-         'data': {'ActivityID': f'ActivitySignIn{activity_pickup}'}},
+         'data': {'ActivityID': f'ActivitySignIn{event["pickup"]}'}},
         # Daily / Weekly rewards
         {'route': 'QuestHandler.RewardQuest',
          'data': {'RewardQuestInfos': [
@@ -317,8 +315,8 @@ def run_daily(aid, session_id, secret_data, sup_items, cuid, activity_pickup):
             print(f'{payload} 失败！')
     # 刷神秘商店
     print('正在刷神秘商店...')
-    run_secret(aid, session_id, secret_data)
-    run_guild_support(aid, session_id, sup_items, cuid)
+    run_secret(aid, session_id, secrets)
+    run_guild_support(aid, session_id, sups, cuid)
 
 def run_rainbow(aid, session_id):
     payload = {
@@ -376,7 +374,7 @@ def run_npc_battle(aid, session_id, npc, pos_map=None):
                 'PositionRoleMap': pos_map}
     return send(payload)
 
-def run_npc(aid, session_id, npc_list):
+def run_npc(aid, session_id, npc_list, dispatched_quests):
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     print(f'当前可挑战NPC：{targets}')
@@ -388,47 +386,49 @@ def run_npc(aid, session_id, npc_list):
             print(f'NPC {npc} 挑战{"成功" if data["IsWin"] else "失败"}！')
     except Exception:
         print('挑战结束：没有旗帜！')
-    run_high_command(aid, session_id)
+    # We also run dispatched quests here
+    run_dispatched_quests(aid, session_id, dispatched_quests)
 
-def run_high_command(aid, session_id):
-    quests = load_config().get('high_command_quests', [])
-    if not isinstance(quests, list):
-        return
-
-    for quest_id in quests:
-        if not quest_id:
-            continue
+def run_dispatched_quests(aid, session_id, dispatched_quests):
+    payload_reward = {
+        'data': {
+            'QuestStaticID': '',
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'ArkHighCommandHandler.RewardQuest'
+    }
+    payload_dispatch = {
+        'data': {
+            'Quest': {
+                'StaticID': '',
+                'DispatchedHeroIDs': []
+            },
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'ArkHighCommandHandler.DispatchQuest'
+    }
+    now = int(time.time() * 1000)
+    targets = [quest_id for quest_id in dispatched_quests
+               if now > dispatched_quests[quest_id]['FinishTime']['$date']]
+    print(f'当前可派遣任务：{targets}')
+    for quest_id in targets:
         try:
-            reward_data = send({
-                'data': {
-                    'QuestStaticID': quest_id,
-                    'AID': aid,
-                    'SessionID': session_id
-                },
-                'route': 'ArkHighCommandHandler.RewardQuest'
-            })
-            quest = reward_data.get('FinishedQuest') or {}
-            dispatched_hero_ids = quest.get('DispatchedHeroIDs') or []
-            static_id = quest.get('StaticID') or quest_id
-            if not dispatched_hero_ids:
-                continue
-
-            send({
-                'data': {
-                    'Quest': {
-                        'StaticID': static_id,
-                        'DispatchedHeroIDs': dispatched_hero_ids
-                    },
-                    'AID': aid,
-                    'SessionID': session_id
-                },
-                'route': 'ArkHighCommandHandler.DispatchQuest'
-            })
-            print(f'派遣成功：{static_id}')
+            payload_reward['data']['QuestStaticID'] = quest_id
+            reward_data = send(payload_reward)
+            hero_ids = reward_data['FinishedQuest']['DispatchedHeroIDs']
+            #hero_ids = dispatched_quests[quest_id]['DispatchedHeroIDs']
+            payload_dispatch['data']['Quest']['StaticID'] = quest_id
+            payload_dispatch['data']['Quest']['DispatchedHeroIDs'] = hero_ids
+            send(payload_dispatch)
+            dispatched_quests[quest_id]['FinishTime']['$date'] = float('inf')
+            print(f'派遣成功：{quest_id}')
         except Exception:
+            # The quest has not been completed
             continue
 
-def run_battle(aid, session_id, pos_map, activity_pickup, activity_scene_ids, activity_npc_level, activity_npc_map):
+def run_battle(aid, session_id, pos_map, event):
     payload = {
         'data': {
             'BattleEndData': {
@@ -475,13 +475,13 @@ def run_battle(aid, session_id, pos_map, activity_pickup, activity_scene_ids, ac
         sid = f'{prefix}{elems[idx][1]}_{suffix}'
         runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
     elif c == 11:
-        sid = activity_scene_ids[12] if len(activity_scene_ids) > 12 else f'B{activity_pickup}_1_13'
+        sid = event['scene_ids'][-2]
         runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
     else: # c == 12
         runs = [
             {'static_id': sid,
-             'pos_map': activity_npc_map if i == activity_npc_level else pos_map}
-            for i, sid in enumerate(activity_scene_ids[:12])
+             'pos_map': event['npc_maps'].get(i, pos_map)}
+            for i, sid in enumerate(event['scene_ids'][:12])
         ] * repeat
 
     print('开始刷活动讨伐...')
@@ -541,8 +541,6 @@ def run_guild_data(aid, session_id):
     export_report(data)
 
 def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
-    if not gid:
-        gid = input('请输入佣兵团 GID（默认查询本团）：').strip()
     payload = {
         'data': {
             'GuildID': gid,
@@ -551,6 +549,8 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
         },
         'route': 'GuildHandler.QueryPartialGuildDataForGuildWar'
     }
+    if not gid:
+        gid = input('请输入佣兵团 GID（默认查询本团）：').strip()
     try:
         print('正在查询团战总结...')
         if gid: guild_data = send(payload)
@@ -560,8 +560,6 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
 
 # 更新前20名佣兵团的防守数据
 def run_gvg_update(aid, session_id, cuid):
-    num_def = input('请输入要查询的前排团战防守（最多前20，0则跳过）：').strip()
-    num_def = int(num_def) if str(num_def).isdigit() else 20
     payload = {
         'data': {
             'AID': aid,
@@ -576,7 +574,7 @@ def run_gvg_update(aid, session_id, cuid):
         return
     guilds = data['GuildWarCampaignInfoList']
     # Query for the top 20 guilds
-    for i in range(min(num_def, len(guilds))):
+    for i in range(len(guilds)):
         print(f'正在查询第{i + 1}名佣兵团的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
@@ -599,24 +597,28 @@ def main():
         print('登录失败！')
         return
 
-    activity_pickup = get_pickup(data)
-    activity_scene_ids = get_activity_scene_ids(activity_pickup)
-    activity_npc_level, activity_npc_map = get_activity_npc_pos_map(activity_pickup)
-    print(f'当前活动：{activity_pickup}，NPC关卡：{activity_npc_level + 1}')
-
     # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
     session_id = data['SessionID']
     # 1
-    secret_data = [item for item in data['StoreRecordContainer']['Records'] \
+    secrets = [item for item in data['StoreRecordContainer']['Records'] \
             if item['Store'] == 'SecretShop']
-    sup_items = {'CR14': 0, 'CR24': 0, 'CR34': 0, 'CR44': 0, 'CR54': 0}
-    sup_items.update({
+    sups = {'CR14': 0, 'CR24': 0, 'CR34': 0, 'CR44': 0, 'CR54': 0}
+    sups.update({
         x['StaticID']: x['Count'] for x in data['ItemContainer']['Items']
-        if x.get('StaticID') in sup_items
+        if x.get('StaticID') in sups
     })
+    # 1, 4
+    event = get_event(data)
+    npc_levels = ', '.join(str(i + 1) for i in sorted(event['npc_maps']))
+    print(f'当前活动：{event["pickup"]}，NPC关卡：{npc_levels}')
     # 1, 9
     cuid = data['Info']['CUID']
+    # 3
+    dispatched_quests = {
+        q['StaticID']: q
+        for q in data['ArkHighCommandData'].get('DispatchedQuests', [])
+    }
     # 3, 5
     npc_list = {}
     for npc in data['PVPData']['NPCPVPInfoList']:
@@ -628,16 +630,17 @@ def main():
     pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
     # 8
     guild_data = {'GuildData': data.get('GuildData', {})}
+
     while (action := choose_action()) != 0:
         actions = {
             # 刷日常（神秘商店）
-            1: lambda: run_daily(aid, session_id, secret_data, sup_items, cuid, activity_pickup),
+            1: lambda: run_daily(aid, session_id, secrets, sups, cuid, event),
             # 刷星源商店
             2: lambda: run_rainbow(aid, session_id),
             # 刷NPC（不进场）
-            3: lambda: run_npc(aid, session_id, npc_list),
+            3: lambda: run_npc(aid, session_id, npc_list, dispatched_quests),
             # 刷活动讨伐
-            4: lambda: run_battle(aid, session_id, pos_map, activity_pickup, activity_scene_ids, activity_npc_level, activity_npc_map),
+            4: lambda: run_battle(aid, session_id, pos_map, event),
             # 刷佣兵团周任务（2800）
             5: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度
