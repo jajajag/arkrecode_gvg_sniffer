@@ -45,10 +45,8 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "HPValue",
         "DefenceRate",
-        "DefenceValue",
+        "HPRate",
         "CriticalRate",
         "CriticalDamageRate"
       ]
@@ -75,11 +73,8 @@
       "subprops": [
         "SpeedValue",
         "AttackRate",
-        "AttackValue",
-        "HPRate",
-        "HPValue",
         "DefenceRate",
-        "DefenceValue",
+        "HPRate",
         "CriticalRate",
         "CriticalDamageRate"
       ]
@@ -103,10 +98,10 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "HPValue",
         "DefenceRate",
-        "DefenceValue"
+        "DefenceValue",
+        "HPRate",
+        "HPValue"
       ]
     },
     "命中": {
@@ -126,10 +121,9 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "HPValue",
+	"AttackRate",
         "DefenceRate",
-        "DefenceValue",
+        "HPRate",
         "EffectHitRate"
       ]
     },
@@ -150,10 +144,9 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "HPValue",
+	"AttackRate",
         "DefenceRate",
-        "DefenceValue",
+        "HPRate",
         "ResistanceRate"
       ]
     },
@@ -178,10 +171,9 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "HPValue",
+	"AttackRate",
         "DefenceRate",
-        "DefenceValue",
+        "HPRate",
         "EffectHitRate",
         "ResistanceRate"
       ]
@@ -202,9 +194,9 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "DefenceRate",
         "AttackRate",
+        "DefenceRate",
+        "HPRate",
         "CriticalRate",
         "CriticalDamageRate",
         "ResistanceRate"
@@ -226,9 +218,9 @@
       ],
       "subprops": [
         "SpeedValue",
-        "HPRate",
-        "DefenceRate",
         "AttackRate",
+        "DefenceRate",
+        "HPRate",
         "CriticalRate",
         "CriticalDamageRate",
         "EffectHitRate"
