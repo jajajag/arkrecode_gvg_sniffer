@@ -1,4 +1,4 @@
-from utils.analyzer import analyze_gvg, analyze_gvg_defence
+from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
 from utils.equips import match_equip
 from utils.exporter import export_report
 from utils.printer import print_report
@@ -581,6 +581,27 @@ def run_gvg_update(aid, session_id, cuid):
         analyze_gvg_defence(aid, session_id, cuid, rows)
     print('防守数据查询完成！')
 
+# 更新前100名玩家的竞技场装备数据
+def run_pvp_update(aid, session_id, cuid, week):
+    payload = {
+        'data': {
+            'Week': week,
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'PVPHandler.GetPVPRankList'
+    }
+    try:
+        print('正在更新装备数据...')
+        data = send(payload)
+    except Exception:
+        print('查询失败：排名可能在结算中！')
+        return
+    analyze_pvp_equips(data)
+    print('装备数据更新完成！')
+    # We now update GVG defence data here
+    run_gvg_update(aid, session_id, cuid)
+
 def main():
     bulletin = run_bulletin()
     ensure_master_db(bulletin)
@@ -630,6 +651,8 @@ def main():
     pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
     # 8
     guild_data = {'GuildData': data.get('GuildData', {})}
+    # 9
+    week = data['PVPData']['PVPRankInfo']['RankWeek']
 
     while (action := choose_action()) != 0:
         actions = {
@@ -650,7 +673,7 @@ def main():
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
             # 查询团战防守
-            9: lambda: run_gvg_update(aid, session_id, cuid),
+            9: lambda: run_pvp_update(aid, session_id, cuid, week),
         }
         actions.get(action, lambda: None)()
 

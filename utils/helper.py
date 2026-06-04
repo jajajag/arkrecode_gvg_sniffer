@@ -32,20 +32,6 @@ RATE_PROP = {
     "PinchRate": "PinchRate",
 }
 
-PROP_SCORE = {
-    "AttackRate": 180,
-    "AttackValue": 0.17,
-    "CriticalDamageRate": 180,
-    "CriticalRate": 200,
-    "DefenceRate": 180,
-    "DefenceValue": 0.2,
-    "EffectHitRate": 125,
-    "HPValue": 0.05,
-    "HPRate": 150,
-    "ResistanceRate": 125,
-    "SpeedValue": 3.5,
-}
-
 EQUIP_KEYS = {
     "Weapon": "UI_Equip_Weapon",
     "Head": "UI_Equip_Helmet",
@@ -138,10 +124,6 @@ def prop_short(prop: str) -> str:
     if "生命" in name:
         return "生"
     return name[:1] if name else prop
-
-
-def get_prop_score(prop: str) -> float:
-    return PROP_SCORE.get(prop, 0)
 
 
 @lru_cache(maxsize=128)
