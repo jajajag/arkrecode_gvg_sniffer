@@ -1,18 +1,19 @@
 {
-  "equip_score_min": 35,
+  "equip_score_min_left": 40,
+  "equip_score_min_right": 35,
   "equip_templates": {
     "输出": {
-      "necklace": [
+      "Necklace": [
         "AttackRate",
         "CriticalRate",
         "CriticalDamageRate",
         "AttackValue"
       ],
-      "ring": [
+      "Ring": [
         "AttackRate",
         "AttackValue"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "AttackRate",
         "AttackValue"
@@ -26,18 +27,18 @@
       ]
     },
     "纯肉输出": {
-      "necklace": [
+      "Necklace": [
         "HPRate",
         "DefenceRate",
         "CriticalRate",
         "CriticalDamageRate"
       ],
-      "ring": [
+      "Ring": [
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
@@ -52,18 +53,18 @@
       ]
     },
     "半肉输出": {
-      "necklace": [
+      "Necklace": [
         "AttackRate",
         "CriticalRate",
         "CriticalDamageRate"
       ],
-      "ring": [
+      "Ring": [
         "AttackRate",
         "HPRate",
         "HPValue",
         "AttackValue"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "AttackRate",
         "HPRate",
@@ -80,17 +81,17 @@
       ]
     },
     "生存": {
-      "necklace": [
+      "Necklace": [
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "ring": [
+      "Ring": [
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
@@ -105,15 +106,15 @@
       ]
     },
     "命中": {
-      "necklace": [
+      "Necklace": [
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "ring": [
+      "Ring": [
         "EffectHitRate"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
@@ -128,15 +129,15 @@
       ]
     },
     "抗性": {
-      "necklace": [
+      "Necklace": [
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "ring": [
+      "Ring": [
         "ResistanceRate"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
@@ -151,19 +152,19 @@
       ]
     },
     "双堆": {
-      "necklace": [
+      "Necklace": [
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "ring": [
+      "Ring": [
         "EffectHitRate",
         "ResistanceRate",
         "HPRate",
         "DefenceRate",
         "HPValue"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
@@ -179,14 +180,14 @@
       ]
     },
     "抗性输出": {
-      "necklace": [
+      "Necklace": [
         "CriticalRate",
         "CriticalDamageRate"
       ],
-      "ring": [
+      "Ring": [
         "ResistanceRate"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
@@ -203,14 +204,14 @@
       ]
     },
     "命中输出": {
-      "necklace": [
+      "Necklace": [
         "CriticalRate",
         "CriticalDamageRate"
       ],
-      "ring": [
+      "Ring": [
         "EffectHitRate"
       ],
-      "shoes": [
+      "Shoes": [
         "SpeedValue",
         "HPRate",
         "DefenceRate",
