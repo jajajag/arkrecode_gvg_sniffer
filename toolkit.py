@@ -524,14 +524,14 @@ def run_weekly(aid, session_id, repeat=140):
     print(f'每周任务完成！共{repeat}次')
 
 def run_affection(aid, session_id, npc_list, pos_map):
-    repeat = input('请输入刷亲密度次数（默认第一队10次）：').strip()
-    repeat = int(repeat) if str(repeat).isdigit() else 10
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     if not targets:
         print('刷亲密度失败：请先保留至少一个可挑战的NPC！')
         return
     print(f'当前可挑战NPC：{targets}')
+    repeat = input('请输入刷亲密度次数（默认第一队10次）：').strip()
+    repeat = int(repeat) if str(repeat).isdigit() else 10
     for i in range(repeat):
         run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
         print(f'正在刷亲密度...（{i + 1}/{repeat}）')
@@ -586,8 +586,11 @@ def run_gvg_update(aid, session_id, cuid):
         print('查询失败：未加入佣兵团！')
         return
     guilds = data['GuildWarCampaignInfoList']
+    # 0 for not querying
+    num_def = input('请输入要查询的前排团战防守（最多前20）：')
+    num_def = int(num_def) if str(num_def).strip().isdigit() else 20
     # Query for the top 20 guilds
-    for i in range(len(guilds)):
+    for i in range(min(num_def, len(guilds))):
         print(f'正在查询第{i + 1}名佣兵团的防守数据...')
         gid = guilds[i]['GuildSubInfo']['_id']['$oid']
         rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
