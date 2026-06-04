@@ -1,23 +1,13 @@
 from collections import Counter
 from datetime import datetime, timezone
+from .helper import calculate_role_stats, calculate_team_stats, equip_name
+from .helper import equip_parts, get_bond, get_role, get_set, prop_short
 import csv
 import os
 
-from .helper import (
-    calculate_role_stats,
-    calculate_team_stats,
-    equip_name,
-    equip_parts,
-    get_bond,
-    get_role,
-    get_set,
-    hp_int,
-    prop_short,
-)
-
 
 def export_prop(row, stats):
-    row['生命'] = hp_int(stats.get('HP', 0))
+    row['生命'] = round(stats.get('HP', 0))
 
 def export_equip(row, equip_map):
     if not equip_map: return

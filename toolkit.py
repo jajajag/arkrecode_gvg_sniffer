@@ -388,6 +388,19 @@ def run_npc(aid, session_id, npc_list, dispatched_quests):
         print('挑战结束：没有旗帜！')
     # We also run dispatched quests here
     run_dispatched_quests(aid, session_id, dispatched_quests)
+    # We also claim meal rewards here
+    payload_meal = {
+        'data': {
+            'AID': aid,
+            'SessionID': session_id,
+        },
+        'route': 'TimingMealHandler.SentMeal'
+    }
+    try:
+        send(payload_meal)
+        print('尝试领取饭点体力！')
+    except Exception:
+        print('领取饭点体力失败！')
 
 def run_dispatched_quests(aid, session_id, dispatched_quests):
     payload_reward = {
