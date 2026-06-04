@@ -62,13 +62,15 @@ pip install pycryptodome
 
 - 刷日常（神秘商店）
 - 刷星源商店
-- 刷NPC（不进场）
+- 刷NPC（派遣任务）
 - 刷活动讨伐
 - 刷佣兵团周任务（2800）
 - 刷亲密度
 - 查询团战数据
 - 查询团战总结
 - 查询团战防守
+
+5. 运行完9收集data.db后，可以运行```python3 scripts/gvg_defence.py```来查团战作业，和```python3 scripts/pvp_speed.py```来偷窥大佬速度了。
 
 ## 一些碎碎念
 
@@ -77,6 +79,8 @@ pip install pycryptodome
 2. 需要注意的是，改了代理之后，必须打开mitmproxy才能联网，因此平常不开mitmproxy的时候，需要在设置里把代理关掉。
 
 3. 最近发现PC端和iOS都能双开星陨计划了，很爽。PC端我用的是[Sandboxie-Plus](https://sandboxie-plus.com/downloads/)，iOS是把官网下的IPA文件通过[EditIPA](https://jagritthukral.github.io/EditIPA/)这个网站修改Bundle Identifier再通过全能签安装。
+
+4. 现在会先下载解包数据生成master.db和master.json，然后通过解包数据来更新活动和角色等信息，不再手动更新了（懒）。
 
 ## 相关参考
 
