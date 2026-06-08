@@ -86,6 +86,18 @@ def load_rounds(conn):
 
 def role_candidates(query, known_role_ids):
     folded_query = query.casefold()
+    # 1. First try exact match on role ID
+    if query in known_role_ids:
+        return [(query, get_role(query))]
+    # 2. Then try exact match on role name
+    exact = [
+        (role_id, get_role(role_id))
+        for role_id in known_role_ids
+        if get_role(role_id).casefold() == folded_query
+    ]
+    if exact:
+        return exact
+    # 3. Finally try substring match on role name
     result = [
         (role_id, get_role(role_id))
         for role_id in known_role_ids
