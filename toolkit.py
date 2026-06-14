@@ -564,6 +564,7 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
     }
     if not gid:
         gid = input('请输入佣兵团 GID（默认查询本团）：').strip()
+        payload['data']['GuildID'] = gid
     try:
         print('正在查询团战总结...')
         if gid: guild_data = send(payload)

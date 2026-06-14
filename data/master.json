@@ -260,7 +260,7 @@
     "T_Item_Name_A0419": "A0419",
     "T_Item_Name_A0422": "A0422",
     "T_Item_Name_A0425": "A0425",
-    "T_Item_Name_A0434": "A0434",
+    "T_Item_Name_A0434": "近岸轻撩时",
     "T_Item_Name_A0437": "午后的私厨",
     "T_Item_Name_A0440": "A0440",
     "T_Item_Name_A0443": "A0443",
@@ -1003,6 +1003,7 @@
     "T_Item_Name_E1074": "泡影之泪",
     "T_Item_Name_E1075": "泡影之花",
     "T_Item_Name_E1076": "泡影之迹",
+    "T_Item_Name_E1077": "沧海月明",
     "T_Item_Name_E1081": "花语",
     "T_Item_Name_E1082": "夏花礼帽",
     "T_Item_Name_E1083": "夏花之纱",
@@ -71455,6 +71456,10 @@
       "ID": "251",
       "Name": "T_Item_Name_251"
     },
+    "252": {
+      "ID": "252",
+      "Name": "T_Item_Name_228"
+    },
     "301": {
       "ID": "301",
       "Name": "T_Item_Name_301"
@@ -75654,6 +75659,10 @@
     "E1076": {
       "ID": "E1076",
       "Name": "T_Item_Name_E1076"
+    },
+    "E1077": {
+      "ID": "E1077",
+      "Name": "T_Item_Name_E1077"
     },
     "E1081": {
       "ID": "E1081",
@@ -115865,6 +115874,10 @@
       "ID": "ActivitySignInH180",
       "Type": "SignIn"
     },
+    "ActivitySignInH192": {
+      "ID": "ActivitySignInH192",
+      "Type": "SignIn"
+    },
     "ActivitySignInH602": {
       "ID": "ActivitySignInH602",
       "Type": "SignIn"
@@ -117525,6 +117538,10 @@
       "ID": "GIFT1000WDL",
       "Type": "Gift"
     },
+    "GIFT1100WDL": {
+      "ID": "GIFT1100WDL",
+      "Type": "Gift"
+    },
     "GIFTJP2WDL": {
       "ID": "GIFTJP2WDL",
       "Type": "Gift"
@@ -118125,6 +118142,10 @@
       "ID": "GIFTActivityH180",
       "Type": "Gift"
     },
+    "GIFTActivityH192": {
+      "ID": "GIFTActivityH192",
+      "Type": "Gift"
+    },
     "GIFTActivityH601": {
       "ID": "GIFTActivityH601",
       "Type": "Gift"
@@ -118375,6 +118396,22 @@
     },
     "GIFTFESH180_4": {
       "ID": "GIFTFESH180_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH192": {
+      "ID": "GIFTFESH192",
+      "Type": "Gift"
+    },
+    "GIFTFESH192_3": {
+      "ID": "GIFTFESH192_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH192_4": {
+      "ID": "GIFTFESH192_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH192_5": {
+      "ID": "GIFTFESH192_5",
       "Type": "Gift"
     },
     "GIFTFESH602": {
@@ -120259,6 +120296,10 @@
     },
     "Version_H187": {
       "ID": "Version_H187",
+      "Type": "Function"
+    },
+    "Version_H192": {
+      "ID": "Version_H192",
       "Type": "Function"
     },
     "Version_H193": {
