@@ -1,12 +1,16 @@
 import itertools
 import sqlite3
 import sys
+import time
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from utils.helper import get_role
+
+RECENT_DAYS = 90
+MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 
 @dataclass(frozen=True)
 class Round:
@@ -57,16 +61,31 @@ def defense_success(rows):
 def attack_wins(rows):
     return sum(1 for row in rows if row.win)
 
-def load_rounds(conn):
+def load_rounds(conn, since_ts):
     units = defaultdict(list)
     for row in conn.execute(
-            'SELECT * FROM gvg_units ORDER BY battle_id, round_idx, side, pos'):
+            '''
+            SELECT u.*
+            FROM gvg_units AS u
+            JOIN gvg_rounds AS r
+              ON r.battle_id = u.battle_id
+             AND r.round_idx = u.round_idx
+            WHERE r.start_ts >= ?
+            ORDER BY u.battle_id, u.round_idx, u.side, u.pos
+            ''',
+            (since_ts,)):
         units[(row['battle_id'], int(row['round_idx']),
                row['side'])].append(row)
 
     rounds = []
     for row in conn.execute(
-            'SELECT * FROM gvg_rounds ORDER BY start_ts, battle_id, round_idx'):
+            '''
+            SELECT *
+            FROM gvg_rounds
+            WHERE start_ts >= ?
+            ORDER BY start_ts, battle_id, round_idx
+            ''',
+            (since_ts,)):
         key = (row['battle_id'], int(row['round_idx']))
         atk_units = units.get((*key, 'atk'), [])
         def_units = units.get((*key, 'def'), [])
@@ -213,7 +232,8 @@ def main():
     try:
         conn = sqlite3.connect('data/data.db')
         conn.row_factory = sqlite3.Row
-        rounds = load_rounds(conn)
+        since_ts = int(time.time() * 1000) - RECENT_DAYS * MILLIS_PER_DAY
+        rounds = load_rounds(conn, since_ts)
     except Exception:
         print('找不到data/data.db，请先运行9！')
         return 1
