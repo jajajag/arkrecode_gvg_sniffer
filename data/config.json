@@ -172,7 +172,6 @@
       ],
       "subprops": [
         "SpeedValue",
-        "AttackRate",
         "DefenceRate",
         "HPRate",
         "EffectHitRate",
@@ -189,15 +188,11 @@
       ],
       "Shoes": [
         "SpeedValue",
-        "HPRate",
-        "DefenceRate",
         "AttackRate"
       ],
       "subprops": [
         "SpeedValue",
         "AttackRate",
-        "DefenceRate",
-        "HPRate",
         "CriticalRate",
         "CriticalDamageRate",
         "ResistanceRate"
@@ -213,15 +208,11 @@
       ],
       "Shoes": [
         "SpeedValue",
-        "HPRate",
-        "DefenceRate",
         "AttackRate"
       ],
       "subprops": [
         "SpeedValue",
         "AttackRate",
-        "DefenceRate",
-        "HPRate",
         "CriticalRate",
         "CriticalDamageRate",
         "EffectHitRate"
