@@ -95,3 +95,15 @@ def print_report(data):
             print_player(i, player)
     else:
         print_player(1, data)
+
+def print_rta_rooms(data):
+    for i, room in enumerate(data.get("Rooms", []), 1):
+        name = room.get("Name") or "无"
+        password = room.get("Password") or "无"
+        print(f'{i}. 房间名：{name}，密码：{password}')
+        for player in room.get("Players", []):
+            guild = player.get("GuildSubInfo", {}).get("Name", "")
+            print(
+                f'  - {player.get("Name", "")}，'
+                f'公会：{guild}，UID：{player.get("CUID", "")}'
+            )

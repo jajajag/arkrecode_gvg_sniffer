@@ -1,7 +1,7 @@
 import json
 import threading
 from utils.analyzer import analyze_gvg
-from utils.printer import print_report
+from utils.printer import print_report, print_rta_rooms
 
 flag = True
 
@@ -10,6 +10,7 @@ query_list = [
     "PVPHandler.QueryPVPData", # JJC数据
     "PVPHandler.QueryRevengeEnemyData", # 复仇数据
     "AccountHandler.QueryPlayerCardData", # 好友JJC和辅助团员数据
+    "RoomHandler.QueryRoomListByScene", # 实时竞技房间列表
 ]
 
 def process(flow):
@@ -39,6 +40,8 @@ def process(flow):
                                req['data']['SessionID'],),
                          daemon=True).start()
         flag = False
+    elif req.get("route") == "RoomHandler.QueryRoomListByScene":
+        threading.Thread(target=print_rta_rooms, args=(data,), daemon=True).start()
     else:
         threading.Thread(target=print_report, args=(data,), daemon=True).start()
 

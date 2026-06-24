@@ -505,6 +505,13 @@ def run_battle(aid, session_id, pos_map, event):
             data = send(payload)
             energy = data['CostItems'][0]['NowItem']['Count']
             print(f'挑战成功，剩余体力：{energy}')
+            # Check for urgent missions
+            for m in data.get('UrgentMissionContainer', {}).get('Missions', []):
+                if urgent_sid := m['SceneID']:
+                    scene['StaticID'] = urgent_sid
+                    camp1['PositionRoleMap'] = pos_map
+                    data = send(payload)
+                    print(f'紧急任务完成：{urgent_sid}')
     except Exception:
         print('挑战失败：体力不足，装备已满，或活动代码错误！')
 
