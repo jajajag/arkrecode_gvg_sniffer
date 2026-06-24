@@ -257,7 +257,7 @@
     "T_Item_Name_A0410": "神圣的仪礼",
     "T_Item_Name_A0413": "盛开的扶桑",
     "T_Item_Name_A0416": "A0416",
-    "T_Item_Name_A0419": "A0419",
+    "T_Item_Name_A0419": "刹那的拥有",
     "T_Item_Name_A0422": "A0422",
     "T_Item_Name_A0425": "A0425",
     "T_Item_Name_A0434": "近岸轻撩时",
@@ -1010,6 +1010,7 @@
     "T_Item_Name_E1084": "夏花之泪",
     "T_Item_Name_E1085": "夏花之誓",
     "T_Item_Name_E1086": "夏花之径",
+    "T_Item_Name_E1087": "月下美人",
     "T_Item_Name_E2001": "慈爱的斗技者长枪",
     "T_Item_Name_E2002": "慈爱的斗技者头盔",
     "T_Item_Name_E2003": "慈爱的斗技者铠甲",
@@ -8716,6 +8717,22 @@
       "ResistanceRate": "1",
       "PinchRate": "1"
     },
+    "AcStoryH066_H189": {
+      "ID": "AcStoryH066_H189",
+      "NAME": "T_Role_NAME_H066",
+      "RolePropertyID": "AcHERO",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "3",
+      "Defence": "1.4",
+      "Speed": "1.12",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "1"
+    },
     "AcStoryH122": {
       "ID": "AcStoryH122",
       "NAME": "T_Role_NAME_H122",
@@ -10156,6 +10173,22 @@
       "ResistanceRate": "1",
       "PinchRate": "1"
     },
+    "AcStoryH189": {
+      "ID": "AcStoryH189",
+      "NAME": "T_Role_NAME_H189",
+      "RolePropertyID": "AcHERO",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.28",
+      "Attack": "10",
+      "Defence": "1.85",
+      "Speed": "1.25",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "1"
+    },
     "AcStoryH193": {
       "ID": "AcStoryH193",
       "NAME": "T_Role_NAME_H193",
@@ -10196,6 +10229,22 @@
       "SelfImprint": "",
       "HP": "1.51",
       "Attack": "4",
+      "Defence": "2",
+      "Speed": "1.1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "1"
+    },
+    "AcStoryH804": {
+      "ID": "AcStoryH804",
+      "NAME": "T_Role_NAME_H804",
+      "RolePropertyID": "AcHERO",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.52",
+      "Attack": "3.5",
       "Defence": "2",
       "Speed": "1.1",
       "CriticalRate": "1",
@@ -12380,6 +12429,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH041_H804": {
+      "ID": "AcEH041_H804",
+      "NAME": "T_Role_NAME_H041",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.85",
+      "Defence": "1.15",
+      "Speed": "2",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcEH042": {
       "ID": "AcEH042",
       "NAME": "T_Role_NAME_H042",
@@ -14147,7 +14212,7 @@
       "TeamImprint": "",
       "SelfImprint": "",
       "HP": "0.95",
-      "Attack": "1.15",
+      "Attack": "0.8",
       "Defence": "1",
       "Speed": "0.95",
       "CriticalRate": "1",
@@ -14444,6 +14509,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH150_H804": {
+      "ID": "AcEH150_H804",
+      "NAME": "T_Role_NAME_H150",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "1",
+      "Defence": "1",
+      "Speed": "1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcEH151": {
       "ID": "AcEH151",
       "NAME": "T_Role_NAME_H151",
@@ -14604,6 +14685,54 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH171": {
+      "ID": "AcEH171",
+      "NAME": "T_Role_NAME_H171",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "1",
+      "Defence": "1",
+      "Speed": "1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH172": {
+      "ID": "AcEH172",
+      "NAME": "T_Role_NAME_H172",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "1",
+      "Defence": "1",
+      "Speed": "1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH172_H189": {
+      "ID": "AcEH172_H189",
+      "NAME": "T_Role_NAME_H172",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "0.8",
+      "Defence": "1",
+      "Speed": "1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcEH174": {
       "ID": "AcEH174",
       "NAME": "T_Role_NAME_H174",
@@ -14623,6 +14752,54 @@
     "AcEH175": {
       "ID": "AcEH175",
       "NAME": "T_Role_NAME_H175",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.85",
+      "Defence": "1.15",
+      "Speed": "0.9",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH176": {
+      "ID": "AcEH176",
+      "NAME": "T_Role_NAME_H176",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "0.9",
+      "Attack": "1.2",
+      "Defence": "0.9",
+      "Speed": "1.1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH177": {
+      "ID": "AcEH177",
+      "NAME": "T_Role_NAME_H177",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.85",
+      "Defence": "1.15",
+      "Speed": "0.9",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH177_H189": {
+      "ID": "AcEH177_H189",
+      "NAME": "T_Role_NAME_H177",
       "RolePropertyID": "AcElite",
       "TeamImprint": "",
       "SelfImprint": "",
@@ -14668,6 +14845,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH180": {
+      "ID": "AcEH180",
+      "NAME": "T_Role_NAME_H180",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "1",
+      "Defence": "1",
+      "Speed": "1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcEH182": {
       "ID": "AcEH182",
       "NAME": "T_Role_NAME_H182",
@@ -14700,6 +14893,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH601_H205": {
+      "ID": "AcEH601_H205",
+      "NAME": "T_Role_NAME_H601",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "0.95",
+      "Attack": "0.85",
+      "Defence": "1",
+      "Speed": "0.95",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcEH603": {
       "ID": "AcEH603",
       "NAME": "T_Role_NAME_H603",
@@ -14716,16 +14925,16 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
-    "AcEH603_H205": {
-      "ID": "AcEH603_H205",
-      "NAME": "T_Role_NAME_H603",
+    "AcEH604": {
+      "ID": "AcEH604",
+      "NAME": "T_Role_NAME_H604",
       "RolePropertyID": "AcElite",
       "TeamImprint": "",
       "SelfImprint": "",
-      "HP": "1.15",
-      "Attack": "0.9",
-      "Defence": "1.1",
-      "Speed": "0.95",
+      "HP": "0.9",
+      "Attack": "1.15",
+      "Defence": "0.95",
+      "Speed": "1.05",
       "CriticalRate": "1",
       "CriticalDamageRate": "1",
       "EffectHitRate": "1",
@@ -15116,6 +15325,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcBH007_H189": {
+      "ID": "AcBH007_H189",
+      "NAME": "T_Role_NAME_H007",
+      "RolePropertyID": "AcBoss",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.65",
+      "Defence": "1.15",
+      "Speed": "0.9",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcBH008": {
       "ID": "AcBH008",
       "NAME": "T_Role_NAME_H008",
@@ -15219,7 +15444,7 @@
       "TeamImprint": "",
       "SelfImprint": "",
       "HP": "1.6",
-      "Attack": "1.4",
+      "Attack": "2",
       "Defence": "1.15",
       "Speed": "0.95",
       "CriticalRate": "1",
@@ -15907,7 +16132,7 @@
       "TeamImprint": "",
       "SelfImprint": "",
       "HP": "0.95",
-      "Attack": "1.15",
+      "Attack": "0.85",
       "Defence": "1",
       "Speed": "0.95",
       "CriticalRate": "1",
@@ -16908,6 +17133,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcBH116": {
+      "ID": "AcBH116",
+      "NAME": "T_Role_NAME_H116",
+      "RolePropertyID": "AcBoss",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.85",
+      "Defence": "1.15",
+      "Speed": "0.9",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcBH117": {
       "ID": "AcBH117",
       "NAME": "T_Role_NAME_H117",
@@ -17372,6 +17613,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcBH152_H804": {
+      "ID": "AcBH152_H804",
+      "NAME": "T_Role_NAME_H152",
+      "RolePropertyID": "AcBoss",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.15",
+      "Attack": "0.9",
+      "Defence": "1.1",
+      "Speed": "0.95",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcBH156": {
       "ID": "AcBH156",
       "NAME": "T_Role_NAME_H156",
@@ -17605,6 +17862,22 @@
       "HP": "0.95",
       "Attack": "0.85",
       "Defence": "1",
+      "Speed": "0.95",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcBH613": {
+      "ID": "AcBH613",
+      "NAME": "T_Role_NAME_H613",
+      "RolePropertyID": "AcBoss",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.15",
+      "Attack": "0.9",
+      "Defence": "1.1",
       "Speed": "0.95",
       "CriticalRate": "1",
       "CriticalDamageRate": "1",
@@ -75688,6 +75961,10 @@
       "ID": "E1086",
       "Name": "T_Item_Name_E1086"
     },
+    "E1087": {
+      "ID": "E1087",
+      "Name": "T_Item_Name_E1087"
+    },
     "E2001": {
       "ID": "E2001",
       "Name": "T_Item_Name_E2001"
@@ -77243,6 +77520,22 @@
     "Background158": {
       "ID": "Background158",
       "Name": "T_Item_Name_Background158"
+    },
+    "Background159": {
+      "ID": "Background159",
+      "Name": "T_Item_Name_Background159"
+    },
+    "Background160": {
+      "ID": "Background160",
+      "Name": "T_Item_Name_Background160"
+    },
+    "Background161": {
+      "ID": "Background161",
+      "Name": "T_Item_Name_Background161"
+    },
+    "Background162": {
+      "ID": "Background162",
+      "Name": "T_Item_Name_Background162"
     },
     "Frame000": {
       "ID": "Frame000",
@@ -115874,6 +116167,10 @@
       "ID": "ActivitySignInH180",
       "Type": "SignIn"
     },
+    "ActivitySignInH187": {
+      "ID": "ActivitySignInH187",
+      "Type": "SignIn"
+    },
     "ActivitySignInH192": {
       "ID": "ActivitySignInH192",
       "Type": "SignIn"
@@ -118142,6 +118439,10 @@
       "ID": "GIFTActivityH180",
       "Type": "Gift"
     },
+    "GIFTActivityH187": {
+      "ID": "GIFTActivityH187",
+      "Type": "Gift"
+    },
     "GIFTActivityH192": {
       "ID": "GIFTActivityH192",
       "Type": "Gift"
@@ -118396,6 +118697,22 @@
     },
     "GIFTFESH180_4": {
       "ID": "GIFTFESH180_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH187": {
+      "ID": "GIFTFESH187",
+      "Type": "Gift"
+    },
+    "GIFTFESH187_3": {
+      "ID": "GIFTFESH187_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH187_4": {
+      "ID": "GIFTFESH187_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH187_5": {
+      "ID": "GIFTFESH187_5",
       "Type": "Gift"
     },
     "GIFTFESH192": {
