@@ -6,8 +6,17 @@ import csv
 import os
 
 
-def export_prop(row, stats):
+def export_prop(row, stats, hp_only=False):
     row['生命'] = round(stats.get('HP', 0))
+    if hp_only:
+        return
+    row['速度'] = round(stats.get('Speed', 0))
+    row['防御'] = round(stats.get('Defence', 0))
+    row['命中'] = round(stats.get('EffectHitRate', 0) * 100)
+    row['抵抗'] = round(stats.get('ResistanceRate', 0) * 100)
+    row['攻击'] = round(stats.get('Attack', 0))
+    row['暴击'] = round(stats.get('CriticalRate', 0) * 100)
+    row['爆伤'] = round(stats.get('CriticalDamageRate', 0) * 100)
 
 def export_equip(row, equip_map):
     if not equip_map: return
@@ -46,7 +55,7 @@ def export_skill(row, skills):
     skills = [str(skill) for skill in skills][:3]
     row['技能'] = ''.join(skills)
 
-def export_role(role, stats=None):
+def export_role(role, stats=None, hp_only=False):
     stats = stats or calculate_role_stats(role)
     row = {'角色': f'{get_role(role["StaticID"])}'}
     bond = role['ArtifactData'] if 'ArtifactData' in role else None
@@ -55,7 +64,7 @@ def export_role(role, stats=None):
 
     export_bond(row, bond)
     export_equip(row, equip_map)
-    export_prop(row, stats)
+    export_prop(row, stats, hp_only)
     export_skill(row, skills)
     row['星级'] = f'{role["Star"]}星觉醒{role["AwakenLV"]}'
     ip = role['ImprintLV']
@@ -63,16 +72,16 @@ def export_role(role, stats=None):
 
     return row
 
-def export_team(team):
+def export_team(team, hp_only=False):
     team = team['PositionRoleMap']
     roles = [team[i] for i in sorted(team.keys())]
     stats = calculate_team_stats(roles)
     rows = []
     for role, role_stats in zip(roles, stats):
-        rows.append(export_role(role, role_stats))
+        rows.append(export_role(role, role_stats, hp_only))
     return rows
 
-def export_player(player):
+def export_player(player, hp_only=False):
     # Player info
     info = player['PlayerInfo']
     player_cuid = info['CUID']
@@ -81,8 +90,8 @@ def export_player(player):
 
     # Team data
     team = player['DefenceTeamData']
-    first_rows = export_team(team['FirstTeam'])
-    second_rows = export_team(team['SecondTeam'])
+    first_rows = export_team(team['FirstTeam'], hp_only)
+    second_rows = export_team(team['SecondTeam'], hp_only)
     first_rows[0]['UID'] = player_cuid
     first_rows[0]['昵称'] = player_name
     first_rows[0]['头像'] = leader_name
@@ -100,14 +109,19 @@ def export_report(data):
         if 'EnemyCampData' in data['GuildWarData']:
             plist = guild_war['EnemyCampData']['PlayerInfoList']
             guild_name = guild_war['EnemyCampData']['GuildInfo']['Name']
+            hp_only = True
         else:
             plist = guild_war['MyCampData']['PlayerInfoList']
             guild_name = guild_war['MyCampData']['GuildInfo']['Name']
+            hp_only = False
         for player in plist:
-            rows += export_player(player)
+            rows += export_player(player, hp_only)
+        prop_fieldnames = ['生命'] if hp_only else [
+            '速度', '生命', '防御', '命中', '抵抗', '攻击', '暴击', '爆伤'
+        ]
         fieldnames = [
             '昵称', '头像', '队伍', '角色', '羁绊', '套装', 
-            '鞋子', '戒指', '项链', '生命',
+            '鞋子', '戒指', '项链', *prop_fieldnames,
             '技能', '星级', '潜能', 'UID'
         ]
 

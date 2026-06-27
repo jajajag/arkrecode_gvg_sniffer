@@ -23,37 +23,37 @@ def role_bond(bond):
         return ''
     return f'{bond["LV"]}级{get_bond(bond["StaticID"])}'
 
-def role_stats(stats):
+def role_stats(stats, hp_only=False):
     attack = round(stats.get("Attack", 0))
-    attack_text = f'{(attack + 500) // 1000}k' \
-            if attack >= 1000 else str(attack)
+    if hp_only:
+        return f'{round(stats.get("HP", 0))}生'
     return (
         f'{round(stats.get("Speed", 0))}速'
         f'{round(stats.get("HP", 0))}生'
         f'{round(stats.get("Defence", 0))}防'
         f'{round(stats.get("EffectHitRate", 0) * 100)}命'
         f'{round(stats.get("ResistanceRate", 0) * 100)}抗'
-        f'{attack_text}攻'
+        f'{attack}攻'
         f'{round(stats.get("CriticalRate", 0) * 100)}暴'
         f'{round(stats.get("CriticalDamageRate", 0) * 100)}爆'
     )
 
-def print_role(role, stats=None):
+def print_role(role, stats=None, hp_only=False):
     stats = stats or calculate_role_stats(role)
     desc = role_sets(role.get('EquipmentMap')) \
             + role_bond(role.get('ArtifactData'))
     name = get_role(role["StaticID"])
-    print(f'{name}：{desc}({role_stats(stats)})' \
-            if desc else f'{name}({role_stats(stats)})')
+    print(f'{name}：{desc}({role_stats(stats, hp_only)})' \
+            if desc else f'{name}({role_stats(stats, hp_only)})')
 
-def print_team(team):
+def print_team(team, hp_only=False):
     roles = [team['PositionRoleMap'][i] \
             for i in sorted(team['PositionRoleMap'].keys())]
     stats = calculate_team_stats(roles)
     for role, role_stats in zip(roles, stats):
-        print_role(role, role_stats)
+        print_role(role, role_stats, hp_only)
 
-def print_player(index, player):
+def print_player(index, player, hp_only=False):
     if 'PlayerInfo' in player:
         info = player['PlayerInfo']
     else:
@@ -70,26 +70,28 @@ def print_player(index, player):
     if 'DefenceTeamData' in player:
         team = player['DefenceTeamData']
         print('[上半]')
-        print_team(team['FirstTeam'])
+        print_team(team['FirstTeam'], hp_only)
         print('[下半]')
-        print_team(team['SecondTeam'])
+        print_team(team['SecondTeam'], hp_only)
     elif 'BattleSupportData' in player:
         print('-----防守队伍-----')
-        print_team(player['PVPInfo']['DefenceTeam'])
+        print_team(player['PVPInfo']['DefenceTeam'], hp_only)
         print('-----辅助团员-----')
         for item in player['BattleSupportData']['RoleDataList']:
-            print_role(item['Role'])
+            print_role(item['Role'], hp_only=hp_only)
     else:
-        print_team(player['TeamData'])
+        print_team(player['TeamData'], hp_only)
 
 def print_report(data):
     if 'GuildWarData' in data:
         if 'EnemyCampData' in data['GuildWarData']:
             plist = data['GuildWarData']['EnemyCampData']['PlayerInfoList']
+            hp_only = True
         else:
             plist = data['GuildWarData']['MyCampData']['PlayerInfoList']
+            hp_only = False
         for i, player in enumerate(plist, 1):
-            print_player(i, player)
+            print_player(i, player, hp_only)
     elif 'PVPData' in data:
         for i, player in enumerate(data['PVPData']['EnemyList'], 1):
             print_player(i, player)

@@ -21,5 +21,5 @@ def request(flow):
     else:
         return
 
-    print('refreshToken:', token)
+    print('Token:', token)
     print('DeviceId:', device_id)

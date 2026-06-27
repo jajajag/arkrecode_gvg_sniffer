@@ -1,8 +1,9 @@
+import argparse
 import csv
 import math
 import sqlite3
-import sys
 import time
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,7 +11,8 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from utils.helper import get_role
 
-RECENT_DAYS = 30
+DEFAULT_RECENT_DAYS = 14
+DEFAULT_LINEUP_LIMIT = 5
 MIN_DEFENSE_MATCHES = 2
 MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 ROOT = Path(__file__).resolve().parents[1]
@@ -133,7 +135,37 @@ def resolve_guild(query, guilds):
     return None
 
 
-def top_failed_defenses(guild_rows):
+def positive_int(value):
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError('必须是正整数') from exc
+    if number <= 0:
+        raise argparse.ArgumentTypeError('必须是正整数')
+    return number
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        description='导出指定公会最近团战进攻失败错题本。'
+    )
+    parser.add_argument('guild', nargs='+', help='公会名称，支持空格分隔')
+    parser.add_argument(
+        '-d', '--days',
+        type=positive_int,
+        default=DEFAULT_RECENT_DAYS,
+        help=f'统计最近多少天，默认 {DEFAULT_RECENT_DAYS} 天',
+    )
+    parser.add_argument(
+        '-n', '--lineups',
+        type=positive_int,
+        default=DEFAULT_LINEUP_LIMIT,
+        help=f'输出防守阵容数量，默认 {DEFAULT_LINEUP_LIMIT}',
+    )
+    return parser.parse_args(argv)
+
+
+def top_failed_defenses(guild_rows, limit):
     defense_groups = group_rows(guild_rows, lambda row: row.defense)
     candidates = []
     for defense, rows in defense_groups.items():
@@ -149,7 +181,7 @@ def top_failed_defenses(guild_rows):
         key=lambda item: (item[0], item[1], item[2], item[3],
                           tuple(role_name(role) for role in item[4])),
         reverse=True,
-    )[:10]
+    )[:limit]
 
 
 def failed_attacks(rows):
@@ -198,7 +230,7 @@ def safe_filename_part(value):
     ).strip()
 
 
-def write_summary(rounds, guild, output):
+def write_summary(rounds, guild, output, lineup_limit):
     guild_rows = [row for row in rounds if row.atk_guild == guild]
     writer = csv.writer(output, lineterminator='\n')
     writer.writerow([
@@ -207,7 +239,7 @@ def write_summary(rounds, guild, output):
     ])
 
     for idx, (_, _, _, _, defense, defense_rows) in enumerate(
-            top_failed_defenses(guild_rows),
+            top_failed_defenses(guild_rows, lineup_limit),
             start=1):
         wins = attack_wins(defense_rows)
         writer.writerow([
@@ -248,16 +280,13 @@ def write_summary(rounds, guild, output):
 
 
 def main():
-    guild_query = ' '.join(sys.argv[1:]).strip()
-    if not guild_query:
-        print('用法: python3 scripts/gvg_summary.py <公会名称>')
-        print('示例: python3 scripts/gvg_summary.py 烟雨阁')
-        return 1
+    args = parse_args(sys.argv[1:])
+    guild_query = ' '.join(args.guild).strip()
 
     try:
         conn = sqlite3.connect('data/data.db')
         conn.row_factory = sqlite3.Row
-        since_ts = int(time.time() * 1000) - RECENT_DAYS * MILLIS_PER_DAY
+        since_ts = int(time.time() * 1000) - args.days * MILLIS_PER_DAY
         rounds = load_rounds(conn, since_ts)
     except Exception:
         print('找不到data/data.db，请先运行9！')
@@ -272,7 +301,7 @@ def main():
 
     guild_rows = [row for row in rounds if row.atk_guild == guild]
     if not any(not row.win for row in guild_rows):
-        print(f'最近{RECENT_DAYS}天没有找到「{guild}」的进攻失败记录',
+        print(f'最近{args.days}天没有找到「{guild}」的进攻失败记录',
               file=sys.stderr)
         return 0
 
@@ -280,7 +309,7 @@ def main():
     output_path = ROOT / 'data' / filename
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open('w', newline='', encoding='utf-8-sig') as output:
-        write_summary(rounds, guild, output)
+        write_summary(rounds, guild, output, args.lineups)
     print(f'已输出: {output_path}')
     return 0
 
