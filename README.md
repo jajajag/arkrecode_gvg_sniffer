@@ -70,6 +70,8 @@ pip install pycryptodome
 
 4. 现在会先下载解包数据生成master.db和master.json，然后通过解包数据来更新活动和角色等信息，不再手动更新了（懒）。
 
+5. 一开始都是纯手撸代码，到后面直接用Codex进行一个Vibe Coding，包括账号登陆部分，GPT太叼了。
+
 ## 相关参考
 
 - [Capture-pcr-API](https://github.com/watermellye/Capture-pcr-API)
