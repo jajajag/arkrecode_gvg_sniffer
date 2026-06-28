@@ -29,48 +29,36 @@ pip install pycryptodome
 <details>
 <summary>不确定是否必要</summary>
 打开site-packages中crypto的安装路径，将crypto改为Crypto（C大写）。
-</details>
-
-## 在线模式
-
-1. 克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```
-
-2. 在命令行（PowerShell 或 Command Prompt）运行```ipconfig```查询你的 IPv4 地址
-
-3. 打开 设置 → 网络和 Internet → 使用代理服务器 → 设置
-
-4. 打开 **使用代理服务器**，代理 IP 地址填上面查到的 IPv4 地址，端口填一个数字（例如```1825```）
-
-5. 运行```mitmdump```并打开游戏```mitmdump -p 1825 -s main.py --quiet```
-
-当前支持功能：
-
-- 打开 JJC / 复仇 / 好友 → 查询角色信息  
-- 打开佣兵团 → 查询团战出刀  
+</details>  
 
 ## 离线模式
 
-1. 按照在线模式步骤 1–4 配置代理
+现在直接从官网拉取解包数据，不再写死到本地，仅在数据更新时重新下载。并且可以直接打开浏览器，登陆账号并保存Token了。
 
-2. 运行```mitmweb -p 1825```打开游戏抓取一次```refreshToken```（仅需执行一次）
-
-3. 运行工具集```python3 toolkit.py```，在账号菜单输入```+```添加账号
-
-4. 后续再次运行工具集时直接选择已保存账号
+运行工具集```python3 toolkit.py```，在账号菜单输入+添加账号，输入-删除账号。
 
 当前支持功能：
 
-- 刷日常（神秘商店）
-- 刷星源商店
-- 刷NPC（派遣任务）
-- 刷活动讨伐
-- 刷佣兵团周任务（2800）
-- 刷亲密度
-- 查询团战数据
-- 查询团战总结
-- 查询团战防守
+1. 刷NPC：不进场清NPC
+2. 刷活动讨伐：刷讨伐，元素，活动EX和一键通关活动前12关
+3. 刷日常：领取每日奖励扫塔，也包括派遣和佣兵团捐赠等可重复项
+4. 刷神秘商店：买黄绿票，芯片，并根据我的垃圾模板买破烂装备
+5. 刷星源商店：同上
+6. 刷佣兵团周任务：2800
+7. 刷亲密度：给第一队刷
+8. 查询团战总结：查询团战的出刀总结
+9. 查询团战防守：查询全服前20的佣兵团出刀数据存到db中
 
-5. 运行完9收集data.db后，可以运行```python3 scripts/gvg_defence.py```来查团战作业，和```python3 scripts/pvp_speed.py```来偷窥大佬速度了。
+一些其他的小脚本：
+
+- ```db_to_csv.py```：把存的出刀数据转化成Excel可见形式
+- ```gvg_defence.py```：查询团战作业
+- ```gvg_defence.py```：查询团战错题本
+- ```pvp_week_reward.py```：定时到周一5AM进场领取奖励
+
+## 打包
+
+```pyinstaller -F toolkit.py --collect-all UnityPy --clean --noconfirm --icon=data/icon.ico```
 
 ## 一些碎碎念
 
@@ -103,3 +91,21 @@ pip install pycryptodome
 6. ~~（模拟器）安装[Root Explorer](https://rootexplorer.co/download-apk/)或者类似的可读写系统盘的文件管理器，把根目录mount为读写r/w。~~
 
 7. ~~（模拟器）通过共享文件夹把重命名后的证书传到模拟器，再复制到/etc/security/cacerts/目录下。~~
+
+## ~~在线模式~~
+
+1. ~~克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```~~
+
+2. ~~在命令行（PowerShell 或 Command Prompt）运行```ipconfig```查询你的 IPv4 地址~~
+
+3. ~~打开 设置 → 网络和 Internet → 使用代理服务器 → 设置~~
+
+4. ~~打开 **使用代理服务器**，代理 IP 地址填上面查到的 IPv4 地址，端口填一个数字（例如```1825```）~~
+
+5. ~~运行```mitmdump```并打开游戏```mitmdump -p 1825 -s main.py --quiet```~~
+
+~~当前支持功能：~~
+
+- ~~打开佣兵团 → 查询团战总结~~
+- ~~打开 RTA → 查询个房间信息~~
+- ~~打开 JJC / 复仇 / 好友 → 查询角色信息~~
