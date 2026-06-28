@@ -4,32 +4,7 @@
 
 ## 安装游戏
 
-安装[星陨计划PC端](https://www.arkrecode.com/)。
-
-## 安装mitmproxy
-
-安装[mitmproxy](https://www.mitmproxy.org/)，运行一次。
-
-```
-mitmdump
-```
-
-首次运行会在```%USERPROFILE%\.mitmproxy\```目录下生成证书，点击```mitmproxy-ca.p12```安装证书。
-
-## 配置Python
-
-安装必要的环境，自行选择是否使用Conda之类的包管理器：
-
-```
-pip install mitmproxy
-pip install crypto
-pip install pycryptodome
-```
-
-<details>
-<summary>不确定是否必要</summary>
-打开site-packages中crypto的安装路径，将crypto改为Crypto（C大写）。
-</details>  
+安装[星陨计划PC端](https://www.arkrecode.com/)。 
 
 ## 离线模式
 
@@ -93,6 +68,27 @@ pip install pycryptodome
 6. ~~（模拟器）安装[Root Explorer](https://rootexplorer.co/download-apk/)或者类似的可读写系统盘的文件管理器，把根目录mount为读写r/w。~~
 
 7. ~~（模拟器）通过共享文件夹把重命名后的证书传到模拟器，再复制到/etc/security/cacerts/目录下。~~
+
+## ~~安装mitmproxy~~
+
+~~安装[mitmproxy](https://www.mitmproxy.org/)，运行一次。~~
+
+~~```mitmdump```~~
+
+~~首次运行会在```%USERPROFILE%\.mitmproxy\```目录下生成证书，点击```mitmproxy-ca.p12```安装证书。~~
+
+## ~~配置Python~~
+
+~~安装必要的环境，自行选择是否使用Conda之类的包管理器：~~
+
+~~```pip install mitmproxy```~~
+~~```pip install crypto```~~
+~~```pip install pycryptodome```~~
+
+<details>
+  <summary><del>不确定是否必要</del></summary>
+  <del>打开site-packages中crypto的安装路径，将crypto改为Crypto（C大写）。</del>
+</details>
 
 ## ~~在线模式~~
 
