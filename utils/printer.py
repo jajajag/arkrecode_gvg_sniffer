@@ -60,7 +60,7 @@ def print_player(index, player, hp_only=False):
         info = player['BattleSupportData']['PlayerInfo']
 
     avatar = get_role(info['LeaderSID'])
-    print(f'{index}. {info["Name"]}（{avatar}-{info["CUID"]}）')
+    print(f'{index}. {info.get("Name", "")}（{avatar}-{info["CUID"]}）')
 
     if 'BattleSupportData' in player:
         gid = info.get('GuildSubInfo', {}).get('_id', {}).get('$oid')

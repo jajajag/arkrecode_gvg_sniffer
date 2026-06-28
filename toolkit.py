@@ -116,7 +116,8 @@ def choose_action():
     
     while True:
         c = input('> ').strip()
-        if c == '114514' or (c.isdigit() and 0 <= int(c) < len(actions)):
+        if c in ('114514', '1919810') \
+                or (c.isdigit() and 0 <= int(c) < len(actions)):
             return int(c)
 
 def send(payload):
@@ -679,18 +680,50 @@ def run_guild_data(aid, session_id):
     print_report(data)
     export_report(data)
 
-def login_account(accounts, acc_idx, version):
-    print('登录中...')
+# 1919810. 查询JJC数据
+def run_pvp_log_data(aid, session_id):
+    if input('此功能将导致JJC进场，是否继续：（Y/n）').strip().lower() == 'n':
+        return
+    # Query PVP data
     try:
-        data = run_login(accounts, acc_idx, version)
-        print('登录成功！')
-        return data
+        print('正在查询JJC信息...')
+        data = send({
+            'data': {
+                'AID': aid,
+                'SessionID': session_id
+            },
+            'route': 'PVPHandler.QueryPVPData'
+        })
+        print(data)
     except Exception:
-        print('登录失败！')
-        return None
+        print('JJC查询失败！')
+        return
+    print_report(data)
+    # Query revenge data
+    logs = data['PVPData']['PVPLogList']
+    revenge_logs = [log for log in logs if log['CanRevengeBattle']]
+    if not revenge_logs:
+        print('没有可复仇的对象！')
+        return
+    for i, log in enumerate(revenge_logs, 1):
+        print(f'-----可复仇对象 {i}/{len(revenge_logs)}-----')
+        enemy_cuid = log['PlayerInfo']['CUID']
+        log_id = log['_id']['$oid']
+        try:
+            print_report(send({
+                'data': {
+                    'EnemyCUID': enemy_cuid,
+                    'LogID': log_id,
+                    'AID': aid,
+                    'SessionID': session_id
+                },
+                'route': 'PVPHandler.QueryRevengeEnemyData'
+            }))
+        except Exception:
+            print(f'复仇查询失败：{enemy_cuid}')
 
 def extract_login_values(data):
-    # 1, 2, 3, 4, 5, 6, 7, 8, 9, 114514
+    # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
     session_id = data['SessionID']
     # 1, 7
@@ -744,11 +777,19 @@ def main():
     while True:
         if action == 0:
             version = get_login_version(bulletin)
-            data = login_account(accounts, acc_idx, version)
-            (aid, session_id, npc_list, event, pos_map, cuid, d_quests, bp_id,
-             sups, secrets, guild_data, week) = extract_login_values(data)
-        action = choose_action()
-        if action == 0: continue
+            print('登录中...')
+            try:
+                data = run_login(accounts, acc_idx, version)
+                (aid, session_id, npc_list, event, pos_map,
+                 cuid, d_quests, bp_id, sups, secrets,
+                 guild_data, week) = extract_login_values(data)
+                print('登录成功！')
+            except Exception:
+                retry = input('登录失败，是否重新登录？（Y/n）').strip().lower()
+                if retry == 'n':
+                    break
+                continue
+        if (action := choose_action()) == 0: continue
         actions = {
             # 刷NPC
             1: lambda: run_npc(aid, session_id, npc_list),
@@ -770,6 +811,8 @@ def main():
             9: lambda: run_pvp_update(aid, session_id, cuid, week),
             # 查询团战数据
             114514: lambda: run_guild_data(aid, session_id),
+            # 查询JJC数据
+            1919810: lambda: run_pvp_log_data(aid, session_id),
         }
         actions.get(action, lambda: None)()
 
