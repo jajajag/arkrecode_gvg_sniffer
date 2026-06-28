@@ -107,7 +107,7 @@ def choose_action():
         '刷亲密度',
         '查询团战总结',
         '查询团战防守',
-        '退出'
+        '重新登录'
     ]
 
     print('[选择功能]')
@@ -679,31 +679,24 @@ def run_guild_data(aid, session_id):
     print_report(data)
     export_report(data)
 
-def main():
-    print('脚本有风险，使用需谨慎！')
-    print('代码开源于https://github.com/jajajag/arkrecode_gvg_sniffer')
-    bulletin = run_bulletin()
-    ensure_master_db(bulletin)
-    accounts = load_accounts()
-    acc_idx = choose_account(accounts)
-    print(f'当前账号：{accounts[acc_idx].get("Name")}')
-
-    version = get_login_version(bulletin)
+def login_account(accounts, acc_idx, version):
     print('登录中...')
     try:
         data = run_login(accounts, acc_idx, version)
         print('登录成功！')
+        return data
     except Exception:
         print('登录失败！')
-        return
+        return None
 
+def extract_login_values(data):
     # 1, 2, 3, 4, 5, 6, 7, 8, 9, 114514
     aid = data['Info']['_id']['$oid']
     session_id = data['SessionID']
     # 1, 7
     npc_list = {}
     for npc in data['PVPData']['NPCPVPInfoList']:
-        npc_list[npc['NPCID']] = max(npc['NextTime']['$date'], 
+        npc_list[npc['NPCID']] = max(npc['NextTime']['$date'],
                                    npc_list.get(npc['NPCID'], 0))
     # 2, 3
     event = get_event(data)
@@ -736,7 +729,26 @@ def main():
     # 9
     week = data['PVPData']['PVPRankInfo']['RankWeek']
 
-    while (action := choose_action()) != 0:
+    return (aid, session_id, npc_list, event, pos_map, cuid, d_quests, bp_id,
+            sups, secrets, guild_data, week)
+
+def main():
+    print('脚本有风险，使用需谨慎！')
+    print('代码开源于https://github.com/jajajag/arkrecode_gvg_sniffer')
+    bulletin = run_bulletin()
+    ensure_master_db(bulletin)
+    accounts = load_accounts()
+    acc_idx = choose_account(accounts)
+    action = 0
+    print(f'当前账号：{accounts[acc_idx].get("Name")}')
+    while True:
+        if action == 0:
+            version = get_login_version(bulletin)
+            data = login_account(accounts, acc_idx, version)
+            (aid, session_id, npc_list, event, pos_map, cuid, d_quests, bp_id,
+             sups, secrets, guild_data, week) = extract_login_values(data)
+        action = choose_action()
+        if action == 0: continue
         actions = {
             # 刷NPC
             1: lambda: run_npc(aid, session_id, npc_list),
