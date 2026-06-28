@@ -9,7 +9,8 @@ from utils.helper import get_set
 
 PARTS = ('Weapon', 'Head', 'Body', 'Necklace', 'Ring')
 # 以速度套兔子的速度为基准
-BASE_SPEED = 189
+SPEED_SET_BASE = 189
+BROKEN_SET_BASE = 169
 
 def display_width(value):
     text = str(value)
@@ -61,7 +62,7 @@ def load_player_equips(conn, name):
         ).append(equip)
     return players
 
-def best_speed_set(equips, used=None):
+def best_speed_combo(equips, used=None):
     used = used or set()
     by_part = {part: [] for part in PARTS}
     for equip in equips:
@@ -75,20 +76,24 @@ def best_speed_set(equips, used=None):
         return None
     best_total = -1.0
     best_combo = []
+    best_mode = ''
     for combo in itertools.product(*(by_part[part] for part in PARTS)):
         speed_set_count = sum(
             1 for equip in combo
             if equip['set_name'] == 'Speed'
         )
-        if speed_set_count < 3:
-            continue
-        total = sum(float(equip['speed']) for equip in combo)
-        if total > best_total:
-            best_total = total
-            best_combo = list(combo)
+        sub_speed = sum(float(equip['speed']) for equip in combo)
+        candidates = [('散件', BROKEN_SET_BASE + sub_speed)]
+        if speed_set_count >= 3:
+            candidates.append(('速度套', SPEED_SET_BASE + sub_speed))
+        for mode, total in candidates:
+            if total > best_total:
+                best_total = total
+                best_combo = list(combo)
+                best_mode = mode
     if best_total < 0:
         return None
-    return BASE_SPEED + best_total, best_combo
+    return best_total, best_combo, best_mode
 
 def fmt_speed(value):
     if value is None:
@@ -127,19 +132,21 @@ def main():
         players.items(),
         key=lambda item: (item[0][1], item[0][0]),
     ):
-        first = best_speed_set(equips)
+        first = best_speed_combo(equips)
         used = {equip['equip_id'] for equip in first[1]} if first else set()
-        second = best_speed_set(equips, used)
+        second = best_speed_combo(equips, used)
         rows.append([
             name,
             cuid,
-            f'{fmt_speed(first[0] if first else None)}(一速)',
+            f'{fmt_speed(first[0] if first else None)}(一速'
+            f'{"/" + first[2] if first else ""})',
             fmt_combo(first[1]) if first else '-',
         ])
         rows.append([
             name,
             cuid,
-            f'{fmt_speed(second[0] if second else None)}(二速)',
+            f'{fmt_speed(second[0] if second else None)}(二速'
+            f'{"/" + second[2] if second else ""})',
             fmt_combo(second[1]) if second else '-',
         ])
     print_table(['玩家名', 'cuid', '速度', '装备'], rows)

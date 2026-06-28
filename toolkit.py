@@ -3,6 +3,7 @@ from utils.equips import match_equip
 from utils.exporter import export_report
 from utils.printer import print_report
 from utils.helper import get_event
+from utils.login_helper import capture_login
 from utils.master import ensure_master_db
 import base64
 import json
@@ -26,27 +27,74 @@ def load_config(config_path='data/config.json'):
 
 def load_accounts(account_path='data/accounts.json'):
     if not os.path.exists(account_path):
-        print(f'请参考{account_path}创建accounts.json！')
-        exit()
+        return []
     with open(account_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 def save_accounts(accounts, account_path='data/accounts.json'):
+    os.makedirs(os.path.dirname(account_path), exist_ok=True)
     with open(account_path, 'w', encoding='utf-8') as f:
         json.dump(accounts, f, ensure_ascii=False, indent=2)
 
-def choose_account(accounts):
-    if len(accounts) == 1:
-        return 0
-
-    print('[选择账号]')
-    for i, acc in enumerate(accounts):
-        print(f'{i + 1}. {acc.get("Name")}')
-
+def add_account(accounts):
     while True:
-        idx = input('> ').strip()
-        if idx.isdigit() and 0 < int(idx) <= len(accounts):
-            return int(idx) - 1
+        name = input('给账号起个名字：').strip()
+        if name:
+            break
+    try:
+        payload = capture_login()
+    except Exception as exc:
+        print(f'添加账号失败：{exc}')
+        return None
+
+    accounts.append({
+        'Name': name,
+        'Token': payload['jwt']
+    })
+    save_accounts(accounts)
+    print(f'已添加账号：{name}')
+    return len(accounts) - 1
+
+def delete_account(accounts):
+    if not accounts:
+        print('当前没有可删除的账号。')
+        return
+
+    idx = input('删除账号：').strip()
+    if idx.isdigit() and 0 < int(idx) <= len(accounts):
+        removed = accounts.pop(int(idx) - 1)
+        save_accounts(accounts)
+        print(f'已删除账号：{removed.get("Name")}')
+    else:
+        print('删除失败，请选择正确的账号编号！')
+
+def choose_account(accounts):
+    while True:
+        if not accounts:
+            print('没有已保存账号，请先添加账号。')
+            acc_idx = add_account(accounts)
+            if acc_idx is not None:
+                return acc_idx
+            continue
+
+        print('[选择账号]')
+        for i, acc in enumerate(accounts):
+            print(f'{i + 1}. {acc.get("Name")}')
+        print('+. 添加账号')
+        print('-. 删除账号')
+
+        while True:
+            idx = input('> ').strip()
+            if idx == '+':
+                acc_idx = add_account(accounts)
+                if acc_idx is not None:
+                    return acc_idx
+                break
+            if idx == '-':
+                delete_account(accounts)
+                break
+            if idx.isdigit() and 0 < int(idx) <= len(accounts):
+                return int(idx) - 1
 
 def choose_action():
     actions = [
@@ -88,11 +136,11 @@ def get_login_version(bulletin):
     return bulletin['Info']['AvailableVersions'][-1]
 
 def run_refresh_token(accounts, acc_idx):
-    device_id = accounts[acc_idx]['DeviceID']
+    # device_id = accounts[acc_idx]['DeviceID']
     refresh_token = accounts[acc_idx]['Token']
     local_headers = headers.copy()
     local_headers['Authorization'] = f'Bearer {refresh_token}'
-    local_headers['DeviceId'] = device_id
+    # local_headers['DeviceId'] = device_id
     time.sleep(random.uniform(1, 2))
     resp = requests.post(url_token, headers=local_headers)
     resp.encoding = 'utf-8'
@@ -125,7 +173,7 @@ def run_login(accounts, acc_idx, version):
             'LoginID': login_id,
             'Token': token,
             'Version': version,
-            'DeviceID': accounts[acc_idx]['DeviceID'],
+            # 'DeviceID': accounts[acc_idx]['DeviceID'],
             'LoginType': 'Erolabs',
             'IsNewSDK': is_new_sdk
         },
@@ -632,6 +680,8 @@ def run_guild_data(aid, session_id):
     export_report(data)
 
 def main():
+    print('脚本有风险，使用需谨慎！')
+    print('代码开源于https://github.com/jajajag/arkrecode_gvg_sniffer')
     bulletin = run_bulletin()
     ensure_master_db(bulletin)
     accounts = load_accounts()

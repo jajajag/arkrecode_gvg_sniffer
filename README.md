@@ -54,9 +54,9 @@ pip install pycryptodome
 
 2. 运行```mitmweb -p 1825```打开游戏抓取一次```refreshToken```（仅需执行一次）
 
-3. 参考```data/accounts_example.json```配置```data/accounts.json```
+3. 运行工具集```python3 toolkit.py```，在账号菜单输入```+```添加账号
 
-4. 运行工具集```python3 toolkit.py```
+4. 后续再次运行工具集时直接选择已保存账号
 
 当前支持功能：
 

@@ -7,8 +7,8 @@ import requests
 import sqlite3
 import UnityPy
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT_DIR / 'data'
+ROOT_DIR = Path.cwd().resolve()
+DATA_DIR = Path('data')
 MASTER_DB = DATA_DIR / 'master.db'
 MASTER_DATA = DATA_DIR / 'master.json'
 CATALOG_DIR = DATA_DIR / 'catalogs'
