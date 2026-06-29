@@ -41,16 +41,25 @@ def speed_value(row):
             return float(row[f'sub{idx}_value'] or 0)
     return 0.0
 
-def load_player_equips(conn, name):
+def is_cuid_query(value):
+    return value.isdigit() and len(value) == 9
+
+def load_player_equips(conn, query):
+    if is_cuid_query(query):
+        condition = 'cuid = ?'
+        params = (int(query),)
+    else:
+        condition = 'player_name LIKE ?'
+        params = (f'%{query}%',)
     rows = conn.execute(
-        '''
+        f'''
         SELECT *
         FROM pvp_equips
-        WHERE player_name LIKE ?
+        WHERE {condition}
           AND equip_type IN ('Weapon', 'Head', 'Body', 'Necklace', 'Ring')
         ORDER BY player_name, cuid, equip_type
         ''',
-        (f'%{name}%',),
+        params,
     ).fetchall()
     players = {}
     for row in rows:
@@ -109,23 +118,24 @@ def fmt_combo(combo):
     return ' '.join(pieces)
 
 def main():
-    player_name = ' '.join(sys.argv[1:]).strip()
-    if not player_name:
-        print('用法: python3 scripts/pvp_speed.py <玩家名称>')
+    query = ' '.join(sys.argv[1:]).strip()
+    if not query:
+        print('用法: python3 scripts/pvp_speed.py <玩家名称|9位cuid>')
         print('示例: python3 scripts/pvp_speed.py 杂鱼')
+        print('示例: python3 scripts/pvp_speed.py 123456789')
         return 1
 
     try:
         conn = sqlite3.connect('data/data.db')
         conn.row_factory = sqlite3.Row
-        players = load_player_equips(conn, player_name)
+        players = load_player_equips(conn, query)
     except Exception:
         print(f'找不到data/data.db，请先运行9！')
         return 1
     finally:
         conn.close()
     if not players:
-        print(f'没有找到包含「{player_name}」的玩家装备')
+        print(f'没有找到匹配「{query}」的玩家装备')
         return 0
     rows = []
     for (cuid, name), equips in sorted(
