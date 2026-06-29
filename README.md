@@ -90,7 +90,7 @@
   <del>打开site-packages中crypto的安装路径，将crypto改为Crypto（C大写）。</del>
 </details>
 
-## ~~在线模式~~
+## ~~在线模式（HTTP）~~
 
 1. ~~克隆仓库到本地```git clone https://github.com/jajajag/arkrecode_gvg_sniffer```~~
 
@@ -107,3 +107,11 @@
 - ~~打开佣兵团 → 查询团战总结~~
 - ~~打开 RTA → 查询个房间信息~~
 - ~~打开 JJC / 复仇 / 好友 → 查询角色信息~~
+
+## ~~在线模式 （WebSocket）~~
+
+1. ~~安装Frida：```pip install frida-tools```~~
+
+2. ~~启动星陨计划，并查看客户端的进程号（不能用沙盒启动）：```frida-ps | findstr /i "Ark ReCode.exe"```~~
+
+3. ~~查看在线战斗的数据流：```frida -p xxx -l .\net_hook.js```~~
