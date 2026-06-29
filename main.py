@@ -8,7 +8,6 @@ flag = True
 query_list = [
     "GuildWarHandler.QueryFullGuildWarData", # 团战数据
     "PVPHandler.QueryPVPData", # JJC数据
-    #"PVPHandler.RefreshPVPLogDataList",
     "PVPHandler.QueryRevengeEnemyData", # 复仇数据
     "AccountHandler.QueryPlayerCardData", # 好友JJC和辅助团员数据
     "RoomHandler.QueryRoomListByScene", # 实时竞技房间列表

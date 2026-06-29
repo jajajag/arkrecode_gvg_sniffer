@@ -591,12 +591,9 @@ def run_affection(aid, session_id, npc_list, pos_map):
     print(f'当前可挑战NPC：{targets}')
     repeat = input('请输入刷亲密度次数（默认第一队10次）：').strip()
     repeat = int(repeat) if str(repeat).isdigit() else 10
-    try:
-        for i in range(repeat):
-            run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
-            print(f'正在刷亲密度...（{i + 1}/{repeat}）')
-    except Exception:
-        print('刷亲密度失败：可能是未解锁地狱难度NPC！')
+    for i in range(repeat):
+        run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
+        print(f'正在刷亲密度...（{i + 1}/{repeat}）')
     print('亲密度刷完了！')
 
 # 8. 查询团战总结
