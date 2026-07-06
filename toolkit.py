@@ -227,7 +227,7 @@ def run_npc(aid, session_id, npc_list):
         print('挑战结束：没有旗帜！')
 
 # 2. 刷活动讨伐
-def run_battle(aid, session_id, pos_map, event):
+def run_battle(aid, session_id, pos_map, event, login_data):
     payload = {
         'data': {
             'BattleEndData': {
@@ -249,11 +249,15 @@ def run_battle(aid, session_id, pos_map, event):
              ('光', 'Light'), ('暗', 'Dark')]
     print(' '.join(f'{i + 1}. {name}讨伐' for i, (name, _) in enumerate(elems)))
     print(' '.join(f'{i + 6}. {name}元素' for i, (name, _) in enumerate(elems)))
-    print('11. 活动EX 12. 一键活动')
+    print('11. 活动EX 12. 一键活动 13. 一键深渊')
     
     c = input('请选择关卡编号：').strip()
-    if not c.isdigit() or not (1 <= (c := int(c)) <= 12):
+    if not c.isdigit() or not (1 <= (c := int(c)) <= 13):
         print('无效选择！')
+        return
+    if c == 13:
+        from utils.realm_runner import run_mysterious_realm
+        run_mysterious_realm(aid, session_id, login_data)
         return
     repeat_str = input('请输入挑战次数（默认10次）：').strip()
     repeat = int(repeat_str) if repeat_str.isdigit() else 10
@@ -334,7 +338,12 @@ def run_dispatched_quests(aid, session_id, d_quests):
             #hero_ids = d_quests[quest_id]['DispatchedHeroIDs']
             payload_dispatch['data']['Quest']['StaticID'] = quest_id
             payload_dispatch['data']['Quest']['DispatchedHeroIDs'] = hero_ids
-            send(payload_dispatch)
+            dispatch_data = send(payload_dispatch)
+            if isinstance(dispatch_data, dict) and dispatch_data.get('Error'):
+                print(f'派遣失败：{quest_id}')
+                print(f'payload: {json.dumps(payload_dispatch, ensure_ascii=False)}')
+                print(f'返回值: {json.dumps(dispatch_data, ensure_ascii=False)}')
+                continue
             d_quests[quest_id]['FinishTime']['$date'] = float('inf')
             print(f'派遣成功：{quest_id}')
         except Exception:
@@ -794,7 +803,7 @@ def main():
             # 刷NPC
             1: lambda: run_npc(aid, session_id, npc_list),
             # 刷活动讨伐
-            2: lambda: run_battle(aid, session_id, pos_map, event),
+            2: lambda: run_battle(aid, session_id, pos_map, event, data),
             # 刷日常
             3: lambda: run_daily(aid, session_id, sups, event, d_quests, bp_id),
             # 刷神秘商店

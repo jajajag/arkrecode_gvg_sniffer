@@ -3,6 +3,7 @@ import json
 import sqlite3
 import sys
 import unicodedata
+from collections import Counter
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from utils.helper import get_set
@@ -41,26 +42,64 @@ def speed_value(row):
             return float(row[f'sub{idx}_value'] or 0)
     return 0.0
 
-def load_player_equips(conn, name):
+def find_player_cuids(conn, query):
+    if query.isdigit():
+        rows = conn.execute(
+            '''
+            SELECT DISTINCT cuid
+            FROM pvp_equips
+            WHERE cuid = ?
+            ''',
+            (int(query),),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            '''
+            SELECT DISTINCT cuid
+            FROM pvp_equips
+            WHERE player_name LIKE ?
+            ''',
+            (f'%{query}%',),
+        ).fetchall()
+    return [int(row['cuid']) for row in rows]
+
+def display_player_name(names, query):
+    counts = Counter(names)
+    if query and not query.isdigit():
+        for name, _ in counts.most_common():
+            if query == name:
+                return name
+        for name, _ in counts.most_common():
+            if query in name:
+                return name
+    return counts.most_common(1)[0][0]
+
+def load_player_equips(conn, query):
+    cuids = find_player_cuids(conn, query)
+    if not cuids:
+        return {}
+    placeholders = ','.join('?' for _ in cuids)
     rows = conn.execute(
-        '''
+        f'''
         SELECT *
         FROM pvp_equips
-        WHERE player_name LIKE ?
+        WHERE cuid IN ({placeholders})
           AND equip_type IN ('Weapon', 'Head', 'Body', 'Necklace', 'Ring')
-        ORDER BY player_name, cuid, equip_type
+        ORDER BY cuid, player_name, equip_type
         ''',
-        (f'%{name}%',),
+        cuids,
     ).fetchall()
-    players = {}
+    players, names = {}, {}
     for row in rows:
+        cuid = int(row['cuid'])
         equip = dict(row)
         equip['speed'] = speed_value(row)
-        players.setdefault(
-            (int(row['cuid']), row['player_name']),
-            [],
-        ).append(equip)
-    return players
+        players.setdefault(cuid, []).append(equip)
+        names.setdefault(cuid, []).append(row['player_name'])
+    return {
+        (cuid, display_player_name(names[cuid], query)): equips
+        for cuid, equips in players.items()
+    }
 
 def best_speed_combo(equips, used=None):
     used = used or set()

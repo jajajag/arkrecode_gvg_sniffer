@@ -64,7 +64,7 @@ def analyze_player(aid, session_id, cuid, name, iap=None):
         'route': 'GuildWarHandler.QueryGuildWarBattleLogListByAccount'
     }
     print(f'{cuid}-{name}' + (f'-{iap}' if iap else ''))
-    time.sleep(random.uniform(1, 2))
+    time.sleep(random.uniform(0.1, 0.2))
     resp = requests.post(url, json=payload, headers=headers, verify=False)
     resp.encoding = 'utf-8'
     return resp.json()
