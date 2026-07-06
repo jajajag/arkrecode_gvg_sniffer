@@ -28,7 +28,8 @@
 
 - ```db_to_csv.py```：把存的出刀数据转化成Excel可见形式
 - ```gvg_defence.py```：查询团战作业
-- ```gvg_defence.py```：查询团战错题本
+- ```gvg_speed.py```：自动测速
+- ```gvg_summary.py```：查询团战错题本
 - ```pvp_week_reward.py```：定时到周一5AM进场领取奖励
 
 ## 打包
