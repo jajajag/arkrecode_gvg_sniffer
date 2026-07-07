@@ -137,54 +137,76 @@ class LoginTeamBuilder:
             role.setdefault('ArtifactData', self.artifacts[role_id])
         return role
 
-    def build_camp(self, setting):
+    def _build_camp(self, setting):
         role_pos_map = get_nested(setting, 'TeamSetting', 'RolePosMap') or {}
         if not role_pos_map:
-            raise RuntimeError('登录数据里队伍为空，无法构造深渊队伍')
+            raise RuntimeError('登录数据里队伍为空，无法构造自动战斗队伍')
         pos_map = {}
         for raw_role_id, raw_pos in role_pos_map.items():
             role_id = oid_str(raw_role_id)
             pos_map[str(raw_pos)] = self.role_for_team(role_id)
         return {'PositionRoleMap': pos_map}
 
+    def build_camp(self, settings, index, required=True):
+        try:
+            return self._build_camp(settings[index])
+        except (IndexError, RuntimeError):
+            if required:
+                raise
+            return None
+
     def build(self, team_count=2):
         settings = get_nested(self.login_data, 'Teams', 'Settings') or []
         if len(settings) < team_count:
             raise RuntimeError(f'登录数据里队伍数量少于 {team_count}')
-        return {
-            'StartBattleInfo': {
-                'SceneData': {
-                    'StaticID': 'MysteriousRealm_1',
-                    'Stars': [0, 0, 0],
-                    'PassCount': 0,
-                },
-                'CampData1': {},
-                'CampData2': {},
-                'WaveCampDatas': [
-                    self.build_camp(setting)
-                    for setting in settings[:team_count]
-                ],
-                'IsRestart': 0,
-                'Round': 0,
-                'GM_Wave': 0,
-                'IsRepeatAuto': 0,
-                'BattleCountDown': -1,
-                'IsNPCPVP': 0,
-            },
-            'Index': '0',
-            'OID': '0_S1',
-        }
+        return build_battle_template([
+            self.build_camp(settings, index)
+            for index in range(team_count)
+        ])
 
 
-def validate_teams(start_payload, team_count=2):
-    camps = get_nested(start_payload, 'StartBattleInfo', 'WaveCampDatas') or []
+def build_battle_template(teams, payload_mode='wave'):
+    info = {
+        'SceneData': {
+            'StaticID': 'MysteriousRealm_1',
+            'Stars': [0, 0, 0],
+            'PassCount': 0,
+        },
+        'CampData1': {},
+        'CampData2': {},
+        'IsRestart': 0,
+        'Round': 0,
+        'GM_Wave': 0,
+        'IsRepeatAuto': 0,
+        'BattleCountDown': -1,
+        'IsNPCPVP': 0,
+    }
+    if payload_mode == 'scene':
+        info['CampData1'] = teams[0]
+    else:
+        info['WaveCampDatas'] = teams
+    return {
+        'StartBattleInfo': {
+            **info,
+        },
+        'Index': '0',
+        'OID': '0_S1',
+    }
+
+
+def validate_teams(start_payload, team_count=2, payload_mode='wave'):
+    if payload_mode == 'scene':
+        camps = [get_nested(start_payload, 'StartBattleInfo', 'CampData1')]
+    else:
+        camps = get_nested(
+            start_payload, 'StartBattleInfo', 'WaveCampDatas') or []
     if len(camps) < team_count:
-        raise RuntimeError(f'模板里 WaveCampDatas 少于 {team_count} 队')
+        raise RuntimeError(f'模板里队伍数量少于 {team_count}')
 
     seen_object_ids = {}
     seen_static_ids = {}
     for team_idx, camp in enumerate(camps[:team_count], start=1):
-        pos_map = camp.get('PositionRoleMap') or {}
+        pos_map = (camp or {}).get('PositionRoleMap') or {}
         if not pos_map:
             raise RuntimeError(f'第 {team_idx} 队为空')
         for pos, role in pos_map.items():
@@ -207,11 +229,15 @@ def validate_teams(start_payload, team_count=2):
                 seen_static_ids[static_id] = label
 
 
-def scene_payload(template, scene_id, oid_value=None, index='0', team_count=2):
+def scene_payload(template, scene_id, oid_value=None, index='0', team_count=2,
+                  payload_mode='wave'):
     payload = copy.deepcopy(template)
     info = payload['StartBattleInfo']
     info.setdefault('SceneData', {})['StaticID'] = scene_id
-    info['WaveCampDatas'] = (info.get('WaveCampDatas') or [])[:team_count]
+    if payload_mode == 'scene':
+        info.pop('WaveCampDatas', None)
+    else:
+        info['WaveCampDatas'] = (info.get('WaveCampDatas') or [])[:team_count]
     info['IsRestart'] = 0
     info['Round'] = 0
     info['GM_Wave'] = 0
@@ -288,8 +314,10 @@ class BattleDriver:
 
     def build_role_map(self):
         result = {}
-        camps = get_nested(
-            self.start_payload, 'StartBattleInfo', 'WaveCampDatas') or []
+        info = get_nested(self.start_payload, 'StartBattleInfo') or {}
+        camps = info.get('WaveCampDatas') or []
+        if not camps:
+            camps = [info.get('CampData1') or {}]
         for wave_idx, camp in enumerate(camps):
             for pos, role in (camp.get('PositionRoleMap') or {}).items():
                 result[f'1-{wave_idx}-{pos}'] = role
@@ -332,6 +360,8 @@ class BattleDriver:
                 if node.get('NowIsDieOut') == 1 or node.get('NowHP') == 0:
                     self.dead.add(target_role_id)
             for key, value in node.items():
+                if isinstance(key, str) and ROLE_NET_ID.fullmatch(key):
+                    self.known_roles.add(key)
                 if isinstance(value, str) and ROLE_NET_ID.fullmatch(value):
                     self.known_roles.add(value)
                 elif key in ('DeadList', 'Camp1DeadList', 'Camp2DeadList'):
@@ -468,7 +498,7 @@ class BattleDriver:
         return f'{net_id}({static_id})' if static_id else net_id
 
 
-class RealmRunner:
+class BattleRunner:
     def __init__(self, aid, session_id, first_floor=FIRST_FLOOR,
                  last_floor=LAST_FLOOR):
         self.aid = aid
@@ -621,17 +651,19 @@ class RealmRunner:
             finally:
                 hb_task.cancel()
 
-    async def run(self, template):
-        validate_teams(template, TEAM_COUNT)
-        if self.first_floor > self.last_floor:
-            print('深渊已完成，无需继续挑战。', flush=True)
+    async def run_scenes(self, template, scene_ids, team_count=TEAM_COUNT,
+                         payload_mode='wave',
+                         complete_message='自动战斗已完成，无需继续挑战。'):
+        validate_teams(template, team_count, payload_mode=payload_mode)
+        if not scene_ids:
+            print(complete_message, flush=True)
             return 0
-        for floor in range(self.first_floor, self.last_floor + 1):
-            scene_id = f'MysteriousRealm_{floor}'
+        for scene_id in scene_ids:
             self.scene_id = scene_id
             print(f'开始 {scene_id}', flush=True)
             start_payload = scene_payload(
-                template, scene_id, team_count=TEAM_COUNT)
+                template, scene_id, team_count=team_count,
+                payload_mode=payload_mode)
             room = self.create_room(scene_id)
             print(
                 f'房间 {room["room_id"]} | '
@@ -641,12 +673,11 @@ class RealmRunner:
             result = await self.fight_room(room, start_payload)
             print(f'{scene_id}: {result}', flush=True)
             if result != 'Win':
-                print(f'{scene_id} 未胜利，停止后续层数。', flush=True)
+                print(f'{scene_id} 未胜利，停止后续关卡。', flush=True)
                 return 1
         return 0
 
-
-def next_mysterious_realm_floor(login_data, last_floor=LAST_FLOOR):
+def next_realm_floor(login_data, last_floor=LAST_FLOOR):
     scenes = get_nested(login_data, 'SceneDataContainer', 'Scenes') or []
     passed = []
     for scene in scenes:
@@ -657,22 +688,33 @@ def next_mysterious_realm_floor(login_data, last_floor=LAST_FLOOR):
         if not match:
             continue
         stars = scene.get('Stars') or []
-        if sum(1 for star in stars if star) >= 4:
+        if any(stars):
             passed.append(int(match.group(1)))
     floor = max(passed, default=0) + 1
     return floor
 
 
-async def run_mysterious_realm_async(aid, session_id, login_data,
-                                     first_floor=None, last_floor=LAST_FLOOR):
-    if first_floor is None:
-        first_floor = next_mysterious_realm_floor(login_data, last_floor)
-    template = LoginTeamBuilder(login_data, MASTER_DB).build()
-    runner = RealmRunner(aid, session_id, first_floor, last_floor)
-    return await runner.run(template)
+def build_realm_scene_ids(first_floor, last_floor=LAST_FLOOR):
+    return [
+        f'MysteriousRealm_{floor}'
+        for floor in range(first_floor, last_floor + 1)
+    ]
 
 
-def run_mysterious_realm(aid, session_id, login_data, first_floor=None,
-                         last_floor=LAST_FLOOR):
-    return asyncio.run(run_mysterious_realm_async(
-        aid, session_id, login_data, first_floor, last_floor))
+async def run_auto_battles_async(
+        aid, session_id, teams, scene_ids,
+        payload_mode='wave',
+        complete_message='自动战斗已完成，无需继续挑战。'):
+    runner = BattleRunner(aid, session_id)
+    return await runner.run_scenes(
+        build_battle_template(teams, payload_mode=payload_mode), scene_ids,
+        team_count=len(teams), payload_mode=payload_mode,
+        complete_message=complete_message)
+
+
+def run_auto_battles(
+        aid, session_id, teams, scene_ids,
+        payload_mode='wave',
+        complete_message='自动战斗已完成，无需继续挑战。'):
+    return asyncio.run(run_auto_battles_async(
+        aid, session_id, teams, scene_ids, payload_mode, complete_message))

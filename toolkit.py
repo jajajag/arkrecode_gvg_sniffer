@@ -1,16 +1,19 @@
-from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
-from utils.equips import match_equip
-from utils.exporter import export_report
-from utils.printer import print_report
-from utils.helper import get_event
-from utils.login_helper import capture_login
-from utils.master import ensure_master_db
 import base64
 import json
 import os
 import random
+import re
 import requests
 import time
+from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
+from utils.battle_runner import LoginTeamBuilder, MASTER_DB, run_auto_battles
+from utils.battle_runner import build_realm_scene_ids, next_realm_floor
+from utils.equips import match_equip
+from utils.exporter import export_report
+from utils.helper import get_event
+from utils.login_helper import capture_login
+from utils.master import ensure_master_db
+from utils.printer import print_report
 
 requests.packages.urllib3.disable_warnings()
 
@@ -39,18 +42,13 @@ def save_accounts(accounts, account_path='data/accounts.json'):
 def add_account(accounts):
     while True:
         name = input('给账号起个名字：').strip()
-        if name:
-            break
+        if name: break
     try:
         payload = capture_login()
     except Exception as exc:
         print(f'添加账号失败：{exc}')
         return None
-
-    accounts.append({
-        'Name': name,
-        'Token': payload['jwt']
-    })
+    accounts.append({'Name': name, 'Token': payload['jwt']})
     save_accounts(accounts)
     print(f'已添加账号：{name}')
     return len(accounts) - 1
@@ -59,7 +57,6 @@ def delete_account(accounts):
     if not accounts:
         print('当前没有可删除的账号。')
         return
-
     idx = input('删除账号：').strip()
     if idx.isdigit() and 0 < int(idx) <= len(accounts):
         removed = accounts.pop(int(idx) - 1)
@@ -76,13 +73,11 @@ def choose_account(accounts):
             if acc_idx is not None:
                 return acc_idx
             continue
-
         print('[选择账号]')
         for i, acc in enumerate(accounts):
             print(f'{i + 1}. {acc.get("Name")}')
         print('+. 添加账号')
         print('-. 删除账号')
-
         while True:
             idx = input('> ').strip()
             if idx == '+':
@@ -98,9 +93,9 @@ def choose_account(accounts):
 
 def choose_action():
     actions = [
-        '刷NPC',
+        '清日常',
+        '刷NPC派遣',
         '刷活动讨伐',
-        '刷日常',
         '刷神秘商店',
         '刷星源商店',
         '刷佣兵团周任务',
@@ -109,11 +104,9 @@ def choose_action():
         '查询团战防守',
         '重新登录'
     ]
-
     print('[选择功能]')
     for i, a in enumerate(actions):
         print(f'{(i + 1) % 10}. {a}')
-    
     while True:
         c = input('> ').strip()
         if c in ('114514', '1919810') \
@@ -136,6 +129,7 @@ def run_bulletin():
 def get_login_version(bulletin):
     return bulletin['Info']['AvailableVersions'][-1]
 
+# Now we only use old sdk for Android
 def run_refresh_token(accounts, acc_idx):
     # device_id = accounts[acc_idx]['DeviceID']
     refresh_token = accounts[acc_idx]['Token']
@@ -182,176 +176,9 @@ def run_login(accounts, acc_idx, version):
     }
     return send(payload)
 
-# 1. 刷NPC
-def run_npc_ticket(aid, session_id, npc):
-    payload = {
-        'data':{
-            'NPCSceneID': f'HellNPC_{npc}',
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'PVPHandler.PVPCheckTicket'
-    }
-    # Spend ticket
-    send(payload)
-
-def run_npc_battle(aid, session_id, npc, pos_map=None):
-    payload = {
-        'data': {
-            'NPCSceneID': f'HellNPC_{npc}',
-            'EndData': {
-                'StartBattleInfo': {},
-                'Result': 'Win',
-            },
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'PVPHandler.NPCPVPBattleEnd'
-    }
-    if pos_map:
-        payload['data']['EndData']['StartBattleInfo']['CampData1'] = {
-                'PositionRoleMap': pos_map}
-    return send(payload)
-
-def run_npc(aid, session_id, npc_list):
-    now = int(time.time() * 1000)
-    targets = [npc for npc in npc_list if now > npc_list[npc]]
-    print(f'当前可挑战NPC：{targets}')
-    try:
-        for npc in targets:
-            run_npc_ticket(aid, session_id, npc)
-            data = run_npc_battle(aid, session_id, npc)
-            npc_list[npc] = float('inf')
-            print(f'NPC {npc} 挑战{"成功" if data["IsWin"] else "失败"}！')
-    except Exception:
-        print('挑战结束：没有旗帜！')
-
-# 2. 刷活动讨伐
-def run_battle(aid, session_id, pos_map, event, login_data):
-    payload = {
-        'data': {
-            'BattleEndData': {
-                'StartBattleInfo': {
-                    'SceneData': {'StaticID': ''}, 
-                    'CampData1': {'PositionRoleMap': pos_map}
-                }, 
-                'Result': 'Win'
-            }, 
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'SceneHandler.FinishScene'
-    }
-    start_battle_info = payload['data']['BattleEndData']['StartBattleInfo']
-    scene = start_battle_info['SceneData']
-    camp1 = start_battle_info['CampData1']
-    elems = [('火', 'Fire'), ('水', 'Ice'), ('木', 'Earth'), 
-             ('光', 'Light'), ('暗', 'Dark')]
-    print(' '.join(f'{i + 1}. {name}讨伐' for i, (name, _) in enumerate(elems)))
-    print(' '.join(f'{i + 6}. {name}元素' for i, (name, _) in enumerate(elems)))
-    print('11. 活动EX 12. 一键活动 13. 一键深渊')
-    
-    c = input('请选择关卡编号：').strip()
-    if not c.isdigit() or not (1 <= (c := int(c)) <= 13):
-        print('无效选择！')
-        return
-    if c == 13:
-        from utils.realm_runner import run_mysterious_realm
-        run_mysterious_realm(aid, session_id, login_data)
-        return
-    repeat_str = input('请输入挑战次数（默认10次）：').strip()
-    repeat = int(repeat_str) if repeat_str.isdigit() else 10
-    if c >= 11: # Handle support
-        sup = input('请输入助战UID（默认不借人）: ').strip()
-        if sup.isdigit():
-            start_battle_info['Support'] = {
-                'PlayerRoleData': {
-                    'PlayerInfo': {'CUID': int(sup)},
-                    'RoleData': {'StaticID': 'H001'}
-                }
-            }
-    
-    if c <= 10:
-        idx = (c - 1) % 5
-        prefix = 'Hunt' if c <= 5 else 'Elf'
-        suffix = 11 if c <= 5 else 4
-        sid = f'{prefix}{elems[idx][1]}_{suffix}'
-        runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
-    elif c == 11:
-        sid = event['scene_ids'][-2]
-        runs = [{'static_id': sid, 'pos_map': pos_map}] * repeat
-    else: # c == 12
-        runs = [
-            {'static_id': sid,
-             'pos_map': event['npc_maps'].get(i, pos_map)}
-            for i, sid in enumerate(event['scene_ids'][:12])
-        ] * repeat
-
-    print('开始刷活动讨伐...')
-    try:
-        for run in runs:
-            scene['StaticID'] = run['static_id']
-            camp1['PositionRoleMap'] = run['pos_map']
-            data = send(payload)
-            energy = data['CostItems'][0]['NowItem']['Count']
-            print(f'挑战成功，剩余体力：{energy}')
-            # Check for urgent missions
-            for m in data.get('UrgentMissionContainer', {}).get('Missions', []):
-                if urgent_sid := m['SceneID']:
-                    scene['StaticID'] = urgent_sid
-                    camp1['PositionRoleMap'] = pos_map
-                    data = send(payload)
-                    print(f'紧急任务完成：{urgent_sid}')
-    except Exception:
-        print('挑战失败：体力不足，装备已满，或活动代码错误！')
-
-# 3. 刷日常
-def run_dispatched_quests(aid, session_id, d_quests):
-    payload_reward = {
-        'data': {
-            'QuestStaticID': '',
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'ArkHighCommandHandler.RewardQuest'
-    }
-    payload_dispatch = {
-        'data': {
-            'Quest': {
-                'StaticID': '',
-                'DispatchedHeroIDs': []
-            },
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'ArkHighCommandHandler.DispatchQuest'
-    }
-    now = int(time.time() * 1000)
-    targets = [quest_id for quest_id in d_quests
-               if now > d_quests[quest_id]['FinishTime']['$date']]
-    print(f'当前可派遣任务：{targets}')
-    for quest_id in targets:
-        try:
-            payload_reward['data']['QuestStaticID'] = quest_id
-            reward_data = send(payload_reward)
-            hero_ids = reward_data['FinishedQuest']['DispatchedHeroIDs']
-            #hero_ids = d_quests[quest_id]['DispatchedHeroIDs']
-            payload_dispatch['data']['Quest']['StaticID'] = quest_id
-            payload_dispatch['data']['Quest']['DispatchedHeroIDs'] = hero_ids
-            dispatch_data = send(payload_dispatch)
-            if isinstance(dispatch_data, dict) and dispatch_data.get('Error'):
-                print(f'派遣失败：{quest_id}')
-                print(f'payload: {json.dumps(payload_dispatch, ensure_ascii=False)}')
-                print(f'返回值: {json.dumps(dispatch_data, ensure_ascii=False)}')
-                continue
-            d_quests[quest_id]['FinishTime']['$date'] = float('inf')
-            print(f'派遣成功：{quest_id}')
-        except Exception:
-            # The quest has not been completed
-            continue
-
+# 1. 清日常
 def run_guild_support(aid, session_id, sups):
-    cuid = sups['_cuid']
+    cuid = sups['CUID']
     payload_guild = {
         'data': {
             'AID': aid,
@@ -389,7 +216,7 @@ def run_guild_support(aid, session_id, sups):
         print('支援结束：已达上限！')
     support_items = {
         item_id: count for item_id, count in sups.items()
-        if not item_id.startswith('_')
+        if item_id != 'CUID'
     }
     payload_support = {
         'data': {
@@ -408,8 +235,7 @@ def run_guild_support(aid, session_id, sups):
     except Exception:
         print('请求失败：今日已请求过！')
 
-def run_daily(aid, session_id, sups, event, d_quests, bp_id):
-    run_dispatched_quests(aid, session_id, d_quests)
+def run_daily(aid, session_id, sups, event, bp_id, progress):
     run_guild_support(aid, session_id, sups)
     payloads = [
         # Force lab
@@ -427,9 +253,6 @@ def run_daily(aid, session_id, sups, event, d_quests, bp_id):
         {'route': 'GuildHandler.GuildMemberDayCheckReward'},
         # Monthly sign-in
         {'route': 'MonthSignInHandler.SignIn'},
-        # Abyss
-        {'route': 'SceneHandler.PurityScene',
-         'data': {'StaticID': 'Abyss_80'}}, 
         # Monthly pack
         {'route': 'ServerStatusHandler.Query'},
         # Store (FriendShip)
@@ -453,30 +276,37 @@ def run_daily(aid, session_id, sups, event, d_quests, bp_id):
         # Store (MedalHonor)
         {'route': 'StoreHandler.BuyCommodity',
          'data': {'Record': {'StaticID': 'MedalHonor2'}, 'Count': 3}},
+        # Abyss
+        {'route': 'SceneHandler.PurityScene',
+         'data': {'StaticID': progress.get('abyss_scene', 'Abyss_80')}},
         # Support, TimingMeal, and Weekly sign-in
         {'route': 'SupportFriendHandler.GetReward'},
         {'route': 'TimingMealHandler.SentMeal'},
         {'route': 'WeekSignInHandler.SignIn',
          'data': {'ActivityID': f'ActivitySignIn{event["pickup"]}'}},
         # Daily / Weekly / Monthly rewards
-        {'route': 'QuestHandler.RewardQuest',
-         'data': {'RewardQuestInfos': [
-             {'ID': 'DailyScore10', 'Index': 0},
-             {'ID': 'DailyScore20', 'Index': 0},
-             {'ID': 'DailyScore30', 'Index': 0},
-             {'ID': 'DailyScore50', 'Index': 0},
-             {'ID': 'DailyScore80', 'Index': 0},
-             {'ID': 'DailyScore100', 'Index': 0}]}},
-        {'route': 'QuestHandler.RewardQuest',
-         'data': {'RewardQuestInfos': [
-             {'ID': 'WeekScore20', 'Index': 0},
-             {'ID': 'WeekScore40', 'Index': 0},
-             {'ID': 'WeekScore60', 'Index': 0},
-             {'ID': 'WeekScore80', 'Index': 0},
-             {'ID': 'WeekScore100', 'Index': 0},
-             {'ID': 'WeekScore120', 'Index': 0}]}},
         {'route': 'BattlePassHandler.GetAllNowRankReward',
-         'data': {'ActivityID': bp_id}}
+         'data': {'ActivityID': bp_id}},
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos': [
+             {'ID': f'DailyScore{i}', 'Index': 0}
+             for i in [10, 20, 30, 50, 80, 100]]}},
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos': [
+             {'ID': f'WeekScore{i}', 'Index': 0}
+             for i in [20, 40, 60, 80, 100, 120]]}},
+        # Event / Mysterious Realm rewards
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos':[
+             {'ID': f'Branch{event["pickup"]}_{i+1}', 'Index': 0}
+             for i in range(6)]}},
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos':[
+             {'ID': f'Branch{event["pickup"]}_Achievement_{i+1}', 'Index': 0}
+             for i in range(8)]}},
+        {'route': 'QuestHandler.RewardQuest',
+         'data': {'RewardQuestInfos':[
+             {'ID': f'FantasyStar{i+1}', 'Index': 0} for i in range(10)]}}
     ]
     for payload in payloads:
         payload_new = {
@@ -492,6 +322,220 @@ def run_daily(aid, session_id, sups, event, d_quests, bp_id):
             print(f'{payload} 成功！')
         except Exception:
             print(f'{payload} 失败！')
+
+# 2. 刷NPC
+def run_dispatched_quests(aid, session_id, d_quests):
+    payload_reward = {
+        'data': {
+            'QuestStaticID': '',
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'ArkHighCommandHandler.RewardQuest'
+    }
+    payload_dispatch = {
+        'data': {
+            'Quest': {
+                'StaticID': '',
+                'DispatchedHeroIDs': []
+            },
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'ArkHighCommandHandler.DispatchQuest'
+    }
+    now = int(time.time() * 1000)
+    targets = [quest_id for quest_id in d_quests
+               if now > d_quests[quest_id]['FinishTime']['$date']]
+    print(f'当前可派遣任务：{targets}')
+    for quest_id in targets:
+        try:
+            payload_reward['data']['QuestStaticID'] = quest_id
+            reward_data = send(payload_reward)
+            hero_ids = reward_data['FinishedQuest']['DispatchedHeroIDs']
+            #hero_ids = d_quests[quest_id]['DispatchedHeroIDs']
+            payload_dispatch['data']['Quest']['StaticID'] = quest_id
+            payload_dispatch['data']['Quest']['DispatchedHeroIDs'] = hero_ids
+            dispatch_data = send(payload_dispatch)
+            d_quests[quest_id]['FinishTime']['$date'] = float('inf')
+            print(f'派遣成功：{quest_id}')
+        except Exception as exc:
+            print(f'派遣失败，可能是体力不足！')
+            # The quest has not been completed
+            continue
+
+def run_npc_ticket(aid, session_id, npc):
+    payload = {
+        'data':{
+            'NPCSceneID': f'HellNPC_{npc}',
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'PVPHandler.PVPCheckTicket'
+    }
+    # Spend ticket
+    send(payload)
+
+def run_npc_battle(aid, session_id, npc, camp):
+    payload = {
+        'data': {
+            # We use fixed NPC ID
+            'NPCSceneID': f'HellNPC_{npc}',
+            'EndData': {
+                'StartBattleInfo': {'CampData1': camp},
+                'Result': 'Win',
+            },
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'PVPHandler.NPCPVPBattleEnd'
+    }
+    return send(payload)
+
+def run_npc(aid, session_id, npc_list, first_team, d_quests):
+    now = int(time.time() * 1000)
+    targets = [npc for npc in npc_list if now > npc_list[npc]]
+    print(f'当前可挑战NPC：{targets}')
+    try:
+        for npc in targets:
+            run_npc_ticket(aid, session_id, npc)
+            data = run_npc_battle(aid, session_id, npc, first_team)
+            npc_list[npc] = float('inf')
+            print(f'NPC {npc} 挑战{"成功" if data["IsWin"] else "失败"}！')
+    except Exception:
+        print('挑战结束：没有旗帜！')
+    run_dispatched_quests(aid, session_id, d_quests)
+
+# 3. 刷活动讨伐
+def scene_is_passed(scene):
+    # If the scene has already been passed
+    return any(scene.get('Stars') or []) or scene.get('PassCount', 0) > 0
+
+def highest_passed_scene(data, pattern):
+    best = (0, None)
+    scenes = data.get('SceneDataContainer', {}).get('Scenes', [])
+    for scene in scenes:
+        static_id = scene.get('StaticID')
+        if not isinstance(static_id, str) or not scene_is_passed(scene):
+            continue
+        match = re.fullmatch(pattern, static_id)
+        if not match: continue
+        idx = int(match.group(1))
+        if idx > best[0]: best = (idx, static_id)
+    return best
+
+def set_activity_progress(progress, event, idx):
+    if idx <= progress.get('activity_idx', 0): return
+    scene_ids = event.get('scene_ids') or []
+    progress['activity_idx'] = idx
+    progress['activity_scene'] = scene_ids[idx - 1] if len(scene_ids) >= idx \
+        else f'B{event["pickup"]}_1_{idx}'
+
+def run_battle(aid, session_id, event, progress, teams):
+    first_team, second_team = teams
+    payload = {
+        'data': {
+            'BattleEndData': {
+                'StartBattleInfo': {
+                    'SceneData': {'StaticID': ''}, 
+                    'CampData1': first_team
+                }, 
+                'Result': 'Win'
+            }, 
+            'AID': aid,
+            'SessionID': session_id
+        },
+        'route': 'SceneHandler.FinishScene'
+    }
+    start_battle_info = payload['data']['BattleEndData']['StartBattleInfo']
+    scene = start_battle_info['SceneData']
+    elems = [('火', 'Fire'), ('水', 'Ice'), ('木', 'Earth'), 
+             ('光', 'Light'), ('暗', 'Dark')]
+    print(' '.join(f'{i + 1}. {name}讨伐' for i, (name, _) in enumerate(elems)))
+    print(' '.join(f'{i + 6}. {name}元素' for i, (name, _) in enumerate(elems)))
+    print('11. 活动EX 12. 一键活动 13. 一键精英 14. 一键深渊')
+    
+    c = input('请选择关卡编号：').strip()
+    if not c.isdigit() or not (1 <= (c := int(c)) <= 14):
+        print('无效选择！')
+        return
+    if c == 13:
+        print('将使用第一队进行自动战斗，请将队伍配置得尽量合理。')
+        pickup = event['pickup']
+        scene_id = f'B{pickup}_1_13'
+        result = run_auto_battles(
+            aid, session_id, [first_team], [scene_id],
+            payload_mode='scene')
+        if result == 0:
+            set_activity_progress(progress, event, 13)
+        return
+    if c == 14:
+        print('将使用第一队和第二队进行自动战斗，请将队伍配置得尽量合理。')
+        if second_team is None:
+            print('一键深渊需要配置第二队，请先配置第二队后再试。')
+            return
+        result = run_auto_battles(
+            aid, session_id, [first_team, second_team],
+            build_realm_scene_ids(progress['realm_first_floor']),
+            complete_message='深渊已完成，无需继续挑战。')
+        return
+    repeat_str = input('请输入挑战次数（默认10次）：').strip()
+    repeat = int(repeat_str) if repeat_str.isdigit() else 10
+    if 11 <= c <= 12: # Handle support
+        sup = input('请输入助战UID（默认不借人）: ').strip()
+        if sup.isdigit():
+            start_battle_info['Support'] = {
+                'PlayerRoleData': {
+                    'PlayerInfo': {'CUID': int(sup)},
+                    'RoleData': {'StaticID': 'H001'}
+                }
+            }
+    
+    if c <= 10:
+        idx = (c - 1) % 5
+        elem = elems[idx][1]
+        scene_map = progress['hunt_scenes'] if c <= 5 \
+                else progress['elf_scenes']
+        sid = scene_map.get(elem)
+        if not sid:
+            prefix = 'Hunt' if c <= 5 else 'Elf'
+            # 没找到最高已通关关卡，就用第11关和第4关
+            fallback = 11 if c <= 5 else 4
+            sid = f'{prefix}{elem}_{fallback}'
+        print(f'即将挑战：{sid}')
+        runs = [{'static_id': sid, 'camp': first_team}] * repeat
+    elif c == 11:
+        sid = progress.get('activity_scene')
+        if not sid: sid = event['scene_ids'][-2]
+        print(f'即将挑战：{sid}')
+        runs = [{'static_id': sid, 'camp': first_team}] * repeat
+    else: # c == 12
+        runs = [
+            {'static_id': sid,
+             'camp': {'PositionRoleMap': event['npc_maps'][i]}
+             if i in event['npc_maps'] else first_team}
+            for i, sid in enumerate(event['scene_ids'][:12])
+        ] * repeat
+
+    print('开始刷活动讨伐...')
+    try:
+        for run in runs:
+            scene['StaticID'] = run['static_id']
+            start_battle_info['CampData1'] = run['camp']
+            data = send(payload)
+            energy = data['CostItems'][0]['NowItem']['Count']
+            print(f'挑战成功，剩余体力：{energy}')
+            # Check for urgent missions
+            for m in data.get('UrgentMissionContainer', {}).get('Missions', []):
+                if urgent_sid := m['SceneID']:
+                    scene['StaticID'] = urgent_sid
+                    start_battle_info['CampData1'] = first_team
+                    data = send(payload)
+                    print(f'紧急任务完成：{urgent_sid}')
+        if c == 12:
+            set_activity_progress(progress, event, 12)
+    except Exception:
+        print('挑战失败：体力不足，装备已满，或活动代码错误！')
 
 # 4. 刷神秘商店
 def run_secret(aid, session_id, secrets):
@@ -591,7 +635,7 @@ def run_weekly(aid, session_id, repeat=140):
     print(f'每周任务完成！共{repeat}次')
 
 # 7. 刷亲密度
-def run_affection(aid, session_id, npc_list, pos_map):
+def run_affection(aid, session_id, npc_list, first_team):
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     if not targets:
@@ -601,7 +645,7 @@ def run_affection(aid, session_id, npc_list, pos_map):
     repeat = input('请输入刷亲密度次数（默认第一队10次）：').strip()
     repeat = int(repeat) if str(repeat).isdigit() else 10
     for i in range(repeat):
-        run_npc_battle(aid, session_id, targets[i % len(targets)], pos_map)
+        run_npc_battle(aid, session_id, targets[i % len(targets)], first_team)
         print(f'正在刷亲密度...（{i + 1}/{repeat}）')
     print('亲密度刷完了！')
 
@@ -731,26 +775,48 @@ def run_pvp_log_data(aid, session_id):
         except Exception:
             print(f'复仇查询失败：{enemy_cuid}')
 
+# 提取活动和进度信息
+def get_progress(data, event):
+    pickup = event['pickup']
+    activity_idx, activity_scene = highest_passed_scene(
+        data, rf'B{re.escape(pickup)}_1_(\d+)')
+    abyss_idx, abyss_scene = highest_passed_scene(data, r'Abyss_(\d+)')
+    elems = ('Fire', 'Ice', 'Earth', 'Light', 'Dark')
+    hunt_scenes = {
+        elem: highest_passed_scene(data, rf'Hunt{elem}_(\d+)')[1]
+        for elem in elems
+    }
+    elf_scenes = {
+        elem: highest_passed_scene(data, rf'Elf{elem}_(\d+)')[1]
+        for elem in elems
+    }
+    return {
+        'activity_idx': activity_idx,
+        'activity_scene': activity_scene,
+        'abyss_idx': abyss_idx,
+        'abyss_scene': abyss_scene,
+        'hunt_scenes': hunt_scenes,
+        'elf_scenes': elf_scenes,
+    }
+
 def extract_login_values(data):
     # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
     session_id = data['SessionID']
-    # 1, 7
-    npc_list = {}
-    for npc in data['PVPData']['NPCPVPInfoList']:
-        npc_list[npc['NPCID']] = max(npc['NextTime']['$date'],
-                                   npc_list.get(npc['NPCID'], 0))
-    # 2, 3
+    # 1, 9
+    cuid = data['Info']['CUID']
+    # 1, 3
     event = get_event(data)
+    progress = get_progress(data, event)
+    team_builder = LoginTeamBuilder(data, MASTER_DB)
+    settings = data['Teams']['Settings']
+    first_team = team_builder.build_camp(settings, 0)
+    second_team = team_builder.build_camp(settings, 1, required=False)
+    teams = [first_team, second_team]
+    progress['realm_first_floor'] = next_realm_floor(data)
     npc_levels = ', '.join(str(i + 1) for i in sorted(event['npc_maps']))
     print(f'当前活动：{event["pickup"]}，NPC关卡：{npc_levels}')
-    # 2, 7
-    first_team = data['Teams']['Settings'][0]
-    pos_map = first_team['TeamSetting']['RolePosMap']
-    pos_map = {str(pos): {'_id': role_id} for role_id, pos in pos_map.items()}
-    # 3, 9
-    cuid = data['Info']['CUID']
-    # 3
+    # 1
     d_quests = {
         q['StaticID']: q
         for q in data['ArkHighCommandData'].get('DispatchedQuests', [])
@@ -762,7 +828,12 @@ def extract_login_values(data):
         x['StaticID']: x['Count'] for x in data['ItemContainer']['Items']
         if x.get('StaticID') in sups
     })
-    sups['_cuid'] = cuid
+    sups['CUID'] = cuid
+    # 2, 7
+    npc_list = {}
+    for npc in data['PVPData']['NPCPVPInfoList']:
+        npc_list[npc['NPCID']] = max(npc['NextTime']['$date'],
+                                   npc_list.get(npc['NPCID'], 0))
     # 4
     secrets = [item for item in data['StoreRecordContainer']['Records'] \
             if item['Store'] == 'SecretShop']
@@ -771,8 +842,9 @@ def extract_login_values(data):
     # 9
     week = data['PVPData']['PVPRankInfo']['RankWeek']
 
-    return (aid, session_id, npc_list, event, pos_map, cuid, d_quests, bp_id,
-            sups, secrets, guild_data, week)
+    return (aid, session_id, npc_list, event, progress, first_team,
+            second_team, teams, cuid, d_quests, bp_id, sups, secrets,
+            guild_data, week)
 
 def main():
     print('脚本有风险，使用需谨慎！')
@@ -789,8 +861,8 @@ def main():
             print('登录中...')
             try:
                 data = run_login(accounts, acc_idx, version)
-                (aid, session_id, npc_list, event, pos_map,
-                 cuid, d_quests, bp_id, sups, secrets,
+                (aid, session_id, npc_list, event, progress, first_team,
+                 second_team, teams, cuid, d_quests, bp_id, sups, secrets,
                  guild_data, week) = extract_login_values(data)
                 print('登录成功！')
             except Exception:
@@ -800,12 +872,12 @@ def main():
                 continue
         if (action := choose_action()) == 0: continue
         actions = {
-            # 刷NPC
-            1: lambda: run_npc(aid, session_id, npc_list),
+            # 清日常
+            1: lambda: run_daily(aid, session_id, sups, event, bp_id, progress),
+            # 刷NPC派遣
+            2: lambda: run_npc(aid, session_id, npc_list, first_team, d_quests),
             # 刷活动讨伐
-            2: lambda: run_battle(aid, session_id, pos_map, event, data),
-            # 刷日常
-            3: lambda: run_daily(aid, session_id, sups, event, d_quests, bp_id),
+            3: lambda: run_battle(aid, session_id, event, progress, teams),
             # 刷神秘商店
             4: lambda: run_secret(aid, session_id, secrets),
             # 刷星源商店
@@ -813,7 +885,7 @@ def main():
             # 刷佣兵团周任务
             6: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度
-            7: lambda: run_affection(aid, session_id, npc_list, pos_map),
+            7: lambda: run_affection(aid, session_id, npc_list, first_team),
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
             # 查询团战防守
