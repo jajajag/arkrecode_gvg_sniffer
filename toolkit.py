@@ -93,7 +93,7 @@ def choose_account(accounts):
 
 def choose_action():
     actions = [
-        '清日常',
+        '刷日常',
         '刷NPC派遣',
         '刷活动讨伐',
         '刷神秘商店',
@@ -453,7 +453,7 @@ def run_battle(aid, session_id, event, progress, teams):
              ('光', 'Light'), ('暗', 'Dark')]
     print(' '.join(f'{i + 1}. {name}讨伐' for i, (name, _) in enumerate(elems)))
     print(' '.join(f'{i + 6}. {name}元素' for i, (name, _) in enumerate(elems)))
-    print('11. 活动EX 12. 一键活动 13. 一键精英 14. 一键深渊')
+    print('11. 活动EX 12. 一键活动 13. 自动精英 14. 自动深渊')
     
     c = input('请选择关卡编号：').strip()
     if not c.isdigit() or not (1 <= (c := int(c)) <= 14):
@@ -472,7 +472,7 @@ def run_battle(aid, session_id, event, progress, teams):
     if c == 14:
         print('将使用第一队和第二队进行自动战斗，请将队伍配置得尽量合理。')
         if second_team is None:
-            print('一键深渊需要配置第二队，请先配置第二队后再试。')
+            print('自动深渊需要配置第二队，请先配置第二队后再试。')
             return
         result = run_auto_battles(
             aid, session_id, [first_team, second_team],
@@ -872,7 +872,7 @@ def main():
                 continue
         if (action := choose_action()) == 0: continue
         actions = {
-            # 清日常
+            # 刷日常
             1: lambda: run_daily(aid, session_id, sups, event, bp_id, progress),
             # 刷NPC派遣
             2: lambda: run_npc(aid, session_id, npc_list, first_team, d_quests),
