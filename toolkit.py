@@ -55,7 +55,7 @@ def add_account(accounts):
 
 def delete_account(accounts):
     if not accounts:
-        print('当前没有可删除的账号。')
+        print('当前没有可删除的账号！')
         return
     idx = input('删除账号：').strip()
     if idx.isdigit() and 0 < int(idx) <= len(accounts):
@@ -68,7 +68,7 @@ def delete_account(accounts):
 def choose_account(accounts):
     while True:
         if not accounts:
-            print('没有已保存账号，请先添加账号。')
+            print('没有已保存账号，请先添加账号！')
             acc_idx = add_account(accounts)
             if acc_idx is not None:
                 return acc_idx
@@ -460,7 +460,7 @@ def run_battle(aid, session_id, event, progress, teams):
         print('无效选择！')
         return
     if c == 13:
-        print('将使用第一队进行自动战斗，请将队伍配置得尽量合理。')
+        print('将使用预设第一队进行自动战斗，请将队伍配置得尽量合理！')
         pickup = event['pickup']
         scene_id = f'B{pickup}_1_13'
         result = run_auto_battles(
@@ -470,14 +470,26 @@ def run_battle(aid, session_id, event, progress, teams):
             set_activity_progress(progress, event, 13)
         return
     if c == 14:
-        print('将使用第一队和第二队进行自动战斗，请将队伍配置得尽量合理。')
+        print('将使用预设第一二队进行自动战斗，请将队伍配置得尽量合理！')
         if second_team is None:
-            print('自动深渊需要配置第二队，请先配置第二队后再试。')
+            print('自动深渊需要配置预设第二队！')
+            return
+        first_role_ids = {
+            role.get('StaticID')
+            for role in first_team['PositionRoleMap'].values()
+        }
+        second_role_ids = {
+            role.get('StaticID')
+            for role in second_team['PositionRoleMap'].values()
+        }
+        duplicate_role_ids = sorted(first_role_ids & second_role_ids)
+        if duplicate_role_ids:
+            print(f'自动深渊队伍存在重复角色：{duplicate_role_ids}')
             return
         result = run_auto_battles(
             aid, session_id, [first_team, second_team],
             build_realm_scene_ids(progress['realm_first_floor']),
-            complete_message='深渊已完成，无需继续挑战。')
+            complete_message='深渊已完成，无需继续挑战！')
         return
     repeat_str = input('请输入挑战次数（默认10次）：').strip()
     repeat = int(repeat_str) if repeat_str.isdigit() else 10

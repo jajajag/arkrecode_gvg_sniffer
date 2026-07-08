@@ -63,6 +63,7 @@ def claim_rewards(login_data, quest_ids):
     total = len(quest_ids)
 
     for batch_no, batch_ids in enumerate(chunks(quest_ids, BATCH_SIZE), 1):
+        print(f'第 {batch_no} 批领取奖励 list：{batch_ids}')
         payload = {
             'route': 'QuestHandler.RewardQuest',
             'data': {

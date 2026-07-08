@@ -16,6 +16,7 @@ ROUTER_URL = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
 MASTER_DB = ROOT / 'data/master.db'
 HTTP_TIMEOUT = 20
 WS_TIMEOUT = 60
+BATTLE_TIMEOUT = 600
 MAX_ACTIONS = 300
 TEAM_COUNT = 2
 FIRST_FLOOR = 1
@@ -437,12 +438,12 @@ class BattleDriver:
         if 'Own' in target_camp or 'My' in target_camp:
             if not no_self:
                 return source_id
-            allies = sorted(
+            allies = sorted((
                 role_id for role_id in self.role_by_net_id
                 if role_id.startswith(f'1-{wave_id}-')
                 and role_id != source_id
                 and role_id not in self.dead
-            )
+            ), reverse=True)
             return allies[0] if allies else None
 
         enemies = sorted(
@@ -548,7 +549,12 @@ class BattleRunner:
         await ws.send(compact(payload))
 
     async def recv_json(self, ws):
-        raw = await asyncio.wait_for(ws.recv(), timeout=WS_TIMEOUT)
+        try:
+            raw = await asyncio.wait_for(ws.recv(), timeout=WS_TIMEOUT)
+        except asyncio.TimeoutError as exc:
+            raise RuntimeError(
+                f'服务器连续 {WS_TIMEOUT} 秒没有返回战斗或结算消息，停止等待'
+            ) from exc
         try:
             payload = json.loads(raw)
         except Exception:
@@ -670,7 +676,16 @@ class BattleRunner:
                 f'ServerID {room["server_id"]} | {room["domain"]}',
                 flush=True,
             )
-            result = await self.fight_room(room, start_payload)
+            try:
+                result = await asyncio.wait_for(
+                    self.fight_room(room, start_payload),
+                    timeout=BATTLE_TIMEOUT,
+                )
+            except asyncio.TimeoutError as exc:
+                raise RuntimeError(
+                    f'{scene_id} 战斗或结算超过 '
+                    f'{BATTLE_TIMEOUT} 秒，停止等待'
+                ) from exc
             print(f'{scene_id}: {result}', flush=True)
             if result != 'Win':
                 print(f'{scene_id} 未胜利，停止后续关卡。', flush=True)
