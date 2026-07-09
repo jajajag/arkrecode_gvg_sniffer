@@ -2,10 +2,6 @@
 
 我不知道这是什么，网络和底层并非我擅长的领域，本项目仅出于**个人好奇和折腾**。
 
-## 安装游戏
-
-安装[星陨计划PC端](https://www.arkrecode.com/)。 
-
 ## 离线模式
 
 现在直接从官网拉取解包数据，不再写死到本地，仅在数据更新时重新下载。并且可以直接打开浏览器，登陆账号并保存Token了（完全离线，账密不需要经过第三方服务器）。
@@ -57,6 +53,10 @@
 - [Capture-pcr-API](https://github.com/watermellye/Capture-pcr-API)
 
 - [Ark Re:Code Wiki](https://arkrecodewiki.miraheze.org/wiki)
+
+## 安装游戏~~
+
+~~安装[星陨计划PC端](https://www.arkrecode.com/)。 ~~
 
 ## ~~配置模拟器~~
 
