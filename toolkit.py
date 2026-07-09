@@ -1,95 +1,19 @@
-import base64
 import json
-import os
-import random
 import re
-import requests
 import time
-from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
+from utils.analyzer import analyze_gvg
 from utils.battle_runner import LoginTeamBuilder, MASTER_DB, run_auto_battles
 from utils.battle_runner import build_realm_scene_ids, next_realm_floor
 from utils.equips import match_equip
-from utils.exporter import export_report
 from utils.helper import get_event
-from utils.login_helper import capture_login
+from utils.login_helper import choose_account, get_login_version, load_accounts
+from utils.login_helper import run_bulletin, run_login, send
 from utils.master import ensure_master_db
-from utils.printer import print_report
-
-requests.packages.urllib3.disable_warnings()
-
-url = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
-url_token = 'https://sadpki-portal-v2.ebuajk.com/api/v2/token/access'
-headers = {
-    'Content-Type': 'application/octet-stream',
-    'User-Agent': 'UnityPlayer/2022.3.62f2 (UnityWebRequest/1.0, libcurl/8.10.1-DEV)'
-}
+from utils.other_tools import run_other_tools
 
 def load_config(config_path='data/config.json'):
     with open(config_path, 'r', encoding='utf-8') as f:
         return json.load(f)
-
-def load_accounts(account_path='data/accounts.json'):
-    if not os.path.exists(account_path):
-        return []
-    with open(account_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-def save_accounts(accounts, account_path='data/accounts.json'):
-    os.makedirs(os.path.dirname(account_path), exist_ok=True)
-    with open(account_path, 'w', encoding='utf-8') as f:
-        json.dump(accounts, f, ensure_ascii=False, indent=2)
-
-def add_account(accounts):
-    while True:
-        name = input('给账号起个名字：').strip()
-        if name: break
-    try:
-        payload = capture_login()
-    except Exception as exc:
-        print(f'添加账号失败：{exc}')
-        return None
-    accounts.append({'Name': name, 'Token': payload['jwt']})
-    save_accounts(accounts)
-    print(f'已添加账号：{name}')
-    return len(accounts) - 1
-
-def delete_account(accounts):
-    if not accounts:
-        print('当前没有可删除的账号！')
-        return
-    idx = input('删除账号：').strip()
-    if idx.isdigit() and 0 < int(idx) <= len(accounts):
-        removed = accounts.pop(int(idx) - 1)
-        save_accounts(accounts)
-        print(f'已删除账号：{removed.get("Name")}')
-    else:
-        print('删除失败，请选择正确的账号编号！')
-
-def choose_account(accounts):
-    while True:
-        if not accounts:
-            print('没有已保存账号，请先添加账号！')
-            acc_idx = add_account(accounts)
-            if acc_idx is not None:
-                return acc_idx
-            continue
-        print('[选择账号]')
-        for i, acc in enumerate(accounts):
-            print(f'{i + 1}. {acc.get("Name")}')
-        print('+. 添加账号')
-        print('-. 删除账号')
-        while True:
-            idx = input('> ').strip()
-            if idx == '+':
-                acc_idx = add_account(accounts)
-                if acc_idx is not None:
-                    return acc_idx
-                break
-            if idx == '-':
-                delete_account(accounts)
-                break
-            if idx.isdigit() and 0 < int(idx) <= len(accounts):
-                return int(idx) - 1
 
 def choose_action():
     actions = [
@@ -101,7 +25,7 @@ def choose_action():
         '刷佣兵团周任务',
         '刷亲密度',
         '查询团战总结',
-        '查询团战防守',
+        '小众变态工具集',
         '重新登录'
     ]
     print('[选择功能]')
@@ -109,72 +33,8 @@ def choose_action():
         print(f'{(i + 1) % 10}. {a}')
     while True:
         c = input('> ').strip()
-        if c in ('114514', '1919810') \
-                or (c.isdigit() and 0 <= int(c) < len(actions)):
+        if c.isdigit() and 0 <= int(c) < len(actions):
             return int(c)
-
-def send(payload):
-    time.sleep(random.uniform(1, 2))
-    resp = requests.post(url, json=payload, headers=headers, verify=False)
-    resp.encoding = 'utf-8'
-    return resp.json()
-
-def run_bulletin():
-    payload = {
-        'data': {},
-        'route': 'GameServerDBSettingHandler.QueryBulletinInfoResult'
-    }
-    return send(payload)
-
-def get_login_version(bulletin):
-    return bulletin['Info']['AvailableVersions'][-1]
-
-# Now we only use old sdk for Android
-def run_refresh_token(accounts, acc_idx):
-    # device_id = accounts[acc_idx]['DeviceID']
-    refresh_token = accounts[acc_idx]['Token']
-    local_headers = headers.copy()
-    local_headers['Authorization'] = f'Bearer {refresh_token}'
-    # local_headers['DeviceId'] = device_id
-    time.sleep(random.uniform(1, 2))
-    resp = requests.post(url_token, headers=local_headers)
-    resp.encoding = 'utf-8'
-    data = resp.json()
-    accounts[acc_idx]['Token'] = data['data']['refreshToken']
-    save_accounts(accounts)
-    return data
-
-def run_old_sdk(accounts, acc_idx):
-    token = accounts[acc_idx]['Token']
-    jwt = token.split('.')[1]
-    jwt += '=' * (-len(jwt) % 4)
-    token_data = json.loads(base64.urlsafe_b64decode(jwt))
-    login_id = token_data['user_id']
-    if 'exp' in token_data:
-        return True, login_id
-    return False, login_id
-
-def run_login(accounts, acc_idx, version):
-    # On Android it seems they are using an old SDK
-    is_new_sdk, login_id = run_old_sdk(accounts, acc_idx)
-    if is_new_sdk:
-        token_data = run_refresh_token(accounts, acc_idx)
-        login_id = token_data['data']['userId']
-        token = token_data['data']['accessToken']
-    else:
-        token = accounts[acc_idx]['Token']
-    payload = {
-        'data': {
-            'LoginID': login_id,
-            'Token': token,
-            'Version': version,
-            # 'DeviceID': accounts[acc_idx]['DeviceID'],
-            'LoginType': 'Erolabs',
-            'IsNewSDK': is_new_sdk
-        },
-        'route': 'AccountHandler.Login'
-    }
-    return send(payload)
 
 # 1. 清日常
 def run_guild_support(aid, session_id, sups):
@@ -226,9 +86,6 @@ def run_guild_support(aid, session_id, sups):
         },
         'route': 'GuildHandler.RequestGuildAid'
     }
-    # Skip if the player has already requested today
-    if any(item['Requester']['CUID'] == cuid for item in guild_aid_items):
-        return
     try:
         send(payload_support)
         print(f'请求成功：{payload_support["data"]["ItemID"]}')
@@ -682,111 +539,6 @@ def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
         print('查询失败：未加入佣兵团，未开启团战，或佣兵团 GID 错误！')
         return []
 
-# 9. 查询团战防守
-def run_gvg_update(aid, session_id, cuid):
-    payload = {
-        'data': {
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'GuildWarHandler.QueryNowGuildWarRank'
-    }
-    try:
-        data = send(payload)
-    except Exception:
-        print('查询失败：未加入佣兵团！')
-        return
-    guilds = data['GuildWarCampaignInfoList']
-    # 0 for not querying
-    num_def = input('请输入要查询的前排团战防守（最多前20）：')
-    num_def = int(num_def) if str(num_def).strip().isdigit() else 20
-    # Query for the top 20 guilds
-    for i in range(min(num_def, len(guilds))):
-        print(f'正在查询第{i + 1}名佣兵团的防守数据...')
-        gid = guilds[i]['GuildSubInfo']['_id']['$oid']
-        rows = run_guild_summary(aid, session_id, None, gid=gid, save_csv=False)
-        analyze_gvg_defence(aid, session_id, cuid, rows)
-    print('防守数据查询完成！')
-
-def run_pvp_update(aid, session_id, cuid, week):
-    payload = {
-        'data': {
-            'Week': week,
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'PVPHandler.GetPVPRankList'
-    }
-    try:
-        print('正在更新装备数据...')
-        data = send(payload)
-    except Exception:
-        print('查询失败：排名可能在结算中！')
-        return
-    analyze_pvp_equips(data)
-    print('装备数据更新完成！')
-    # We now update GVG defence data here
-    run_gvg_update(aid, session_id, cuid)
-
-# 114514. 查询团战数据
-def run_guild_data(aid, session_id):
-    payload = {
-        'data': {
-            'AID': aid,
-            'SessionID': session_id
-        },
-        'route': 'GuildWarHandler.QueryFullGuildWarData'
-    }
-    try:
-        data = send(payload)
-    except Exception:
-        print('查询失败：未加入佣兵团或未开启团战！')
-        return
-    print_report(data)
-    export_report(data)
-
-# 1919810. 查询JJC数据
-def run_pvp_log_data(aid, session_id):
-    if input('此功能将导致JJC进场，是否继续：（Y/n）').strip().lower() == 'n':
-        return
-    # Query PVP data
-    try:
-        print('正在查询JJC信息...')
-        data = send({
-            'data': {
-                'AID': aid,
-                'SessionID': session_id
-            },
-            'route': 'PVPHandler.QueryPVPData'
-        })
-        print(data)
-    except Exception:
-        print('JJC查询失败！')
-        return
-    print_report(data)
-    # Query revenge data
-    logs = data['PVPData']['PVPLogList']
-    revenge_logs = [log for log in logs if log['CanRevengeBattle']]
-    if not revenge_logs:
-        print('没有可复仇的对象！')
-        return
-    for i, log in enumerate(revenge_logs, 1):
-        print(f'-----可复仇对象 {i}/{len(revenge_logs)}-----')
-        enemy_cuid = log['PlayerInfo']['CUID']
-        log_id = log['_id']['$oid']
-        try:
-            print_report(send({
-                'data': {
-                    'EnemyCUID': enemy_cuid,
-                    'LogID': log_id,
-                    'AID': aid,
-                    'SessionID': session_id
-                },
-                'route': 'PVPHandler.QueryRevengeEnemyData'
-            }))
-        except Exception:
-            print(f'复仇查询失败：{enemy_cuid}')
-
 # 提取活动和进度信息
 def get_progress(data, event):
     pickup = event['pickup']
@@ -815,8 +567,6 @@ def extract_login_values(data):
     # 1, 2, 3, 4, 5, 6, 7, 8, 9
     aid = data['Info']['_id']['$oid']
     session_id = data['SessionID']
-    # 1, 9
-    cuid = data['Info']['CUID']
     # 1, 3
     event = get_event(data)
     progress = get_progress(data, event)
@@ -840,7 +590,7 @@ def extract_login_values(data):
         x['StaticID']: x['Count'] for x in data['ItemContainer']['Items']
         if x.get('StaticID') in sups
     })
-    sups['CUID'] = cuid
+    sups['CUID'] = data['Info']['CUID']
     # 2, 7
     npc_list = {}
     for npc in data['PVPData']['NPCPVPInfoList']:
@@ -851,12 +601,8 @@ def extract_login_values(data):
             if item['Store'] == 'SecretShop']
     # 8
     guild_data = {'GuildData': data.get('GuildData', {})}
-    # 9
-    week = data['PVPData']['PVPRankInfo']['RankWeek']
-
     return (aid, session_id, npc_list, event, progress, first_team,
-            second_team, teams, cuid, d_quests, bp_id, sups, secrets,
-            guild_data, week)
+            second_team, teams, d_quests, bp_id, sups, secrets, guild_data)
 
 def main():
     print('脚本有风险，使用需谨慎！')
@@ -874,8 +620,8 @@ def main():
             try:
                 data = run_login(accounts, acc_idx, version)
                 (aid, session_id, npc_list, event, progress, first_team,
-                 second_team, teams, cuid, d_quests, bp_id, sups, secrets,
-                 guild_data, week) = extract_login_values(data)
+                 second_team, teams, d_quests, bp_id, sups, secrets,
+                 guild_data) = extract_login_values(data)
                 print('登录成功！')
             except Exception:
                 retry = input('登录失败，是否重新登录？（Y/n）').strip().lower()
@@ -900,12 +646,8 @@ def main():
             7: lambda: run_affection(aid, session_id, npc_list, first_team),
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
-            # 查询团战防守
-            9: lambda: run_pvp_update(aid, session_id, cuid, week),
-            # 查询团战数据
-            114514: lambda: run_guild_data(aid, session_id),
-            # 查询JJC数据
-            1919810: lambda: run_pvp_log_data(aid, session_id),
+            # 小众变态工具集
+            9: lambda: run_other_tools(data, accounts, acc_idx),
         }
         actions.get(action, lambda: None)()
 

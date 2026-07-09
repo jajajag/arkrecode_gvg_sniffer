@@ -2,6 +2,8 @@ import base64
 import json
 import os
 from pathlib import Path
+import random
+import requests
 import secrets
 import socket
 import struct
@@ -14,11 +16,155 @@ from urllib.request import urlopen
 
 
 LOGIN_URL = 'https://sadpki-portal.ebuajk.com/api/v2/login'
+GAME_URL = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
+TOKEN_URL = 'https://sadpki-portal-v2.ebuajk.com/api/v2/token/access'
+GAME_HEADERS = {
+    'Content-Type': 'application/octet-stream',
+    'User-Agent': 'UnityPlayer/2022.3.62f2 '
+                  '(UnityWebRequest/1.0, libcurl/8.10.1-DEV)',
+}
 LOGIN_PAGE = (
     'https://sadpki-portal.ebuajk.com/login/?merchantId=&serviceId='
     '&callback=coresdk://coresdk.games/com.nerversoft.ark.recode'
     '&login=true&game_id=32&lang=en&platform=R18'
 )
+
+requests.packages.urllib3.disable_warnings()
+
+
+def load_accounts(account_path='data/accounts.json'):
+    if not os.path.exists(account_path):
+        return []
+    with open(account_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+
+def save_accounts(accounts, account_path='data/accounts.json'):
+    os.makedirs(os.path.dirname(account_path), exist_ok=True)
+    with open(account_path, 'w', encoding='utf-8') as file:
+        json.dump(accounts, file, ensure_ascii=False, indent=2)
+
+
+def add_account(accounts):
+    while True:
+        name = input('给账号起个名字：').strip()
+        if name:
+            break
+    try:
+        payload = capture_login()
+    except Exception as exc:
+        print(f'添加账号失败：{exc}')
+        return None
+    accounts.append({'Name': name, 'Token': payload['jwt']})
+    save_accounts(accounts)
+    print(f'已添加账号：{name}')
+    return len(accounts) - 1
+
+
+def delete_account(accounts):
+    if not accounts:
+        print('当前没有可删除的账号！')
+        return
+    idx = input('删除账号：').strip()
+    if idx.isdigit() and 0 < int(idx) <= len(accounts):
+        removed = accounts.pop(int(idx) - 1)
+        save_accounts(accounts)
+        print(f'已删除账号：{removed.get("Name")}')
+    else:
+        print('删除失败，请选择正确的账号编号！')
+
+
+def choose_account(accounts):
+    while True:
+        if not accounts:
+            print('没有已保存账号，请先添加账号！')
+            acc_idx = add_account(accounts)
+            if acc_idx is not None:
+                return acc_idx
+            continue
+        print('[选择账号]')
+        for i, account in enumerate(accounts):
+            print(f'{i + 1}. {account.get("Name")}')
+        print('+. 添加账号')
+        print('-. 删除账号')
+        while True:
+            idx = input('> ').strip()
+            if idx == '+':
+                acc_idx = add_account(accounts)
+                if acc_idx is not None:
+                    return acc_idx
+                break
+            if idx == '-':
+                delete_account(accounts)
+                break
+            if idx.isdigit() and 0 < int(idx) <= len(accounts):
+                return int(idx) - 1
+
+
+def send(payload):
+    time.sleep(random.uniform(1, 2))
+    response = requests.post(
+        GAME_URL, json=payload, headers=GAME_HEADERS, verify=False)
+    response.encoding = 'utf-8'
+    return response.json()
+
+
+def run_bulletin():
+    return send({
+        'data': {},
+        'route': 'GameServerDBSettingHandler.QueryBulletinInfoResult',
+    })
+
+
+def get_login_version(bulletin):
+    return bulletin['Info']['AvailableVersions'][-1]
+
+
+def run_refresh_token(accounts, acc_idx):
+    refresh_token = accounts[acc_idx]['Token']
+    headers = GAME_HEADERS.copy()
+    headers['Authorization'] = f'Bearer {refresh_token}'
+    time.sleep(random.uniform(1, 2))
+    response = requests.post(TOKEN_URL, headers=headers)
+    response.encoding = 'utf-8'
+    data = response.json()
+    accounts[acc_idx]['Token'] = data['data']['refreshToken']
+    save_accounts(accounts)
+    return data
+
+
+def run_old_sdk(accounts, acc_idx):
+    token = accounts[acc_idx]['Token']
+    jwt = token.split('.')[1]
+    jwt += '=' * (-len(jwt) % 4)
+    token_data = json.loads(base64.urlsafe_b64decode(jwt))
+    login_id = token_data['user_id']
+    return 'exp' in token_data, login_id
+
+
+def run_login(accounts, acc_idx, version):
+    is_new_sdk, login_id = run_old_sdk(accounts, acc_idx)
+    if is_new_sdk:
+        token_data = run_refresh_token(accounts, acc_idx)
+        login_id = token_data['data']['userId']
+        token = token_data['data']['accessToken']
+    else:
+        token = accounts[acc_idx]['Token']
+    return send({
+        'data': {
+            'LoginID': login_id,
+            'Token': token,
+            'Version': version,
+            'LoginType': 'Erolabs',
+            'IsNewSDK': is_new_sdk,
+        },
+        'route': 'AccountHandler.Login',
+    })
+
+
+def login_account(accounts, acc_idx, bulletin=None):
+    bulletin = bulletin or run_bulletin()
+    return run_login(accounts, acc_idx, get_login_version(bulletin))
 
 
 class DevToolsWebSocket:

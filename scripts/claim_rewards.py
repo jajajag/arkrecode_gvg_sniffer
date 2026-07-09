@@ -5,13 +5,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from toolkit import (  # noqa: E402
-    choose_account,
-    get_login_version,
-    load_accounts,
-    run_bulletin,
-    run_login,
-    send,
+from utils.login_helper import (  # noqa: E402
+    choose_account, load_accounts, login_account, send,
 )
 
 
@@ -52,9 +47,7 @@ def chunks(values, size):
 
 
 def login(accounts, acc_idx):
-    bulletin = run_bulletin()
-    version = get_login_version(bulletin)
-    return run_login(accounts, acc_idx, version)
+    return login_account(accounts, acc_idx)
 
 
 def claim_rewards(login_data, quest_ids):
@@ -81,12 +74,12 @@ def claim_rewards(login_data, quest_ids):
         print(f'已领取第 {batch_no} 批：{start}-{end}/{total}')
 
 
-def main():
-    accounts = load_accounts()
-    acc_idx = choose_account(accounts)
-    print(f'当前账号：{accounts[acc_idx].get("Name")}')
-
-    login_data = login(accounts, acc_idx)
+def main(login_data=None):
+    if login_data is None:
+        accounts = load_accounts()
+        acc_idx = choose_account(accounts)
+        print(f'当前账号：{accounts[acc_idx].get("Name")}')
+        login_data = login(accounts, acc_idx)
     quest_ids = unique_in_order(iter_finished_unrewarded_quests(login_data))
     if not quest_ids:
         print('没有找到已完成但未领取的任务。')

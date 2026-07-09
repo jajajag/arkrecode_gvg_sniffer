@@ -223,8 +223,8 @@ def print_meta(rounds, target):
     print_table(['排名', '进攻阵容', '场次', '进攻胜率', '掉人概率'],
                 attack_rows)
 
-def main():
-    queries = sys.argv[1:]
+def main(argv=None):
+    queries = sys.argv[1:] if argv is None else argv
     if len(queries) != 3:
         print('用法: python3 scripts/gvg_defence.py <角色1> <角色2> <角色3>')
         print('示例: python3 scripts/gvg_defence.py 彼岸花 空 "Aoi Hinamori"')
@@ -238,7 +238,8 @@ def main():
         print('找不到data/data.db，请先运行9！')
         return 1
     finally:
-        conn.close()
+        if 'conn' in locals():
+            conn.close()
     known_role_ids = {role_id for row in rounds \
             for role_id in (*row.atk, *row.defense)}
     target = resolve_roles(queries, known_role_ids)

@@ -7,13 +7,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from toolkit import (  # noqa: E402
-    choose_account,
-    get_login_version,
-    load_accounts,
-    run_bulletin,
-    run_login,
-    send,
+from utils.login_helper import (  # noqa: E402
+    choose_account, load_accounts, login_account, send,
 )
 
 BEIJING = timezone(timedelta(hours=8), 'Asia/Shanghai')
@@ -60,9 +55,7 @@ def wait_until(target):
 
 
 def login(accounts, acc_idx):
-    bulletin = run_bulletin()
-    version = get_login_version(bulletin)
-    return run_login(accounts, acc_idx, version)
+    return login_account(accounts, acc_idx)
 
 
 def claim_reward(accounts, acc_idx, item_static_id):
@@ -88,10 +81,12 @@ def claim_reward(accounts, acc_idx, item_static_id):
     send(payload_reward)
 
 
-def main():
-    accounts = load_accounts()
-    acc_idx = choose_account(accounts)
-    print(f'当前账号：{accounts[acc_idx].get("Name")}')
+def main(accounts=None, acc_idx=None):
+    if accounts is None:
+        accounts = load_accounts()
+    if acc_idx is None:
+        acc_idx = choose_account(accounts)
+        print(f'当前账号：{accounts[acc_idx].get("Name")}')
     reward_name, item_static_id = choose_reward()
     print(f'已选择：{reward_name}')
 

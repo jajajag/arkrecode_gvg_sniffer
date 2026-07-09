@@ -6,17 +6,16 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from toolkit import (  # noqa: E402
-    choose_account,
-    ensure_master_db,
-    get_login_version,
-    load_accounts,
-    run_bulletin,
-    run_login,
-    send,
+from utils.login_helper import (  # noqa: E402
+    choose_account, load_accounts, login_account, run_bulletin, send,
 )
 from utils.battle_runner import LoginTeamBuilder, MASTER_DB, run_auto_battles  # noqa: E402
+from utils.master import ensure_master_db  # noqa: E402
 
+
+# 一键通关层数上限，后续版本开放新层数时只需修改这里。
+ABYSS_MAX_FLOOR = 80
+HUNT_MAX_FLOOR = 11
 
 MODE_LABELS = {
     '1': '主线',
@@ -26,6 +25,13 @@ MODE_LABELS = {
     '5': '讨伐',
 }
 ELEMENTS = ('Fire', 'Ice', 'Earth', 'Light', 'Dark')
+
+
+def scene_floor(scene_id):
+    try:
+        return int(scene_id.rsplit('_', 1)[1])
+    except (IndexError, ValueError):
+        return None
 
 
 def scene_is_complete(scene, mode):
@@ -63,7 +69,9 @@ def load_scene_lines(mode, db_path=MASTER_DB):
                               if scene_id.startswith('1Ext_')])]
     if mode == '3':
         return [('虚拟幻境', [scene_id for scene_id, _, _ in rows
-                              if scene_id.startswith('Abyss_')])]
+                              if scene_id.startswith('Abyss_')
+                              and scene_floor(scene_id) is not None
+                              and scene_floor(scene_id) <= ABYSS_MAX_FLOOR])]
     if mode == '4':
         return [
             (f'元素 {element}', [
@@ -77,6 +85,8 @@ def load_scene_lines(mode, db_path=MASTER_DB):
             (f'讨伐 {element}', [
                 scene_id for scene_id, _, _ in rows
                 if scene_id.startswith(f'Hunt{element}_')
+                and scene_floor(scene_id) is not None
+                and scene_floor(scene_id) <= HUNT_MAX_FLOOR
             ])
             for element in ELEMENTS
         ]
@@ -178,17 +188,17 @@ def run_line(label, scene_ids, aid, session_id, first_team):
     return True
 
 
-def main():
+def main(login_data=None):
     bulletin = run_bulletin()
     ensure_master_db(bulletin)
 
-    accounts = load_accounts()
-    acc_idx = choose_account(accounts)
-    print(f'当前账号：{accounts[acc_idx].get("Name")}')
-    print('登录中...')
-    version = get_login_version(bulletin)
-    login_data = run_login(accounts, acc_idx, version)
-    print('登录成功！')
+    if login_data is None:
+        accounts = load_accounts()
+        acc_idx = choose_account(accounts)
+        print(f'当前账号：{accounts[acc_idx].get("Name")}')
+        print('登录中...')
+        login_data = login_account(accounts, acc_idx, bulletin)
+        print('登录成功！')
 
     mode = choose_mode()
     lines = load_scene_lines(mode)

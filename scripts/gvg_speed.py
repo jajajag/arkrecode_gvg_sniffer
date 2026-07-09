@@ -367,14 +367,14 @@ def run_live(process_name):
     return 0
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description='实时反推 GVG/PVP 敌方速度')
     parser.add_argument(
         '-p', '--process',
         default=DEFAULT_PROCESS,
         help=f'游戏进程名，默认 {DEFAULT_PROCESS}',
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     return run_live(args.process)
 

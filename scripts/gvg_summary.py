@@ -279,8 +279,8 @@ def write_summary(rounds, guild, output, lineup_limit):
             ])
 
 
-def main():
-    args = parse_args(sys.argv[1:])
+def main(argv=None):
+    args = parse_args(sys.argv[1:] if argv is None else argv)
     guild_query = ' '.join(args.guild).strip()
 
     try:
@@ -292,7 +292,8 @@ def main():
         print('找不到data/data.db，请先运行9！')
         return 1
     finally:
-        conn.close()
+        if 'conn' in locals():
+            conn.close()
 
     guilds = {row.atk_guild for row in rounds if row.atk_guild}
     guild = resolve_guild(guild_query, guilds)
