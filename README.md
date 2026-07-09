@@ -54,9 +54,9 @@
 
 - [Ark Re:Code Wiki](https://arkrecodewiki.miraheze.org/wiki)
 
-## 安装游戏~~
+## ~~安装游戏~~
 
-~~安装[星陨计划PC端](https://www.arkrecode.com/)。 ~~
+~~安装[星陨计划PC端](https://www.arkrecode.com/)。~~
 
 ## ~~配置模拟器~~
 
