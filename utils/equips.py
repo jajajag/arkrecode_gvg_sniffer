@@ -1,7 +1,8 @@
 import json
+from utils.helper import data_path
 
 # Load configuration from config.json
-with open('data/config.json', 'r', encoding='utf-8') as fp:
+with data_path('config.json').open('r', encoding='utf-8') as fp:
     CONFIG = json.load(fp)
 
 EQUIP_SCORE_MIN_LEFT = CONFIG['equip_score_min_left']

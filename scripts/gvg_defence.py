@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from utils.helper import get_role
+from utils.helper import data_path, get_role
 
 RECENT_DAYS = 90
 MILLIS_PER_DAY = 24 * 60 * 60 * 1000
@@ -230,7 +230,7 @@ def main(argv=None):
         print('示例: python3 scripts/gvg_defence.py 彼岸花 空 "Aoi Hinamori"')
         return 1
     try:
-        conn = sqlite3.connect('data/data.db')
+        conn = sqlite3.connect(data_path('data.db'))
         conn.row_factory = sqlite3.Row
         since_ts = int(time.time() * 1000) - RECENT_DAYS * MILLIS_PER_DAY
         rounds = load_rounds(conn, since_ts)

@@ -1,9 +1,9 @@
 from collections import Counter
 from datetime import datetime, timezone
-from .helper import calculate_role_stats, calculate_team_stats, equip_name
-from .helper import equip_parts, get_bond, get_role, get_set, prop_short
+from .helper import calculate_role_stats, calculate_team_stats, data_path
+from .helper import equip_name, equip_parts, get_bond, get_role, get_set
+from .helper import prop_short
 import csv
-import os
 
 
 def export_prop(row, stats, hp_only=False):
@@ -131,8 +131,8 @@ def export_report(data):
         dt_str = dt_utc.strftime('%Y-%m-%d')
 
         # Write CSV
-        filename = os.path.join('data', f'{dt_str} {guild_name}.csv')
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        filename = data_path(f'{dt_str} {guild_name}.csv')
+        filename.parent.mkdir(parents=True, exist_ok=True)
         with open(filename, 'w', newline='', encoding='utf-8-sig') as fp:
             w = csv.DictWriter(fp, fieldnames=fieldnames)
             w.writeheader()

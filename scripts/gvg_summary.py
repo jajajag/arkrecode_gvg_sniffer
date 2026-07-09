@@ -9,13 +9,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from utils.helper import get_role
+from utils.helper import data_path, get_role
 
 DEFAULT_RECENT_DAYS = 14
 DEFAULT_LINEUP_LIMIT = 5
 MIN_DEFENSE_MATCHES = 2
 MILLIS_PER_DAY = 24 * 60 * 60 * 1000
-ROOT = Path(__file__).resolve().parents[1]
 INVALID_FILENAME_CHARS = '<>:"/\\|?*'
 
 
@@ -284,7 +283,7 @@ def main(argv=None):
     guild_query = ' '.join(args.guild).strip()
 
     try:
-        conn = sqlite3.connect('data/data.db')
+        conn = sqlite3.connect(data_path('data.db'))
         conn.row_factory = sqlite3.Row
         since_ts = int(time.time() * 1000) - args.days * MILLIS_PER_DAY
         rounds = load_rounds(conn, since_ts)
@@ -307,7 +306,7 @@ def main(argv=None):
         return 0
 
     filename = f'{time.strftime("%Y-%m-%d")} {safe_filename_part(guild)}错题本.csv'
-    output_path = ROOT / 'data' / filename
+    output_path = data_path(filename)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open('w', newline='', encoding='utf-8-sig') as output:
         write_summary(rounds, guild, output, args.lineups)

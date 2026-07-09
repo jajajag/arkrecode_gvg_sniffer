@@ -1,4 +1,3 @@
-import json
 import re
 import time
 from utils.analyzer import analyze_gvg
@@ -10,10 +9,6 @@ from utils.login_helper import choose_account, get_login_version, load_accounts
 from utils.login_helper import run_bulletin, run_login, send
 from utils.master import ensure_master_db
 from utils.other_tools import run_other_tools
-
-def load_config(config_path='data/config.json'):
-    with open(config_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
 
 def choose_action():
     actions = [

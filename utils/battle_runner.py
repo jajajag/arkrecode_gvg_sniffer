@@ -10,10 +10,10 @@ import urllib3
 import websockets
 
 
-ROOT = Path(__file__).resolve().parents[1]
+from utils.helper import data_path
 
 ROUTER_URL = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
-MASTER_DB = ROOT / 'data/master.db'
+MASTER_DB = data_path('master.db')
 HTTP_TIMEOUT = 20
 WS_TIMEOUT = 60
 BATTLE_TIMEOUT = 600

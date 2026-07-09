@@ -6,7 +6,7 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from utils.helper import get_set
+from utils.helper import data_path, get_set
 
 PARTS = ('Weapon', 'Head', 'Body', 'Necklace', 'Ring')
 # 以速度套兔子的速度为基准
@@ -155,7 +155,7 @@ def main(argv=None):
         return 1
 
     try:
-        conn = sqlite3.connect('data/data.db')
+        conn = sqlite3.connect(data_path('data.db'))
         conn.row_factory = sqlite3.Row
         players = load_player_equips(conn, player_name)
     except Exception:

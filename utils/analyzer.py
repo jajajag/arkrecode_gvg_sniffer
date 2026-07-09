@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 import csv
-import os
 import random
 import requests
 import time
+
+from utils.helper import data_path
 
 requests.packages.urllib3.disable_warnings()
 
@@ -43,9 +44,9 @@ def analyze_gvg(data, aid, session_id, save_csv=True):
 
     # CSV filename
     dt_str = datetime.now().strftime('%Y-%m-%d')
-    filename = os.path.join('data', f'{dt_str} {guild_name}团战总结.csv')
+    filename = data_path(f'{dt_str} {guild_name}团战总结.csv')
     if save_csv:
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        filename.parent.mkdir(parents=True, exist_ok=True)
         with open(filename, 'w', newline='', encoding='utf-8-sig') as fp:
             w = csv.DictWriter(fp, fieldnames=fieldnames)
             w.writeheader()
@@ -114,7 +115,8 @@ def parse_battle_logs(logs, cuid, name):
     return rows
 
 # 2. 团战防守
-def analyze_gvg_defence(aid, session_id, cuid, rows, db_path='data/data.db'):
+def analyze_gvg_defence(aid, session_id, cuid, rows, db_path=None):
+    db_path = data_path('data.db') if db_path is None else db_path
     import sqlite3
     conn = sqlite3.connect(db_path)
     # Create table for single battle
@@ -246,7 +248,8 @@ def parse_def_logs(logs):
     return rows
 
 # 3. 竞技场装备总结
-def analyze_pvp_equips(data, db_path='data/data.db'):
+def analyze_pvp_equips(data, db_path=None):
+    db_path = data_path('data.db') if db_path is None else db_path
     import sqlite3
     conn = sqlite3.connect(db_path)
 

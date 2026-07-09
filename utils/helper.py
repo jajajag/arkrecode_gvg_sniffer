@@ -1,10 +1,21 @@
 from functools import lru_cache
-from pathlib import Path
 import json
 import math
+from pathlib import Path
 import re
+import sys
 
-MASTER_JSON = Path('data/master.json')
+
+APP_ROOT = Path(sys.executable).resolve().parent \
+    if getattr(sys, 'frozen', False) else Path(__file__).resolve().parents[1]
+DATA_DIR = APP_ROOT / 'data'
+
+
+def data_path(*parts):
+    return DATA_DIR.joinpath(*parts)
+
+
+MASTER_JSON = data_path('master.json')
 
 # Map props to stats
 BASE = ('HP', 'Attack', 'Defence', 'Speed')

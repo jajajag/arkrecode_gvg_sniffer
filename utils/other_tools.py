@@ -1,7 +1,7 @@
-from pathlib import Path
+from utils.helper import data_path
 
 
-DATA_DB = Path('data/data.db')
+DATA_DB = data_path('data.db')
 
 
 def require_data_db():

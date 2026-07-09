@@ -32,14 +32,21 @@ LOGIN_PAGE = (
 requests.packages.urllib3.disable_warnings()
 
 
-def load_accounts(account_path='data/accounts.json'):
+from utils.helper import data_path
+
+
+def load_accounts(account_path=None):
+    account_path = data_path('accounts.json') \
+        if account_path is None else account_path
     if not os.path.exists(account_path):
         return []
     with open(account_path, 'r', encoding='utf-8') as file:
         return json.load(file)
 
 
-def save_accounts(accounts, account_path='data/accounts.json'):
+def save_accounts(accounts, account_path=None):
+    account_path = data_path('accounts.json') \
+        if account_path is None else account_path
     os.makedirs(os.path.dirname(account_path), exist_ok=True)
     with open(account_path, 'w', encoding='utf-8') as file:
         json.dump(accounts, file, ensure_ascii=False, indent=2)

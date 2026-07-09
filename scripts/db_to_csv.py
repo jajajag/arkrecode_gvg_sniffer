@@ -1,12 +1,11 @@
 import argparse
 import csv
-import os
 import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from utils.helper import get_role
+from utils.helper import data_path, get_role
 
 FIELDNAMES = [
     'date', 'def_1', 'def_2', 'def_3', 'atk_1', 'atk_2', 'atk_3',
@@ -22,7 +21,10 @@ def load_units(conn, battle_id, round_idx, side):
     ''', (battle_id, round_idx, side)).fetchall()
     return [dict(row) for row in rows]
 
-def db_to_csv(db_path='data/data.db', filename='data/团战防守.csv'):
+def db_to_csv(db_path=None, filename=None):
+    db_path = data_path('data.db') if db_path is None else db_path
+    filename = data_path('团战防守.csv') \
+        if filename is None else filename
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     rounds = conn.execute('''
@@ -59,7 +61,7 @@ def db_to_csv(db_path='data/data.db', filename='data/团战防守.csv'):
 
     conn.close()
 
-    os.makedirs(os.path.dirname(filename) or '.', exist_ok=True)
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
     with open(filename, 'w', newline='', encoding='utf-8-sig') as f:
         w = csv.DictWriter(f, fieldnames=FIELDNAMES)
         w.writeheader()
