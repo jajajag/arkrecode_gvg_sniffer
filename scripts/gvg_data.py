@@ -156,7 +156,7 @@ def query_player_pvp_info(aid, session_id):
 
 
 def query_pvp_defence(aid, session_id):
-    if input('此功能将导致JJC进场，是否继续：（Y/n）').strip().lower() == 'n':
+    if input('此功能将导致JJC进场，是否继续：（y/N）').strip().lower() != 'y':
         return
     try:
         print('正在查询JJC信息...')

@@ -61,7 +61,7 @@ def run_other_tools(login_data, accounts=None, acc_idx=None):
         print('2. 查询前排团战作业')
         print('3. 查询前排团战错题本')
         print('4. 领取全部成就')
-        print('5. 领取全部邮箱')
+        print('5. 领取全部邮件')
         print('6. 一键通关主线爬塔元素讨伐')
         print('7. JJC定时进场')
         print('8. 投票')
