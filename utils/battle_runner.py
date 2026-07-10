@@ -10,7 +10,7 @@ import urllib3
 import websockets
 
 
-from utils.helper import data_path
+from utils.helper import data_path, get_role
 
 ROUTER_URL = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
 MASTER_DB = data_path('master.db')
@@ -166,7 +166,78 @@ class LoginTeamBuilder:
         ])
 
 
-def build_battle_template(teams, payload_mode='wave'):
+def role_sort_key(pos):
+    try:
+        return (0, int(pos))
+    except (TypeError, ValueError):
+        return (1, str(pos))
+
+
+def team_label(camp):
+    roles = (camp.get('PositionRoleMap') or {})
+    names = [
+        get_role(role.get('StaticID'))
+        for pos, role in sorted(roles.items(), key=lambda item: role_sort_key(item[0]))
+    ]
+    return ' / '.join(names)
+
+
+def login_teams(login_data, master_db=MASTER_DB):
+    settings = get_nested(login_data, 'Teams', 'Settings') or []
+    builder = LoginTeamBuilder(login_data, master_db)
+    teams = []
+    for index, _ in enumerate(settings):
+        camp = builder.build_camp(settings, index, required=False)
+        if not camp or not (camp.get('PositionRoleMap') or {}):
+            continue
+        teams.append({
+            'index': index,
+            'camp': camp,
+            'label': team_label(camp),
+        })
+    return teams
+
+
+def choose_login_team(teams, prompt='请选择队伍：'):
+    if not teams:
+        print('登录数据里没有可用的非空队伍。')
+        return None
+    print('[选择队伍]')
+    for menu_idx, team in enumerate(teams, start=1):
+        print(f'{menu_idx}. 队伍{team["index"] + 1}：{team["label"]}')
+    choice = input(prompt).strip()
+    if not choice.isdigit() or not (1 <= int(choice) <= len(teams)):
+        print('无效选择！')
+        return None
+    return teams[int(choice) - 1]['camp']
+
+
+def choose_login_teams(teams, count, prompt_prefix='请选择队伍'):
+    selected = []
+    for index in range(count):
+        camp = choose_login_team(teams, f'{prompt_prefix}{index + 1}：')
+        if camp is None:
+            return None
+        selected.append(camp)
+    return selected
+
+
+def duplicate_team_roles(teams):
+    seen = {}
+    duplicates = []
+    for team_idx, camp in enumerate(teams, start=1):
+        for role in (camp.get('PositionRoleMap') or {}).values():
+            static_id = role.get('StaticID')
+            if not static_id:
+                continue
+            if static_id in seen:
+                duplicates.append((static_id, seen[static_id], team_idx))
+            else:
+                seen[static_id] = team_idx
+    return duplicates
+
+
+def build_battle_template(teams, payload_mode='wave', support=None):
     info = {
         'SceneData': {
             'StaticID': 'MysteriousRealm_1',
@@ -186,6 +257,8 @@ def build_battle_template(teams, payload_mode='wave'):
         info['CampData1'] = teams[0]
     else:
         info['WaveCampDatas'] = teams
+    if support:
+        info['Support'] = support
     return {
         'StartBattleInfo': {
             **info,
@@ -308,10 +381,17 @@ class BattleDriver:
         self.camp_soul = [0, 0]
         self.dead = set()
         self.known_roles = set()
+        self.support_role = self.get_support_role()
         self.role_by_net_id = self.build_role_map()
         self.skill_levels = self.build_skill_levels()
         self.initial_cooldowns = self.build_initial_cooldowns()
         self.acted_prompts = set()
+
+    def get_support_role(self):
+        role = get_nested(
+            self.start_payload, 'StartBattleInfo', 'Support',
+            'PlayerRoleData', 'RoleData')
+        return role if isinstance(role, dict) and role.get('StaticID') else None
 
     def build_role_map(self):
         result = {}
@@ -322,7 +402,28 @@ class BattleDriver:
         for wave_idx, camp in enumerate(camps):
             for pos, role in (camp.get('PositionRoleMap') or {}).items():
                 result[f'1-{wave_idx}-{pos}'] = role
+            if self.support_role:
+                result.setdefault(f'1-{wave_idx}-4', self.support_role)
         return result
+
+    def bind_support_role(self, source_id):
+        if not self.support_role:
+            return False
+        if not source_id.startswith('1-'):
+            return False
+        if source_id in self.role_by_net_id and source_id not in self.dead:
+            return False
+        self.role_by_net_id[source_id] = self.support_role
+        self.dead.discard(source_id)
+        for skill in (self.support_role.get('Skills') or {}).get('Skills') or []:
+            static_id = skill.get('StaticID')
+            if static_id:
+                self.skill_levels[(source_id, static_id)] = int(skill.get('Level') or 1)
+        for skill_no in (2, 3):
+            skill_id = self.role_skill_id(source_id, skill_no)
+            if skill_id and self.master.has_init_cooldown(skill_id):
+                self.initial_cooldowns[(source_id, skill_id)] = 1
+        return True
 
     def build_skill_levels(self):
         result = {}
@@ -627,6 +728,13 @@ class BattleRunner:
                 while actions < MAX_ACTIONS:
                     msg = await self.recv_json(ws)
                     driver.observe(msg)
+                    if 'NetBattleGameOverCmd' in msg:
+                        await self.send_json(ws, {
+                            'NetBattleGameOverCmd': msg.get('NetBattleGameOverCmd') or {},
+                            'Index': msg.get('Index', str(index)),
+                            'OID': msg.get('OID', oid_value),
+                        }, 'NetBattleGameOverCmd')
+                        continue
                     result = driver.is_finished(msg)
                     if result:
                         print(f'战斗结束：{result}', flush=True)
@@ -636,6 +744,7 @@ class BattleRunner:
                     source_id = driver.now_role(msg)
                     if not source_id or not source_id.startswith('1-'):
                         continue
+                    driver.bind_support_role(source_id)
                     if not driver.mark_prompt(msg):
                         continue
                     action = driver.action(source_id, oid_value, index)
@@ -719,10 +828,12 @@ def build_realm_scene_ids(first_floor, last_floor=LAST_FLOOR):
 async def run_auto_battles_async(
         aid, session_id, teams, scene_ids,
         payload_mode='wave',
-        complete_message='自动战斗已完成，无需继续挑战。'):
+        complete_message='自动战斗已完成，无需继续挑战。',
+        support=None):
     runner = BattleRunner(aid, session_id)
     return await runner.run_scenes(
-        build_battle_template(teams, payload_mode=payload_mode), scene_ids,
+        build_battle_template(teams, payload_mode=payload_mode, support=support),
+        scene_ids,
         team_count=len(teams), payload_mode=payload_mode,
         complete_message=complete_message)
 
@@ -730,6 +841,8 @@ async def run_auto_battles_async(
 def run_auto_battles(
         aid, session_id, teams, scene_ids,
         payload_mode='wave',
-        complete_message='自动战斗已完成，无需继续挑战。'):
+        complete_message='自动战斗已完成，无需继续挑战。',
+        support=None):
     return asyncio.run(run_auto_battles_async(
-        aid, session_id, teams, scene_ids, payload_mode, complete_message))
+        aid, session_id, teams, scene_ids, payload_mode, complete_message,
+        support=support))

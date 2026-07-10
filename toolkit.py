@@ -1,14 +1,16 @@
 import re
 import time
 from utils.analyzer import analyze_gvg
-from utils.battle_runner import LoginTeamBuilder, MASTER_DB, run_auto_battles
-from utils.battle_runner import build_realm_scene_ids, next_realm_floor
+from utils.battle_runner import build_realm_scene_ids, duplicate_team_roles
+from utils.battle_runner import choose_login_team, login_teams, next_realm_floor
+from utils.battle_runner import choose_login_teams, MASTER_DB, run_auto_battles
 from utils.equips import match_equip
-from utils.helper import get_event
+from utils.helper import get_event, get_role
 from utils.login_helper import choose_account, get_login_version, load_accounts
 from utils.login_helper import run_bulletin, run_login, send
 from utils.master import ensure_master_db
 from utils.other_tools import run_other_tools
+from utils.battle_support import choose_placeholder_support, choose_support
 
 def choose_action():
     actions = [
@@ -131,9 +133,8 @@ def run_daily(aid, session_id, sups, event, bp_id, progress):
         # Abyss
         {'route': 'SceneHandler.PurityScene',
          'data': {'StaticID': progress.get('abyss_scene', 'Abyss_80')}},
-        # Support, TimingMeal, and Weekly sign-in
+        # Support and Weekly sign-in
         {'route': 'SupportFriendHandler.GetReward'},
-        {'route': 'TimingMealHandler.SentMeal'},
         {'route': 'WeekSignInHandler.SignIn',
          'data': {'ActivityID': f'ActivitySignIn{event["pickup"]}'}},
         # Daily / Weekly / Monthly rewards
@@ -208,13 +209,27 @@ def run_dispatched_quests(aid, session_id, d_quests):
             #hero_ids = d_quests[quest_id]['DispatchedHeroIDs']
             payload_dispatch['data']['Quest']['StaticID'] = quest_id
             payload_dispatch['data']['Quest']['DispatchedHeroIDs'] = hero_ids
-            dispatch_data = send(payload_dispatch)
+            send(payload_dispatch)
             d_quests[quest_id]['FinishTime']['$date'] = float('inf')
             print(f'派遣成功：{quest_id}')
-        except Exception as exc:
+        except Exception:
             print(f'派遣失败，可能是体力不足！')
             # The quest has not been completed
             continue
+
+def claim_timing_meal(aid, session_id):
+    try:
+        send({
+            'route': 'TimingMealHandler.SentMeal',
+            'data': {
+                'AID': aid,
+                'SessionID': session_id,
+            },
+        })
+        print('饭点体力领取成功！')
+    except Exception:
+        print('饭点体力领取失败或当前不可领取。')
+
 
 def run_npc_ticket(aid, session_id, npc):
     payload = {
@@ -257,6 +272,7 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
     except Exception:
         print('挑战结束：没有旗帜！')
     run_dispatched_quests(aid, session_id, d_quests)
+    claim_timing_meal(aid, session_id)
 
 # 3. 刷活动讨伐
 def scene_is_passed(scene):
@@ -284,13 +300,16 @@ def set_activity_progress(progress, event, idx):
         else f'B{event["pickup"]}_1_{idx}'
 
 def run_battle(aid, session_id, event, progress, teams):
-    first_team, second_team = teams
+    default_team = teams[0]['camp'] if teams else None
+    if default_team is None:
+        print('登录数据里没有可用的非空队伍。')
+        return
     payload = {
         'data': {
             'BattleEndData': {
                 'StartBattleInfo': {
                     'SceneData': {'StaticID': ''}, 
-                    'CampData1': first_team
+                    'CampData1': default_team
                 }, 
                 'Result': 'Win'
             }, 
@@ -311,49 +330,48 @@ def run_battle(aid, session_id, event, progress, teams):
     if not c.isdigit() or not (1 <= (c := int(c)) <= 14):
         print('无效选择！')
         return
+    support = None
+    if c in (11, 12):
+        support = choose_placeholder_support()
+    elif c == 13:
+        support = choose_support(aid, session_id)
     if c == 13:
-        print('将使用预设第一队进行自动战斗，请将队伍配置得尽量合理！')
+        battle_team = choose_login_team(teams, '请选择自动精英队伍：')
+        if battle_team is None:
+            return
         pickup = event['pickup']
         scene_id = f'B{pickup}_1_13'
-        result = run_auto_battles(
-            aid, session_id, [first_team], [scene_id],
-            payload_mode='scene')
+        try:
+            result = run_auto_battles(
+                aid, session_id, [battle_team], [scene_id],
+                payload_mode='scene', support=support)
+        except Exception as exc:
+            print(f'自动精英失败：{exc}')
+            return
         if result == 0:
             set_activity_progress(progress, event, 13)
         return
     if c == 14:
-        print('将使用预设第一二队进行自动战斗，请将队伍配置得尽量合理！')
-        if second_team is None:
-            print('自动深渊需要配置预设第二队！')
+        battle_teams = choose_login_teams(teams, 2, '请选择自动深渊队伍')
+        if battle_teams is None:
             return
-        first_role_ids = {
-            role.get('StaticID')
-            for role in first_team['PositionRoleMap'].values()
-        }
-        second_role_ids = {
-            role.get('StaticID')
-            for role in second_team['PositionRoleMap'].values()
-        }
-        duplicate_role_ids = sorted(first_role_ids & second_role_ids)
-        if duplicate_role_ids:
-            print(f'自动深渊队伍存在重复角色：{duplicate_role_ids}')
+        duplicates = duplicate_team_roles(battle_teams)
+        if duplicates:
+            names = ', '.join(get_role(role_id) for role_id, _, _ in duplicates)
+            print(f'自动深渊队伍存在重复角色：{names}')
             return
-        result = run_auto_battles(
-            aid, session_id, [first_team, second_team],
-            build_realm_scene_ids(progress['realm_first_floor']),
-            complete_message='深渊已完成，无需继续挑战！')
+        try:
+            run_auto_battles(
+                aid, session_id, battle_teams,
+                build_realm_scene_ids(progress['realm_first_floor']),
+                complete_message='深渊已完成，无需继续挑战！')
+        except Exception as exc:
+            print(f'自动深渊失败：{exc}')
         return
     repeat_str = input('请输入挑战次数（默认10次）：').strip()
     repeat = int(repeat_str) if repeat_str.isdigit() else 10
-    if 11 <= c <= 12: # Handle support
-        sup = input('请输入助战UID（默认不借人）: ').strip()
-        if sup.isdigit():
-            start_battle_info['Support'] = {
-                'PlayerRoleData': {
-                    'PlayerInfo': {'CUID': int(sup)},
-                    'RoleData': {'StaticID': 'H001'}
-                }
-            }
+    if support:
+        start_battle_info['Support'] = support
     
     if c <= 10:
         idx = (c - 1) % 5
@@ -367,17 +385,17 @@ def run_battle(aid, session_id, event, progress, teams):
             fallback = 11 if c <= 5 else 4
             sid = f'{prefix}{elem}_{fallback}'
         print(f'即将挑战：{sid}')
-        runs = [{'static_id': sid, 'camp': first_team}] * repeat
+        runs = [{'static_id': sid, 'camp': default_team}] * repeat
     elif c == 11:
         sid = progress.get('activity_scene')
         if not sid: sid = event['scene_ids'][-2]
         print(f'即将挑战：{sid}')
-        runs = [{'static_id': sid, 'camp': first_team}] * repeat
+        runs = [{'static_id': sid, 'camp': default_team}] * repeat
     else: # c == 12
         runs = [
             {'static_id': sid,
              'camp': {'PositionRoleMap': event['npc_maps'][i]}
-             if i in event['npc_maps'] else first_team}
+             if i in event['npc_maps'] else default_team}
             for i, sid in enumerate(event['scene_ids'][:12])
         ] * repeat
 
@@ -393,7 +411,7 @@ def run_battle(aid, session_id, event, progress, teams):
             for m in data.get('UrgentMissionContainer', {}).get('Missions', []):
                 if urgent_sid := m['SceneID']:
                     scene['StaticID'] = urgent_sid
-                    start_battle_info['CampData1'] = first_team
+                    start_battle_info['CampData1'] = default_team
                     data = send(payload)
                     print(f'紧急任务完成：{urgent_sid}')
         if c == 12:
@@ -499,17 +517,20 @@ def run_weekly(aid, session_id, repeat=140):
     print(f'每周任务完成！共{repeat}次')
 
 # 7. 刷亲密度
-def run_affection(aid, session_id, npc_list, first_team):
+def run_affection(aid, session_id, npc_list, teams):
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     if not targets:
         print('刷亲密度失败：请先保留至少一个可挑战的NPC！')
         return
     print(f'当前可挑战NPC：{targets}')
-    repeat = input('请输入刷亲密度次数（默认第一队10次）：').strip()
+    battle_team = choose_login_team(teams, '请选择刷亲密度队伍：')
+    if battle_team is None:
+        return
+    repeat = input('请输入刷亲密度次数（默认10次）：').strip()
     repeat = int(repeat) if str(repeat).isdigit() else 10
     for i in range(repeat):
-        run_npc_battle(aid, session_id, targets[i % len(targets)], first_team)
+        run_npc_battle(aid, session_id, targets[i % len(targets)], battle_team)
         print(f'正在刷亲密度...（{i + 1}/{repeat}）')
     print('亲密度刷完了！')
 
@@ -565,11 +586,8 @@ def extract_login_values(data):
     # 1, 3
     event = get_event(data)
     progress = get_progress(data, event)
-    team_builder = LoginTeamBuilder(data, MASTER_DB)
-    settings = data['Teams']['Settings']
-    first_team = team_builder.build_camp(settings, 0)
-    second_team = team_builder.build_camp(settings, 1, required=False)
-    teams = [first_team, second_team]
+    teams = login_teams(data, MASTER_DB)
+    first_team = teams[0]['camp'] if teams else None
     progress['realm_first_floor'] = next_realm_floor(data)
     npc_levels = ', '.join(str(i + 1) for i in sorted(event['npc_maps']))
     print(f'当前活动：{event["pickup"]}，NPC关卡：{npc_levels}')
@@ -596,8 +614,8 @@ def extract_login_values(data):
             if item['Store'] == 'SecretShop']
     # 8
     guild_data = {'GuildData': data.get('GuildData', {})}
-    return (aid, session_id, npc_list, event, progress, first_team,
-            second_team, teams, d_quests, bp_id, sups, secrets, guild_data)
+    return (aid, session_id, npc_list, event, progress, first_team, teams,
+            d_quests, bp_id, sups, secrets, guild_data)
 
 def main():
     print('脚本有风险，使用需谨慎！')
@@ -615,8 +633,8 @@ def main():
             try:
                 data = run_login(accounts, acc_idx, version)
                 (aid, session_id, npc_list, event, progress, first_team,
-                 second_team, teams, d_quests, bp_id, sups, secrets,
-                 guild_data) = extract_login_values(data)
+                 teams, d_quests, bp_id, sups, secrets, guild_data) = \
+                    extract_login_values(data)
                 print('登录成功！')
             except Exception:
                 retry = input('登录失败，是否重新登录？（Y/n）').strip().lower()
@@ -638,7 +656,7 @@ def main():
             # 刷佣兵团周任务
             6: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度
-            7: lambda: run_affection(aid, session_id, npc_list, first_team),
+            7: lambda: run_affection(aid, session_id, npc_list, teams),
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
             # 小众变态工具集

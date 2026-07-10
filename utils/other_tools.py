@@ -7,7 +7,7 @@ DATA_DB = data_path('data.db')
 def require_data_db():
     if DATA_DB.is_file():
         return True
-    print('尚未生成 data/data.db，请先使用 1「收集团战数据」。')
+    print('尚未生成 data/data.db，请先使用 1「查询前排团战数据」。')
     return False
 
 
@@ -55,14 +55,15 @@ def run_other_tools(login_data, accounts=None, acc_idx=None):
     while True:
         print('[小众变态工具集]')
         print('0. 返回主界面')
-        print('1. 收集团战数据')
-        print('2. 查询团战作业')
-        print('3. 生成前排团战错题本')
+        print('1. 查询前排团战数据')
+        print('2. 查询前排团战作业')
+        print('3. 查询前排团战错题本')
         print('4. 领取全部成就')
-        print('5. JJC定时进场')
+        print('5. 领取全部邮箱')
         print('6. 一键通关主线爬塔元素讨伐')
-        print('7. 投票')
-        print('8. 团战数据转表格')
+        print('7. JJC定时进场')
+        print('8. 投票')
+        print('9. 团战数据转表格')
         choice = input('> ').strip()
 
         if choice == '0':
@@ -89,11 +90,13 @@ def run_other_tools(login_data, accounts=None, acc_idx=None):
         elif choice == '4':
             claim_rewards.main(login_data)
         elif choice == '5':
-            pvp_week_reward.main(accounts, acc_idx)
+            claim_rewards.claim_all_mails(login_data)
         elif choice == '6':
             pass_scene.main(login_data)
         elif choice == '7':
-            vote.prompt_and_vote(login_data)
+            pvp_week_reward.main(accounts, acc_idx)
         elif choice == '8':
+            vote.prompt_and_vote(login_data)
+        elif choice == '9':
             if require_data_db():
                 db_to_csv.db_to_csv()
