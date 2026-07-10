@@ -452,25 +452,22 @@ def run_secret(aid, session_id, secrets):
         'route': 'StoreHandler.BuyCommodity'
     }
     while True:
-        for record in secrets:
-            item = record['DropResult']['Items'][0]
-            # Skip if neither in buy_list nor a desired equipment
-            if not (('Item' in item and item['Item'] in buy_list) or
-                    ('Equipment' in item and match_equip(item['Equipment']))):
-                continue
-            payload_buy['data']['Record']['_id'] = record['_id']['$oid']
-            payload_buy['data']['Record']['StaticID'] = record['StaticID']
-            try:
+        try:
+            for record in secrets:
+                item = record['DropResult']['Items'][0]
+                # Skip if neither in buy_list nor a desired equipment
+                if not (('Item' in item and item['Item'] in buy_list) or
+                        ('Equipment' in item and match_equip(item['Equipment']))):
+                    continue
+                payload_buy['data']['Record']['_id'] = record['_id']['$oid']
+                payload_buy['data']['Record']['StaticID'] = record['StaticID']
                 send(payload_buy)
                 print(f'购买成功：{item.get("Item") or item.get("Equipment")}')
-            except Exception:
-                print(f'购买失败：{item.get("Item") or item.get("Equipment")}')
-        try:
             secrets = send(payload_refresh)
             secrets = secrets['Records']
             print('商店刷新成功！')
         except Exception:
-            print('商店刷新结束：次数已满！')
+            print('商店刷新结束：金币不足或刷新次数已满！')
             return
 
 # 5. 刷星源商店
