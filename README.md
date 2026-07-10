@@ -6,7 +6,7 @@
 
 现在直接从官网拉取解包数据，不再写死到本地，仅在数据更新时重新下载。并且可以直接打开浏览器，登陆账号并保存Token了（完全离线，账密不需要经过第三方服务器）。
 
-运行工具集```python3 toolkit.py```，在账号菜单输入+添加账号，输入-删除账号。
+运行工具集```python3 toolkit.py```（或者下载最新的Release打开toolkit.exe），在账号菜单输入+添加账号，输入-删除账号。
 
 当前支持功能：
 
@@ -55,9 +55,9 @@
 
 - [Ark Re:Code Wiki](https://arkrecodewiki.miraheze.org/wiki)
 
-## 安装游戏~~
+## ~~安装游戏~~
 
-~~安装[星陨计划PC端](https://www.arkrecode.com/)。 ~~
+~~安装[星陨计划PC端](https://www.arkrecode.com/)。~~
 
 ## ~~配置模拟器~~
 
