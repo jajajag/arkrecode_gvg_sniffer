@@ -329,7 +329,12 @@
       {
         "path": "data/staticdata/catalog_113208/staticdata_3c47694e00c675c6d7608403ba22d46b.bundle",
         "size": 2421623,
-        "mtime_ns": 1783523338275538800
+        "mtime_ns": 1783649288006170900
+      },
+      {
+        "path": "data/staticdata/catalog_113208/text_d53d729cda96c82d350cb6112fec1365.bundle",
+        "size": 32083470,
+        "mtime_ns": 1783649287724421500
       }
     ]
   }

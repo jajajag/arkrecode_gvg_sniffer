@@ -3,6 +3,7 @@ import copy
 import json
 import re
 import sqlite3
+import ssl
 from pathlib import Path
 
 import requests
@@ -206,6 +207,8 @@ def choose_login_team(teams, prompt='请选择队伍：'):
     for menu_idx, team in enumerate(teams, start=1):
         print(f'{menu_idx}. 队伍{team["index"] + 1}：{team["label"]}')
     choice = input(prompt).strip()
+    if not choice and len(teams) == 1:
+        return teams[0]['camp']
     if not choice.isdigit() or not (1 <= int(choice) <= len(teams)):
         print('无效选择！')
         return None
@@ -682,8 +685,17 @@ class BattleRunner:
                 return msg
 
     async def fight_room(self, room, start_payload):
+        # Some room servers use a certificate chain that is trusted by the
+        # game client but not by Python's CA store. Keep ws:// unchanged, and
+        # disable verification only for the known room WebSocket connection.
+        room_url = room['domain']
+        ssl_context = None
+        if room_url.lower().startswith('wss://'):
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
         async with websockets.connect(
-                room['domain'], ping_interval=None) as ws:
+                room_url, ping_interval=None, ssl=ssl_context) as ws:
             hb_task = asyncio.create_task(self.heartbeat(ws))
             try:
                 print('连接房间中...', flush=True)

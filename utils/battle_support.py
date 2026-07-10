@@ -26,8 +26,8 @@ def support_label(item):
     return ' '.join(parts)
 
 
-def query_player_supports(aid, session_id, cuid):
-    data = send({
+def query_player_card(aid, session_id, cuid):
+    return send({
         'route': 'AccountHandler.QueryPlayerCardData',
         'data': {
             'CUID': cuid,
@@ -35,6 +35,10 @@ def query_player_supports(aid, session_id, cuid):
             'SessionID': session_id,
         },
     })
+
+
+def query_player_supports(aid, session_id, cuid):
+    data = query_player_card(aid, session_id, cuid)
     support_data = data.get('BattleSupportData') if isinstance(data, dict) else None
     if not isinstance(support_data, dict):
         return []
@@ -98,6 +102,8 @@ def choose_support(aid, session_id):
     for index, support in enumerate(supports, start=1):
         print(f'{index}. {support["label"]}')
     choice = input('请选择助战编号：').strip()
+    if not choice and len(supports) == 1:
+        return supports[0]['support']
     if not choice.isdigit() or not (1 <= int(choice) <= len(supports)):
         print('无效选择，跳过借人。')
         return None

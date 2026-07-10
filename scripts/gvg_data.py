@@ -6,6 +6,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from utils.analyzer import analyze_gvg, analyze_gvg_defence, analyze_pvp_equips
+from utils.battle_support import query_player_card
 from utils.exporter import export_report
 from utils.login_helper import (
     choose_account, load_accounts, login_account, send,
@@ -73,6 +74,85 @@ def query_gvg_defence(aid, session_id):
         return
     print_report(data)
     export_report(data)
+
+
+def search_friend(aid, session_id, text):
+    key = 'CUID' if text.isdigit() else 'Name'
+    return send({
+        'data': {
+            key: text,
+            'AID': aid,
+            'SessionID': session_id,
+        },
+        'route': 'FriendHandler.SearchFriendList',
+    }).get('FriendInfos') or []
+
+
+def choose_searched_player(players):
+    if not players:
+        print('没有搜索到玩家！')
+        return None
+    print('[选择玩家]')
+    for index, player in enumerate(players, 1):
+        guild = player.get('GuildSubInfo', {}).get('Name', '')
+        guild_text = f'，公会：{guild}' if guild else ''
+        print(
+            f'{index}. {player.get("Name", "")}'
+            f'（UID：{player.get("CUID", "")}，LV{player.get("LV", "")}'
+            f'{guild_text}）'
+        )
+    choice = input('请选择玩家编号：').strip()
+    if not choice and len(players) == 1:
+        return players[0]
+    if choice.isdigit() and 1 <= int(choice) <= len(players):
+        return players[int(choice) - 1]
+    print('无效选择！')
+    return None
+
+
+def save_player_card_pvp_equips(data):
+    if not isinstance(data, dict):
+        print('未找到可保存的JJC防守装备。')
+        return
+    pvp_info = data.get('PVPInfo')
+    support_data = data.get('BattleSupportData')
+    player_info = (support_data or {}).get('PlayerInfo') or data.get('PlayerInfo')
+    defence_team = (pvp_info or {}).get('DefenceTeam')
+    if not player_info or not defence_team:
+        print('未找到可保存的JJC防守装备。')
+        return
+    analyze_pvp_equips({
+        'PVPRankInfoList': [{
+            'PlayerInfo': player_info,
+            'PVPInfo': pvp_info,
+        }],
+    })
+
+
+def query_player_pvp_info(aid, session_id):
+    text = input('请输入玩家名称或UID：').strip()
+    if not text:
+        return
+    if text.isdigit():
+        cuid = int(text)
+    else:
+        try:
+            players = search_friend(aid, session_id, text)
+        except Exception:
+            print('搜索玩家失败！')
+            return
+        player = choose_searched_player(players)
+        if not player:
+            return
+        cuid = player['CUID']
+    try:
+        print('正在查询玩家JJC信息...')
+        data = query_player_card(aid, session_id, cuid)
+    except Exception:
+        print('玩家JJC查询失败！')
+        return
+    print_report(data)
+    save_player_card_pvp_equips(data)
 
 
 def query_pvp_defence(aid, session_id):

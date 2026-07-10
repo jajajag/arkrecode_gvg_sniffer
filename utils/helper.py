@@ -6,8 +6,13 @@ import re
 import sys
 
 
-APP_ROOT = Path(sys.executable).resolve().parent \
-    if getattr(sys, 'frozen', False) else Path(__file__).resolve().parents[1]
+SOURCE_ROOT = Path(__file__).resolve().parents[1]
+EXECUTABLE_ROOT = Path(sys.executable).resolve().parent
+# mitmdump itself may be a frozen executable while loading this project as an
+# external addon. In that case the project's data lives beside this source,
+# not beside mitmdump.exe under its installation directory.
+APP_ROOT = SOURCE_ROOT if (SOURCE_ROOT / 'data').is_dir() \
+    else EXECUTABLE_ROOT if getattr(sys, 'frozen', False) else SOURCE_ROOT
 DATA_DIR = APP_ROOT / 'data'
 
 
@@ -91,10 +96,10 @@ def chs(key):
     return master().get('localization', {}).get(key)
 
 def get_role(role_id):
-    return chs(master()['roles'].get(role_id, {}).get('NAME')) or role_id
+    return chs(master().get('roles', {}).get(role_id, {}).get('NAME')) or role_id
 
 def get_bond(bond_id):
-    return chs(master()['items'].get(bond_id, {}).get('Name')) or bond_id
+    return chs(master().get('items', {}).get(bond_id, {}).get('Name')) or bond_id
 
 def equip_name(part):
     return chs(EQUIP_KEYS.get(part)) or part

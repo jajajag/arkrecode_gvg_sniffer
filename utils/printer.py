@@ -43,8 +43,7 @@ def print_role(role, stats=None, hp_only=False):
     desc = role_sets(role.get('EquipmentMap')) \
             + role_bond(role.get('ArtifactData'))
     name = get_role(role["StaticID"])
-    print(f'{name}：{desc}({role_stats(stats, hp_only)})' \
-            if desc else f'{name}({role_stats(stats, hp_only)})')
+    print(f'{name}：{desc}({role_stats(stats, hp_only)})')
 
 def print_team(team, hp_only=False):
     roles = [team['PositionRoleMap'][i] \

@@ -16,6 +16,61 @@ CONFIG = DATA_DIR / 'config.json'
 DEFAULT_EXTS = ('.bundle', '.unity3d', '.assets', '.ab', '')
 TEXT_TABLES = {'CHS', 'CHT', 'DEU', 'ENG', 'FRA', 'JPN', 'KOR', 'SPA', 'THA',
                'VIE'}
+_STAT_COLS = (
+    'HP', 'Attack', 'Defence', 'Speed', 'CriticalRate',
+    'CriticalDamageRate', 'EffectHitRate', 'ResistanceRate', 'PinchRate',
+)
+_VALUE_COLS = ('HPValue', 'AttackValue', 'DefenceValue', 'SpeedValue')
+_RATE_COLS = (
+    'HPRate', 'AttackRate', 'DefenceRate', 'SpeedRate', 'CriticalRate',
+    'CriticalDamageRate', 'EffectHitRate', 'ResistanceRate', 'PinchRate',
+)
+_PASSIVE_COLS = (
+    'PassiveProp.DynamicField1',
+    'PassiveProp.DynamicField2',
+    'PassiveProp.DynamicField3',
+)
+_BASE_LOCALIZE_KEYS = {
+    'UI_Equip_Weapon', 'UI_Equip_Helmet', 'UI_Equip_Armor',
+    'UI_Equip_Necklace', 'UI_Equip_Ring', 'UI_Equip_Boots',
+    'UI_Equip_Attributes_AttackRate', 'UI_Equip_Attack',
+    'UI_PropertyCriticalDamage', 'UI_Equip_Critical',
+    'UI_Guild_Defense', 'UI_PropertyEffectHit', 'UI_Equip_Health',
+    'UI_PropertyResistance', 'UI_PropertySpeed',
+}
+_MASTER_DATA_ENTRIES = (
+    {'key': 'roles', 'table': 'Role', 'index': 'ID',
+     'columns': ('ID', 'NAME', 'RolePropertyID', 'TeamImprint',
+                 'SelfImprint', *_STAT_COLS), 'mode': 'key'},
+    {'key': 'items', 'table': 'Item', 'index': 'ID',
+     'columns': ('ID', 'Name'), 'mode': 'key'},
+    {'key': 'equipment_sets', 'table': 'EquipmentSet', 'index': 'ID',
+     'columns': ('ID', 'Count', 'Name', *_RATE_COLS), 'mode': 'key'},
+    {'key': 'role_properties', 'table': 'RoleProperty', 'index': 'ID',
+     'columns': ('ID', 'LV', *_STAT_COLS), 'mode': 'group'},
+    {'key': 'role_awaken', 'table': 'RoleAwaken', 'index': 'RoleID',
+     'columns': ('RoleID', 'LV', *_VALUE_COLS, *_RATE_COLS), 'mode': 'group'},
+    {'key': 'role_imprints', 'table': 'RoleImprint', 'index': 'ID',
+     'columns': ('ID', 'Base.DynamicField1', 'LevelAdd.DynamicField1'),
+     'mode': 'key'},
+    {'key': 'artifacts', 'table': 'Artifact', 'index': 'ID',
+     'columns': ('ID', 'Base.AttackValue', 'Base.HPValue',
+                 'Max.AttackValue', 'Max.HPValue'), 'mode': 'key'},
+    {'key': 'skills', 'table': 'Skill', 'index': 'ID',
+     'columns': ('ID', *_PASSIVE_COLS), 'mode': 'key'},
+    {'key': 'skill_levels', 'table': 'SkillLevel', 'index': 'SkillID',
+     'columns': ('SkillID', 'LV', *_PASSIVE_COLS), 'mode': 'group'},
+    {'key': 'activities', 'table': 'Activity', 'index': 'ID',
+     'columns': ('ID', 'Type'), 'mode': 'key'},
+    {'key': 'scenes', 'table': 'Scene', 'index': 'Chapter',
+     'columns': ('Chapter', 'ID', 'MyCampTeam'), 'mode': 'group'},
+)
+_REQUIRED_MASTER_TABLES = (
+    {entry['table'] for entry in _MASTER_DATA_ENTRIES} | {'CHS'}
+)
+_REQUIRED_MASTER_KEYS = (
+    {entry['key'] for entry in _MASTER_DATA_ENTRIES} | {'localization'}
+)
 
 def _qident(name):
     return '"' + name.replace('"', '""') + '"'
@@ -131,53 +186,60 @@ def _select_rows_grouped(conn, table, key, columns):
         groups.setdefault(data[key], []).append(data)
     return groups
 
+def _existing_tables(conn):
+    return {row[0] for row in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'")}
+
+def _missing_master_tables(conn):
+    return sorted(_REQUIRED_MASTER_TABLES - _existing_tables(conn))
+
+def _missing_master_keys(path=MASTER_DATA):
+    data = _load_json(path)
+    if not isinstance(data, dict):
+        return sorted(_REQUIRED_MASTER_KEYS)
+    return sorted(_REQUIRED_MASTER_KEYS - set(data))
+
+def _master_db_valid(path=MASTER_DB):
+    if not Path(path).exists():
+        return False
+    conn = sqlite3.connect(path)
+    try:
+        return not _missing_master_tables(conn)
+    finally:
+        conn.close()
+
+def _master_data_valid(path=MASTER_DATA):
+    return not _missing_master_keys(path)
+
+def _load_master_entry(conn, entry):
+    if entry['mode'] == 'group':
+        return _select_rows_grouped(
+            conn, entry['table'], entry['index'], entry['columns'])
+    return _select_rows_by_key(
+        conn, entry['table'], entry['index'], entry['columns'])
+
 def build_master_data(db_path=MASTER_DB, out_path=MASTER_DATA):
     if not db_path.exists():
         return
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
-        stat_cols = [
-            'HP', 'Attack', 'Defence', 'Speed', 'CriticalRate',
-            'CriticalDamageRate', 'EffectHitRate', 'ResistanceRate',
-            'PinchRate',
-        ]
-        value_cols = ['HPValue', 'AttackValue', 'DefenceValue', 'SpeedValue']
-        rate_cols = [
-            'HPRate', 'AttackRate', 'DefenceRate', 'SpeedRate', 'CriticalRate',
-            'CriticalDamageRate', 'EffectHitRate', 'ResistanceRate',
-            'PinchRate',
-        ]
-        role_cols = [
-            'ID', 'NAME', 'RolePropertyID', 'TeamImprint', 'SelfImprint',
-            *stat_cols,
-        ]
-        role_property_cols = ['ID', 'LV', *stat_cols]
-        role_awaken_cols = ['RoleID', 'LV', *value_cols, *rate_cols]
-        artifact_cols = ['ID', 'Base.AttackValue', 'Base.HPValue',
-                         'Max.AttackValue', 'Max.HPValue']
-        equipment_set_cols = ['ID', 'Count', 'Name', *rate_cols]
-        passive_cols = ['PassiveProp.DynamicField1',
-                        'PassiveProp.DynamicField2',
-                        'PassiveProp.DynamicField3']
-        roles = _select_rows_by_key(conn, 'Role', 'ID', role_cols)
-        items = _select_rows_by_key(conn, 'Item', 'ID', ['ID', 'Name'])
-        equipment_sets = _select_rows_by_key(conn, 'EquipmentSet', 'ID',
-                                             equipment_set_cols)
-        localize_keys = {
-            'UI_Equip_Weapon', 'UI_Equip_Helmet', 'UI_Equip_Armor',
-            'UI_Equip_Necklace', 'UI_Equip_Ring', 'UI_Equip_Boots',
-            'UI_Equip_Attributes_AttackRate', 'UI_Equip_Attack',
-            'UI_PropertyCriticalDamage', 'UI_Equip_Critical',
-            'UI_Guild_Defense', 'UI_PropertyEffectHit', 'UI_Equip_Health',
-            'UI_PropertyResistance', 'UI_PropertySpeed',
+        missing = _missing_master_tables(conn)
+        if missing:
+            raise RuntimeError(
+                    f'master.db 缺少必要表：{", ".join(missing)}')
+
+        data = {
+            entry['key']: _load_master_entry(conn, entry)
+            for entry in _MASTER_DATA_ENTRIES
         }
-        localize_keys.update(row['NAME'] for row in roles.values()
+        localize_keys = set(_BASE_LOCALIZE_KEYS)
+        localize_keys.update(row['NAME'] for row in data['roles'].values()
                 if row.get('NAME'))
-        localize_keys.update(row['Name'] for row in items.values()
+        localize_keys.update(row['Name'] for row in data['items'].values()
                 if row.get('Name'))
-        localize_keys.update(row['Name'] for row in equipment_sets.values()
-                if row.get('Name'))
+        localize_keys.update(row['Name']
+                for row in data['equipment_sets'].values() if row.get('Name'))
         placeholders = ', '.join('?' for _ in localize_keys)
         localization = {}
         if localize_keys:
@@ -185,32 +247,13 @@ def build_master_data(db_path=MASTER_DB, out_path=MASTER_DATA):
                 f'SELECT Key, Value FROM CHS WHERE Key IN ({placeholders})',
                 tuple(sorted(localize_keys)),
             ).fetchall())
-        data = {
-            'localization': localization,
-            'roles': roles,
-            'role_properties': _select_rows_grouped(
-                conn, 'RoleProperty', 'ID', role_property_cols),
-            'role_awaken': _select_rows_grouped(
-                conn, 'RoleAwaken', 'RoleID', role_awaken_cols),
-            'role_imprints': _select_rows_by_key(
-                conn, 'RoleImprint', 'ID',
-                ['ID', 'Base.DynamicField1', 'LevelAdd.DynamicField1']),
-            'artifacts': _select_rows_by_key(
-                conn, 'Artifact', 'ID', artifact_cols),
-            'items': items,
-            'skills': _select_rows_by_key(
-                conn, 'Skill', 'ID', ['ID', *passive_cols]),
-            'skill_levels': _select_rows_grouped(
-                conn, 'SkillLevel', 'SkillID',
-                ['SkillID', 'LV', *passive_cols]),
-            'equipment_sets': equipment_sets,
-            'activities': _select_rows_by_key(
-                conn, 'Activity', 'ID', ['ID', 'Type']),
-            'scenes': _select_rows_grouped(
-                conn, 'Scene', 'Chapter', ['Chapter', 'ID', 'MyCampTeam']),
-        }
+        data = {'localization': localization, **data}
     finally:
         conn.close()
+    missing = sorted(_REQUIRED_MASTER_KEYS - set(data))
+    if missing:
+        raise RuntimeError(
+                f'master.json 生成缺少必要键：{", ".join(missing)}')
     _save_json(out_path, data)
 
 def _data_dir_catalog(data_dir):
@@ -278,15 +321,15 @@ def build_master_db(data_dir, out_path=MASTER_DB, force=False, exts=None,
     fingerprint = _fingerprint(
             files, catalog_name or _data_dir_catalog(data_dir))
     config = _load_config()
-    if out_path.exists() and not force and MASTER_DATA.exists() \
-            and config.get('master_db') == fingerprint:
-        print(f'Up to date: {out_path}')
-        return 0, 0
-    if out_path.exists() and not force \
-            and config.get('master_db') == fingerprint:
-        build_master_data(out_path, MASTER_DATA)
-        print(f'Built data cache: {MASTER_DATA}')
-        return 0, 0
+    if out_path.exists() and not force and config.get('master_db') == fingerprint:
+        if _master_db_valid(out_path):
+            if MASTER_DATA.exists() and _master_data_valid(MASTER_DATA):
+                print(f'Up to date: {out_path}')
+                return 0, 0
+            build_master_data(out_path, MASTER_DATA)
+            print(f'Built data cache: {MASTER_DATA}')
+            return 0, 0
+        print(f'master.db 缓存不完整，重新构建：{out_path.name}')
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     if out_path.exists():
@@ -360,13 +403,14 @@ def _download_file(url, out_path):
                     fp.write(chunk)
     tmp_path.replace(out_path)
 
-def _staticdata_bundle_urls(catalog, patch_domain):
+def _master_bundle_urls(catalog, patch_domain):
     urls = []
     for internal_id in catalog.get('m_InternalIds', []):
         if not isinstance(internal_id, str):
             continue
-        lower_id = internal_id.lower()
-        if 'staticdata' not in lower_id or '.bundle' not in lower_id:
+        bundle_name = Path(urlparse(internal_id).path).name.lower()
+        if not bundle_name.endswith('.bundle') \
+                or not bundle_name.startswith(('staticdata_', 'text_')):
             continue
         url = internal_id.replace('http://PatchDomain', patch_domain)
         url = url.replace('https://PatchDomain', patch_domain)
@@ -394,20 +438,19 @@ def _ensure_catalog_staticdata(bulletin):
 
     config = _load_config()
     catalog_state = config.get('catalog')
-    if (
-        isinstance(catalog_state, dict)
-        and catalog_state.get('catalog_name') == catalog_name
-        and MASTER_DB.exists()
-        and MASTER_DATA.exists()
-    ):
-        print(f'master.db 已是最新 catalog：{catalog_name}')
-        return None
-    if isinstance(catalog_state, dict) \
-            and catalog_state.get('catalog_name') == catalog_name \
-            and MASTER_DB.exists():
-        build_master_data(MASTER_DB, MASTER_DATA)
-        print(f'master_data 已从现有 master.db 生成：{catalog_name}')
-        return None
+    same_catalog = isinstance(catalog_state, dict) \
+            and catalog_state.get('catalog_name') == catalog_name
+    if same_catalog and MASTER_DB.exists():
+        db_valid = _master_db_valid(MASTER_DB)
+        data_valid = MASTER_DATA.exists() and _master_data_valid(MASTER_DATA)
+        if db_valid and data_valid:
+            print(f'master.db 已是最新 catalog：{catalog_name}')
+            return None
+        if db_valid:
+            build_master_data(MASTER_DB, MASTER_DATA)
+            print(f'master_data 已从现有 master.db 生成：{catalog_name}')
+            return None
+        print(f'master 缓存不完整，准备重建：{catalog_name}')
 
     catalog_url = f'{patch_domain}/Android/{catalog_name}.json'
     print(f'正在下载 catalog：{catalog_name}')
@@ -420,17 +463,17 @@ def _ensure_catalog_staticdata(bulletin):
     }
     _save_config(config)
 
-    urls = _staticdata_bundle_urls(catalog, patch_domain)
+    urls = _master_bundle_urls(catalog, patch_domain)
     if not urls:
         raise RuntimeError(
-                f'catalog 中没有找到 staticdata bundle：{catalog_name}')
+                f'catalog 中没有找到 staticdata/text bundle：{catalog_name}')
 
     target_dir = STATICDATA_DIR / catalog_name
     for url in urls:
         out_path = _bundle_path(catalog_name, url)
         if out_path.exists():
             continue
-        print(f'正在下载 staticdata：{out_path.name}')
+        print(f'正在下载 master bundle：{out_path.name}')
         _download_file(url, out_path)
 
     return target_dir

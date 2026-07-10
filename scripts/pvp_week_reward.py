@@ -27,6 +27,8 @@ def choose_reward():
 
     while True:
         choice = input('> ').strip()
+        if not choice and len(rewards) == 1:
+            return next(iter(rewards.values()))
         if choice in rewards:
             return rewards[choice]
 

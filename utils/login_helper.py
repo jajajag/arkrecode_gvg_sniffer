@@ -96,6 +96,8 @@ def choose_account(accounts):
         print('-. 删除账号')
         while True:
             idx = input('> ').strip()
+            if not idx and len(accounts) == 1:
+                return 0
             if idx == '+':
                 acc_idx = add_account(accounts)
                 if acc_idx is not None:

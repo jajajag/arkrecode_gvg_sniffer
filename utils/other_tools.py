@@ -15,12 +15,14 @@ def run_hidden_tools(aid, session_id):
     from scripts import gvg_data, gvg_speed, pvp_speed
 
     actions = {
-        '1': ('查询GVG防守',
+        '1': ('查询对手GVG信息',
               lambda: gvg_data.query_gvg_defence(aid, session_id)),
-        '2': ('查询JJC防守',
+        '2': ('查询对手JJC信息',
               lambda: gvg_data.query_pvp_defence(aid, session_id)),
-        '3': ('查询玩家速度', None),
-        '4': ('团战测速', lambda: gvg_speed.main([])),
+        '3': ('查询玩家JJC信息',
+              lambda: gvg_data.query_player_pvp_info(aid, session_id)),
+        '4': ('查询玩家速度', None),
+        '5': ('团战测速', lambda: gvg_speed.main([])),
     }
     while True:
         print('[隐藏工具集]')
@@ -30,7 +32,7 @@ def run_hidden_tools(aid, session_id):
         choice = input('> ').strip()
         if choice == '0':
             return
-        if choice == '3':
+        if choice == '4':
             if require_data_db():
                 name = input('请输入玩家名称：').strip()
                 if name:
