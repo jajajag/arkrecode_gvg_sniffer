@@ -76,7 +76,7 @@ def print_player(index, player, hp_only=False):
         print('-----防守队伍-----')
         print_team(player['PVPInfo']['DefenceTeam'], hp_only)
         print('-----辅助团员-----')
-        for item in player['BattleSupportData']['RoleDataList']:
+        for item in (player['BattleSupportData'].get('RoleDataList') or []):
             print_role(item['Role'], hp_only=hp_only)
     else:
         print_team(player['TeamData'], hp_only)

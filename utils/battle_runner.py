@@ -8,7 +8,6 @@ from pathlib import Path
 
 import requests
 import urllib3
-import websockets
 
 
 from utils.helper import data_path, get_role
@@ -329,6 +328,7 @@ class MasterData:
     def __init__(self, db_path):
         self.db_path = Path(db_path)
         self.skills = {}
+        self.stealth_statuses = set()
         self.load()
 
     def load(self):
@@ -351,6 +351,11 @@ class MasterData:
                     'soul_cost': int(float(row['SkillSoulCost'] or 0)),
                     'soul_func': row['SoulSkillFunc'] or '',
                 }
+            for row in con.execute(
+                    'SELECT ID, DynamicField1, DynamicField2, DynamicField3, '
+                    'DynamicField4, DynamicField5, DynamicField6 FROM Status'):
+                if any('Stealth#1' in str(value or '') for value in row[1:]):
+                    self.stealth_statuses.add(row['ID'])
         finally:
             con.close()
 
@@ -382,7 +387,9 @@ class BattleDriver:
         self.master = master
         self.server_cooldowns = {}
         self.camp_soul = [0, 0]
+        self.current_wave = 0
         self.dead = set()
+        self.role_statuses = {}
         self.known_roles = set()
         self.support_role = self.get_support_role()
         self.role_by_net_id = self.build_role_map()
@@ -448,6 +455,9 @@ class BattleDriver:
 
     def observe(self, msg):
         round_result = msg.get('RoundResult') or {}
+        wave_index = round_result.get('NowWaveIndex')
+        if isinstance(wave_index, int):
+            self.current_wave = wave_index
         camp_soul = round_result.get('CampSoulList')
         if isinstance(camp_soul, list) and len(camp_soul) >= 2:
             self.camp_soul = camp_soul[:2]
@@ -456,13 +466,34 @@ class BattleDriver:
             if isinstance(target_role_id, str) and ROLE_NET_ID.fullmatch(
                     target_role_id):
                 self.known_roles.add(target_role_id)
+                if 'NowStatusList' in node:
+                    self.role_statuses[target_role_id] = {
+                        status.get('StaticID')
+                        for status in (node.get('NowStatusList') or [])
+                        if isinstance(status, dict) and status.get('StaticID')
+                    }
+                else:
+                    statuses = self.role_statuses.setdefault(
+                        target_role_id, set())
+                    statuses.update(
+                        status.get('StaticID')
+                        for status in (node.get('NewStatusList') or [])
+                        if isinstance(status, dict) and status.get('StaticID')
+                    )
+                    statuses.difference_update(
+                        status.get('StaticID')
+                        for status in (node.get('RemoveStatusList') or [])
+                        if isinstance(status, dict) and status.get('StaticID')
+                    )
                 cooldown_map = node.get('NowSkillCooldownMap')
                 if isinstance(cooldown_map, dict):
                     self.server_cooldowns[target_role_id] = {
                         skill_id: int(float(value or 0))
                         for skill_id, value in cooldown_map.items()
                     }
-                if node.get('NowIsDieOut') == 1 or node.get('NowHP') == 0:
+                if (node.get('NowIsDieOut') == 1
+                        or (node.get('IsCanSyncRole') == 1
+                            and node.get('NowHP') == 0)):
                     self.dead.add(target_role_id)
             for key, value in node.items():
                 if isinstance(key, str) and ROLE_NET_ID.fullmatch(key):
@@ -534,7 +565,7 @@ class BattleDriver:
         target_type = self.master.target_type(skill_id)
         no_self = self.master.no_self(skill_id)
         source_parts = source_id.split('-')
-        wave_id = source_parts[1] if len(source_parts) > 1 else '0'
+        ally_wave_id = source_parts[1] if len(source_parts) > 1 else '0'
         if target_type == 'Self':
             if no_self:
                 return None
@@ -544,19 +575,27 @@ class BattleDriver:
                 return source_id
             allies = sorted((
                 role_id for role_id in self.role_by_net_id
-                if role_id.startswith(f'1-{wave_id}-')
+                if role_id.startswith(f'1-{ally_wave_id}-')
                 and role_id != source_id
                 and role_id not in self.dead
             ), reverse=True)
             return allies[0] if allies else None
 
-        enemies = sorted(
+        enemy_prefix = f'2-{self.current_wave}-'
+        enemies = sorted((
             role_id for role_id in self.known_roles
-            if role_id.startswith(f'2-{wave_id}-') and role_id not in self.dead
-        )
-        if enemies:
-            return enemies[0]
-        return f'2-{wave_id}-0'
+            if role_id.startswith(enemy_prefix) and role_id not in self.dead
+        ), key=lambda role_id: tuple(map(int, role_id.split('-'))))
+        if (target_type != 'All' and len(enemies) > 1
+                and self.master.stealth_statuses):
+            visible_enemies = [
+                role_id for role_id in enemies
+                if not (self.role_statuses.get(role_id, set())
+                        & self.master.stealth_statuses)
+            ]
+            if visible_enemies:
+                enemies = visible_enemies
+        return enemies[0] if enemies else None
 
     def choose_skill_and_target(self, source_id):
         for skill_no in (3, 2, 1):
@@ -685,6 +724,10 @@ class BattleRunner:
                 return msg
 
     async def fight_room(self, room, start_payload):
+        # Keep WebSocket support optional so non-battle tools can run on
+        # environments (such as iPad Python apps) without this dependency.
+        import websockets
+
         # Some room servers use a certificate chain that is trusted by the
         # game client but not by Python's CA store. Keep ws:// unchanged, and
         # disable verification only for the known room WebSocket connection.
@@ -757,12 +800,17 @@ class BattleRunner:
                     if not source_id or not source_id.startswith('1-'):
                         continue
                     driver.bind_support_role(source_id)
-                    if not driver.mark_prompt(msg):
+                    if driver.prompt_key(msg) in driver.acted_prompts:
                         continue
                     action = driver.action(source_id, oid_value, index)
                     if action is None:
-                        continue
+                        raise RuntimeError(
+                            f'无法为 {driver.role_label(source_id)} 生成行动：'
+                            f'当前波次 {driver.current_wave} 没有服务器返回的'
+                            f'可用目标，或所有技能均不可用'
+                        )
                     await self.send_json(ws, action, f'Action {source_id}')
+                    driver.mark_prompt(msg)
                     actions += 1
                     skill = action['SkillData']['StaticID']
                     target_id = action['TargetID']

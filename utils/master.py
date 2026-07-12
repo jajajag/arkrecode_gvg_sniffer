@@ -5,7 +5,6 @@ import json
 import re
 import requests
 import sqlite3
-import UnityPy
 
 from utils.helper import APP_ROOT as ROOT_DIR, DATA_DIR
 MASTER_DB = DATA_DIR / 'master.db'
@@ -277,6 +276,8 @@ def _insert_table(conn, table, source_file, asset_name, columns, rows):
     )
 
 def _extract_file(path, conn, seen_tables):
+    import UnityPy
+
     env = UnityPy.load(str(path))
     table_count = 0
     row_count = 0
