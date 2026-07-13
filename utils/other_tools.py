@@ -12,7 +12,7 @@ def require_data_db():
 
 
 def run_hidden_tools(aid, session_id):
-    from scripts import gvg_data, gvg_speed, pvp_speed
+    from scripts import gvg_data, pvp_speed
 
     actions = {
         '1': ('查询对手GVG信息',
@@ -22,7 +22,6 @@ def run_hidden_tools(aid, session_id):
         '3': ('查询玩家JJC信息',
               lambda: gvg_data.query_player_pvp_info(aid, session_id)),
         '4': ('查询玩家速度', None),
-        '5': ('团战测速', lambda: gvg_speed.main([])),
     }
     while True:
         print('[隐藏工具集]')
