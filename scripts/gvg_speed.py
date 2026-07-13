@@ -1,6 +1,7 @@
 import argparse
 from collections import Counter
 import json
+import re
 import statistics
 import subprocess
 import sys
@@ -9,7 +10,7 @@ import unicodedata
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from utils.helper import calculate_team_stats, get_role
+from utils.helper import calculate_role_stats, calculate_team_stats, get_role
 
 
 DEFAULT_PROCESS = 'Ark ReCode.exe'
@@ -147,6 +148,11 @@ def estimate_speed_value(values):
     return round(statistics.median(values))
 
 
+def role_static_id_from_skill(skill_id):
+    match = re.match(r'^(H\d+)S\d', skill_id or '')
+    return match.group(1) if match else None
+
+
 def iter_team_maps(start_info):
     for side, key in (('1', 'CampData1'), ('2', 'CampData2')):
         role_map = (start_info.get(key) or {}).get('PositionRoleMap') or {}
@@ -166,16 +172,36 @@ def build_role_info(start_info):
         positions = sorted(role_map, key=lambda pos: int(pos))
         roles = [role_map[pos] for pos in positions]
         stats_list = calculate_team_stats(roles) if side == '1' else [None] * len(roles)
-        for pos, role, stats in zip(positions, roles, stats_list):
+        solo_stats_list = (
+            [calculate_role_stats(role) for role in roles]
+            if side == '1'
+            else [None] * len(roles)
+        )
+        for pos, role, stats, solo_stats in zip(
+                positions, roles, stats_list, solo_stats_list):
             role_id = f'{side}-{wave}-{pos}'
             speed = round(stats.get('Speed', 0)) if stats else None
+            speed_imprint_affected = bool(
+                stats
+                and solo_stats
+                and abs(stats.get('Speed', 0) - solo_stats.get('Speed', 0))
+                > 1e-9
+            )
             role_info[role_id] = {
                 'name': get_role(role.get('StaticID', '')),
                 'static_id': role.get('StaticID', ''),
                 'side': side,
                 'speed': speed,
+                'speed_imprint_affected': speed_imprint_affected,
             }
     return role_info
+
+
+def build_ally_role_info(role_map):
+    """Build the known side of a GVG battle from PlayerTeamGroup."""
+    return build_role_info({
+        'CampData1': {'PositionRoleMap': role_map},
+    })
 
 
 def parse_packet_text(text):
@@ -215,29 +241,84 @@ def find_process_id(process_name):
 class GvgSpeedAnalyzer:
     def __init__(self):
         self.battle_no = 0
+        self.team_role_maps = []
+        self.next_team_index = 0
         self.role_info = {}
         self.start_times = None
         self.printed = False
+        self.enemy_estimates = {}
+        self.enemy_roles = {}
+        self.announced_enemy_roles = set()
+        self.ignore_next_start_signal = False
 
     def handle_packet(self, tag, text):
         data = parse_packet_text(text)
         if not isinstance(data, dict):
             return
 
+        team_group = data.get('PlayerTeamGroup')
+        if isinstance(team_group, dict):
+            self.handle_team_group(team_group)
+
         start_info = data.get('StartBattleInfo')
         if isinstance(start_info, dict):
             self.start_battle(start_info)
+            # Normal/PVE battles send StartBattleInfo and then acknowledge it
+            # with StartBattle:true.  The info packet already started the
+            # battle, so the acknowledgement must not be treated as a GVG
+            # half and replace the populated role map with an empty one.
+            self.ignore_next_start_signal = True
+        elif data.get('StartBattle') is True:
+            if self.ignore_next_start_signal:
+                self.ignore_next_start_signal = False
+            else:
+                self.start_gvg_battle()
 
         round_result = data.get('RoundResult')
         if isinstance(round_result, dict):
             self.handle_round_result(data.get('Step'), round_result)
 
+        action_result = data.get('ActionResult')
+        if isinstance(action_result, dict):
+            self.handle_action_result(action_result)
+
+    def handle_team_group(self, team_group):
+        self.ignore_next_start_signal = False
+        self.team_role_maps = []
+        for key in ('FirstTeam', 'SecondTeam'):
+            role_map = (
+                (team_group.get(key) or {}).get('PositionRoleMap') or {}
+            )
+            self.team_role_maps.append(role_map)
+        self.next_team_index = 0
+
+    def start_gvg_battle(self):
+        team_index = self.next_team_index
+        if team_index >= len(self.team_role_maps):
+            return
+        self.next_team_index += 1
+        role_map = self.team_role_maps[team_index]
+        if not role_map:
+            return
+        half = ('上半场', '下半场')[team_index] if team_index < 2 else ''
+        self.start_battle_with_role_info(
+            build_ally_role_info(role_map),
+            half=half,
+        )
+
     def start_battle(self, start_info):
+        self.start_battle_with_role_info(build_role_info(start_info))
+
+    def start_battle_with_role_info(self, role_info, half=''):
         self.battle_no += 1
-        self.role_info = build_role_info(start_info)
+        self.role_info = role_info
         self.start_times = None
         self.printed = False
-        print(f'\n===== 战斗 {self.battle_no} =====')
+        self.enemy_estimates = {}
+        self.enemy_roles = {}
+        self.announced_enemy_roles = set()
+        suffix = f'（{half}）' if half else ''
+        print(f'\n===== 战斗 {self.battle_no}{suffix} =====')
 
     def handle_round_result(self, step, round_result):
         role_time_map = round_result.get('RoleTimeMap')
@@ -258,6 +339,47 @@ class GvgSpeedAnalyzer:
         if step == 'StartRound' and int(round_result.get('NowTurn') or 0) == 1:
             self.print_speed_report(times)
             self.printed = True
+            self.announce_pending_enemy_roles()
+
+    def handle_action_result(self, action_result):
+        for event in action_result.get('SkillEventList') or []:
+            action = (event or {}).get('Action') or {}
+            role_id = action.get('SourceID')
+            if not isinstance(role_id, str) or not role_id.startswith('2-'):
+                continue
+            skill_id = (action.get('SkillData') or {}).get('StaticID')
+            static_id = role_static_id_from_skill(skill_id)
+            if not static_id:
+                continue
+            if self.enemy_roles.get(role_id) == static_id:
+                continue
+            self.enemy_roles[role_id] = static_id
+            self.role_info.setdefault(role_id, {}).update({
+                'name': get_role(static_id),
+                'static_id': static_id,
+                'side': '2',
+                'speed': None,
+            })
+            if self.printed:
+                self.announce_enemy_role(role_id)
+
+    def announce_pending_enemy_roles(self):
+        for role_id in sorted(self.enemy_roles, key=role_sort_key):
+            self.announce_enemy_role(role_id)
+
+    def announce_enemy_role(self, role_id):
+        if role_id in self.announced_enemy_roles:
+            return
+        static_id = self.enemy_roles.get(role_id)
+        if not static_id:
+            return
+        name = self.role_info.get(role_id, {}).get('name') or static_id
+        speed = self.enemy_estimates.get(role_id, '-')
+        print(
+            f'识别敌方｜{role_id} → {static_id} → {name}'
+            f'｜测速 {speed}'
+        )
+        self.announced_enemy_roles.add(role_id)
 
     def print_speed_report(self, end_times):
         if not self.start_times:
@@ -265,8 +387,9 @@ class GvgSpeedAnalyzer:
 
         rows = []
         ally_refs = []
+        unaffected_ally_refs = []
         all_role_ids = sorted(
-            set(self.start_times) | set(end_times) | set(self.role_info),
+            set(self.start_times) | set(end_times),
             key=role_sort_key,
         )
         for role_id in all_role_ids:
@@ -276,7 +399,10 @@ class GvgSpeedAnalyzer:
             delta = action_delta(start, end)
             speed = info.get('speed')
             if role_id.startswith('1-') and speed and delta and delta > 0:
-                ally_refs.append((role_id, speed, delta))
+                ref = (role_id, speed, delta)
+                ally_refs.append(ref)
+                if not info.get('speed_imprint_affected', False):
+                    unaffected_ally_refs.append(ref)
             rows.append({
                 'role_id': role_id,
                 'side': '我方' if role_id.startswith('1-') else '敌方',
@@ -287,13 +413,14 @@ class GvgSpeedAnalyzer:
                 'speed': speed,
             })
 
-        enemy_estimates = self.estimate_enemy_speeds(rows, ally_refs)
+        speed_refs = unaffected_ally_refs or ally_refs
+        self.enemy_estimates = self.estimate_enemy_speeds(rows, speed_refs)
         table_rows = []
         for row in rows:
             role_id = row['role_id']
             speed = row['speed']
             if role_id.startswith('2-'):
-                speed = enemy_estimates.get(role_id, '-')
+                speed = self.enemy_estimates.get(role_id, '-')
             table_rows.append([
                 row['side'],
                 role_id,
