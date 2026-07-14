@@ -35,7 +35,9 @@
 
 ## 打包
 
-```pyinstaller -F toolkit.py --collect-all UnityPy --clean --noconfirm --icon=data/icon.ico```
+```
+pyinstaller -F toolkit.py --collect-all UnityPy --clean --noconfirm --icon=data/icon.ico
+```
 
 ## 一些碎碎念
 
