@@ -63,7 +63,7 @@ def run_guild_support(aid, session_id, sups):
             if (item['NowCount'] >= 8
                 or sups.get(item['ItemID'], 0) < 2
                 or item['Requester']['CUID'] == cuid
-                or cuid in item['SupporterList']):
+                or cuid in item.get('SupporterList', [])):
                 continue
             payload['data']['GuildAidItemInfoID'] = item['_id']['$oid']
             send(payload)
