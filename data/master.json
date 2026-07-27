@@ -258,7 +258,7 @@
     "T_Item_Name_A0413": "盛开的扶桑",
     "T_Item_Name_A0416": "A0416",
     "T_Item_Name_A0419": "刹那的拥有",
-    "T_Item_Name_A0422": "A0422",
+    "T_Item_Name_A0422": "斗室的抚触",
     "T_Item_Name_A0425": "A0425",
     "T_Item_Name_A0434": "近岸轻撩时",
     "T_Item_Name_A0437": "午后的私厨",
@@ -789,6 +789,7 @@
     "T_Item_Name_E0460": "珊瑚之月",
     "T_Item_Name_E0461": "蜂蜜酒",
     "T_Item_Name_E0462": "紧急消防栓",
+    "T_Item_Name_E0463": "辟魔的发绳",
     "T_Item_Name_E0501": "一周年纪念戒指",
     "T_Item_Name_E0502": "1.5周年纪念项鍊",
     "T_Item_Name_E0503": "RTA2025S1纪念戒指",
@@ -1018,6 +1019,12 @@
     "T_Item_Name_E1094": "消防钢质名牌",
     "T_Item_Name_E1095": "消防手套",
     "T_Item_Name_E1096": "消防重靴",
+    "T_Item_Name_E1101": "无铭的妖刀",
+    "T_Item_Name_E1102": "怪谈之蝶",
+    "T_Item_Name_E1103": "怪谈之幻",
+    "T_Item_Name_E1104": "怪谈之扼",
+    "T_Item_Name_E1105": "怪谈之缚",
+    "T_Item_Name_E1106": "怪谈之终",
     "T_Item_Name_E2001": "慈爱的斗技者长枪",
     "T_Item_Name_E2002": "慈爱的斗技者头盔",
     "T_Item_Name_E2003": "慈爱的斗技者铠甲",
@@ -35846,6 +35853,10 @@
       "ID": "E0462",
       "Name": "T_Item_Name_E0462"
     },
+    "E0463": {
+      "ID": "E0463",
+      "Name": "T_Item_Name_E0463"
+    },
     "E0501": {
       "ID": "E0501",
       "Name": "T_Item_Name_E0501"
@@ -36857,6 +36868,30 @@
     "E1096": {
       "ID": "E1096",
       "Name": "T_Item_Name_E1096"
+    },
+    "E1101": {
+      "ID": "E1101",
+      "Name": "T_Item_Name_E1101"
+    },
+    "E1102": {
+      "ID": "E1102",
+      "Name": "T_Item_Name_E1102"
+    },
+    "E1103": {
+      "ID": "E1103",
+      "Name": "T_Item_Name_E1103"
+    },
+    "E1104": {
+      "ID": "E1104",
+      "Name": "T_Item_Name_E1104"
+    },
+    "E1105": {
+      "ID": "E1105",
+      "Name": "T_Item_Name_E1105"
+    },
+    "E1106": {
+      "ID": "E1106",
+      "Name": "T_Item_Name_E1106"
     },
     "E2001": {
       "ID": "E2001",
@@ -38429,6 +38464,22 @@
     "Background162": {
       "ID": "Background162",
       "Name": "T_Item_Name_Background162"
+    },
+    "Background163": {
+      "ID": "Background163",
+      "Name": "T_Item_Name_Background163"
+    },
+    "Background164": {
+      "ID": "Background164",
+      "Name": "T_Item_Name_Background164"
+    },
+    "Background165": {
+      "ID": "Background165",
+      "Name": "T_Item_Name_Background165"
+    },
+    "Background166": {
+      "ID": "Background166",
+      "Name": "T_Item_Name_Background166"
     },
     "Frame000": {
       "ID": "Frame000",
@@ -116214,6 +116265,10 @@
       "ID": "ActivitySignInH187",
       "Type": "SignIn"
     },
+    "ActivitySignInH188": {
+      "ID": "ActivitySignInH188",
+      "Type": "SignIn"
+    },
     "ActivitySignInH192": {
       "ID": "ActivitySignInH192",
       "Type": "SignIn"
@@ -118494,6 +118549,10 @@
       "ID": "GIFTActivityH187",
       "Type": "Gift"
     },
+    "GIFTActivityH188": {
+      "ID": "GIFTActivityH188",
+      "Type": "Gift"
+    },
     "GIFTActivityH192": {
       "ID": "GIFTActivityH192",
       "Type": "Gift"
@@ -118768,6 +118827,18 @@
     },
     "GIFTFESH187_5": {
       "ID": "GIFTFESH187_5",
+      "Type": "Gift"
+    },
+    "GIFTFESH188": {
+      "ID": "GIFTFESH188",
+      "Type": "Gift"
+    },
+    "GIFTFESH188_3": {
+      "ID": "GIFTFESH188_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH188_4": {
+      "ID": "GIFTFESH188_4",
       "Type": "Gift"
     },
     "GIFTFESH192": {
@@ -120670,6 +120741,10 @@
       "ID": "Version_H182",
       "Type": "Function"
     },
+    "Version_H183": {
+      "ID": "Version_H183",
+      "Type": "Function"
+    },
     "Version_H184": {
       "ID": "Version_H184",
       "Type": "Function"
@@ -120680,6 +120755,10 @@
     },
     "Version_H187": {
       "ID": "Version_H187",
+      "Type": "Function"
+    },
+    "Version_H188": {
+      "ID": "Version_H188",
       "Type": "Function"
     },
     "Version_H192": {

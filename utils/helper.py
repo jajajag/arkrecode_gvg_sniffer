@@ -98,6 +98,52 @@ def chs(key):
 def get_role(role_id):
     return chs(master().get('roles', {}).get(role_id, {}).get('NAME')) or role_id
 
+def master_role_ids():
+    return tuple(
+        role_id for role_id in master().get('roles', {})
+        if role_id.startswith('H')
+    )
+
+def role_candidates(query, role_ids=None):
+    role_ids = master_role_ids() if role_ids is None else tuple(role_ids)
+    folded_query = query.casefold()
+    # 1. First try exact match on role ID
+    if query in role_ids:
+        return [(query, get_role(query))]
+    # 2. Then try exact match on role name
+    exact = [
+        (role_id, get_role(role_id))
+        for role_id in role_ids
+        if get_role(role_id).casefold() == folded_query
+    ]
+    if exact:
+        return exact
+    # 3. Finally try substring match on role name
+    result = [
+        (role_id, get_role(role_id))
+        for role_id in role_ids
+        if folded_query in get_role(role_id).casefold()
+    ]
+    return sorted(result, key=lambda item: (len(item[1]), item[1], item[0]))
+
+def resolve_role_ids(queries, role_ids=None):
+    role_ids = master_role_ids() if role_ids is None else tuple(role_ids)
+    resolved = []
+    for query in queries:
+        matches = role_candidates(query, role_ids)
+        if len(matches) != 1:
+            print(f'「{query}」匹配到 {len(matches)} 个角色，无法唯一确定：')
+            for role_id, name in matches[:30]:
+                print(f'  {role_id}\t{name}')
+            if len(matches) > 30:
+                print(f'  ... 还有 {len(matches) - 30} 个')
+            return None
+        resolved.append(matches[0][0])
+    if len(set(resolved)) != len(resolved):
+        print('输入解析到了重复角色，请重新输入。')
+        return None
+    return resolved
+
 def get_bond(bond_id):
     return chs(master().get('items', {}).get(bond_id, {}).get('Name')) or bond_id
 

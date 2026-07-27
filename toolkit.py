@@ -3,7 +3,8 @@ import time
 from utils.analyzer import analyze_gvg
 from utils.battle_runner import build_realm_scene_ids, duplicate_team_roles
 from utils.battle_runner import choose_login_team, login_teams, next_realm_floor
-from utils.battle_runner import choose_login_teams, MASTER_DB, run_auto_battles
+from utils.battle_runner import choose_login_teams, MASTER_DB
+from utils.battle_runner import run_auto_battles
 from utils.equips import match_equip
 from utils.helper import get_event, get_role
 from utils.login_helper import choose_account, get_login_version, load_accounts
@@ -151,6 +152,7 @@ def run_daily(aid, session_id, sups, event, bp_id, progress):
         # Event / Mysterious Realm rewards
         {'route': 'QuestHandler.RewardQuest',
          'data': {'RewardQuestInfos':[
+             {'ID': f'Branch{event["pickup"]}', 'Index': 0}] + [
              {'ID': f'Branch{event["pickup"]}_{i+1}', 'Index': 0}
              for i in range(6)]}},
         {'route': 'QuestHandler.RewardQuest',
@@ -263,6 +265,33 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     print(f'当前可挑战NPC：{targets}')
+    if targets:
+        specified = input(
+            '是否指定刷哪些NPC'
+            '（用空格或逗号隔开，不指定则全刷）：'
+        ).strip()
+        if specified:
+            target_map = {str(npc): npc for npc in targets}
+            requested = [
+                npc for npc in re.split(r'[\s,，]+', specified)
+                if npc
+            ]
+            invalid = [npc for npc in requested if npc not in target_map]
+            if invalid:
+                print(
+                    '以下NPC不存在或当前不可挑战，已取消本次NPC战斗：'
+                    + '、'.join(invalid)
+                )
+                targets = []
+            else:
+                selected = []
+                seen = set()
+                for npc in requested:
+                    if npc in seen:
+                        continue
+                    seen.add(npc)
+                    selected.append(target_map[npc])
+                targets = selected
     try:
         for npc in targets:
             run_npc_ticket(aid, session_id, npc)
@@ -471,7 +500,7 @@ def run_secret(aid, session_id, secrets):
             return
 
 # 5. 刷星源商店
-def run_rainbow(aid, session_id):
+def run_rainbow(aid, session_id, login_data):
     payload = {
         'data': {
             'CommodityID': 'RainbowStarSourceBox10',
@@ -486,15 +515,53 @@ def run_rainbow(aid, session_id):
             data = send(payload)
             payload['route'] = 'CustomEquipHandler.RefreshEquip'
             equips = data['Data']['CustomEquipDropList']
-            found = [match_equip(e['Equipment']) for e in equips]
-            if found := [e for e in found if e]:
-                print(*found, sep='\n')
+            found = []
+            for item_index, equip in enumerate(equips):
+                if description := match_equip(equip['Equipment']):
+                    found.append({
+                        'description': description,
+                        'item_index': item_index,
+                        #'record_id': equip['Equipment']['_id']['$oid']
+                    })
+            if found:
+                print(*(item['description'] for item in found), sep='\n')
                 choice = input('找到极品装备！是否继续刷新？(y/N)：').strip()
-                if choice.upper() != 'Y': return
+                if choice.upper() == 'Y':
+                    continue
+                choice = input('是否直接购买装备？(y/N)：').strip()
+                if choice.upper() != 'Y':
+                    return
+                selected = found[0]
+                if len(found) > 1:
+                    print('[选择购买装备]')
+                    for menu_idx, item in enumerate(found, start=1):
+                        print(f'{menu_idx}. {item["description"]}')
+                    choice = input('请选择要购买的装备：').strip()
+                    if (not choice.isdigit()
+                            or not 1 <= int(choice) <= len(found)):
+                        print('无效选择，已取消购买！')
+                        return
+                    selected = found[int(choice) - 1]
+                payload_buy = {
+                    'data': {
+                        'Record': {
+                            #'_id': selected['record_id'],
+                            'StaticID': 'RainbowStarSourceBox10',
+                        },
+                        'Count': 1,
+                        'ItemIndex': selected['item_index'],
+                        'AID': aid,
+                        'SessionID': session_id,
+                    },
+                    'route': 'StoreHandler.BuyCommodity',
+                }
+                send(payload_buy)
+                print(f'购买成功：{selected["description"]}')
+                return
             else:
                 print('刷新成功！')
         except Exception:
-            print('刷新结束：次数已满！')
+            print('刷新次数已满，或星源不足购买失败！')
             return
 
 # 6. 刷佣兵团周任务
@@ -649,7 +716,7 @@ def main():
             # 刷神秘商店
             4: lambda: run_secret(aid, session_id, secrets),
             # 刷星源商店
-            5: lambda: run_rainbow(aid, session_id),
+            5: lambda: run_rainbow(aid, session_id, data),
             # 刷佣兵团周任务
             6: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度

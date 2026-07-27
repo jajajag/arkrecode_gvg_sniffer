@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
-from utils.helper import data_path, get_role
+from utils.helper import data_path, get_role, resolve_role_ids
 
 RECENT_DAYS = 90
 MILLIS_PER_DAY = 24 * 60 * 60 * 1000
@@ -102,44 +102,6 @@ def load_rounds(conn, since_ts):
             )
         )
     return rounds
-
-def role_candidates(query, known_role_ids):
-    folded_query = query.casefold()
-    # 1. First try exact match on role ID
-    if query in known_role_ids:
-        return [(query, get_role(query))]
-    # 2. Then try exact match on role name
-    exact = [
-        (role_id, get_role(role_id))
-        for role_id in known_role_ids
-        if get_role(role_id).casefold() == folded_query
-    ]
-    if exact:
-        return exact
-    # 3. Finally try substring match on role name
-    result = [
-        (role_id, get_role(role_id))
-        for role_id in known_role_ids
-        if folded_query in get_role(role_id).casefold()
-    ]
-    return sorted(result, key=lambda item: (len(item[1]), item[1], item[0]))
-
-def resolve_roles(queries, known_role_ids):
-    resolved = []
-    for query in queries:
-        matches = role_candidates(query, known_role_ids)
-        if len(matches) != 1:
-            print(f'「{query}」匹配到 {len(matches)} 个角色，无法唯一确定:')
-            for role_id, name in matches[:30]:
-                print(f'  {role_id}\t{name}')
-            if len(matches) > 30:
-                print(f'  ... 还有 {len(matches) - 30} 个')
-            return None
-        resolved.append(matches[0][0])
-    if len(set(resolved)) != len(resolved):
-        print('三个输入解析到了重复角色，请重新输入。')
-        return None
-    return sorted_team(resolved)
 
 def group_rows(rows, key_func):
     grouped = defaultdict(list)
@@ -242,9 +204,10 @@ def main(argv=None):
             conn.close()
     known_role_ids = {role_id for row in rounds \
             for role_id in (*row.atk, *row.defense)}
-    target = resolve_roles(queries, known_role_ids)
-    if target is None:
+    target_role_ids = resolve_role_ids(queries, known_role_ids)
+    if target_role_ids is None:
         return 1
+    target = sorted_team(target_role_ids)
     print_meta(rounds, target)
     return 0
 
