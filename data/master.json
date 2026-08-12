@@ -790,11 +790,14 @@
     "T_Item_Name_E0461": "蜂蜜酒",
     "T_Item_Name_E0462": "紧急消防栓",
     "T_Item_Name_E0463": "辟魔的发绳",
+    "T_Item_Name_E0464": "春湖玉露璫",
+    "T_Item_Name_E0465": "超星辰号模型",
     "T_Item_Name_E0501": "一周年纪念戒指",
     "T_Item_Name_E0502": "1.5周年纪念项鍊",
     "T_Item_Name_E0503": "RTA2025S1纪念戒指",
     "T_Item_Name_E0504": "二周年纪念戒指",
     "T_Item_Name_E0505": "2.5周年纪念项鍊",
+    "T_Item_Name_E0506": "RTA2026S2纪念项鍊",
     "T_Item_Name_E0601": "炼製匕首",
     "T_Item_Name_E0602": "炼製头盔",
     "T_Item_Name_E0603": "炼製铠甲",
@@ -1025,6 +1028,18 @@
     "T_Item_Name_E1104": "怪谈之扼",
     "T_Item_Name_E1105": "怪谈之缚",
     "T_Item_Name_E1106": "怪谈之终",
+    "T_Item_Name_E1111": "锦绣荷包",
+    "T_Item_Name_E1112": "蒐藏者的发钿",
+    "T_Item_Name_E1113": "蒐藏者的裘衣",
+    "T_Item_Name_E1114": "蒐藏者的底蕴",
+    "T_Item_Name_E1115": "蒐藏者的隐喻",
+    "T_Item_Name_E1116": "蒐藏者的漫步",
+    "T_Item_Name_E1121": "宣告胜利之旗",
+    "T_Item_Name_E1122": "飞驰者的遮阳镜",
+    "T_Item_Name_E1123": "飞驰者的紧身衣",
+    "T_Item_Name_E1124": "飞驰者的支撑",
+    "T_Item_Name_E1125": "飞驰者的幸运",
+    "T_Item_Name_E1126": "飞驰者的跑道",
     "T_Item_Name_E2001": "慈爱的斗技者长枪",
     "T_Item_Name_E2002": "慈爱的斗技者头盔",
     "T_Item_Name_E2003": "慈爱的斗技者铠甲",
@@ -1061,6 +1076,36 @@
     "T_Item_Name_E4014": "救赎者的应允",
     "T_Item_Name_E4015": "救赎者的拥抱",
     "T_Item_Name_E4016": "救赎者的道路",
+    "T_Item_Name_E4021": "进击的熊战士拳套",
+    "T_Item_Name_E4022": "进击的熊战士头盔",
+    "T_Item_Name_E4023": "进击的熊战士铠甲",
+    "T_Item_Name_E4024": "进击的熊战士项鍊",
+    "T_Item_Name_E4025": "进击的熊战士戒指",
+    "T_Item_Name_E4026": "进击的熊战士靴子",
+    "T_Item_Name_E4031": "进击的破浪者之戟",
+    "T_Item_Name_E4032": "进击的破浪者头盔",
+    "T_Item_Name_E4033": "进击的破浪者铠甲",
+    "T_Item_Name_E4034": "进击的破浪者项鍊",
+    "T_Item_Name_E4035": "进击的破浪者戒指",
+    "T_Item_Name_E4036": "进击的破浪者靴子",
+    "T_Item_Name_E4041": "进击的悲悯斩首斧",
+    "T_Item_Name_E4042": "进击的悲悯头盔",
+    "T_Item_Name_E4043": "进击的悲悯铠甲",
+    "T_Item_Name_E4044": "进击的悲悯项鍊",
+    "T_Item_Name_E4045": "进击的悲悯戒指",
+    "T_Item_Name_E4046": "进击的悲悯靴子",
+    "T_Item_Name_E4051": "进击的狮子王巨剑",
+    "T_Item_Name_E4052": "进击的狮子王头盔",
+    "T_Item_Name_E4053": "进击的狮子王铠甲",
+    "T_Item_Name_E4054": "进击的狮子王项鍊",
+    "T_Item_Name_E4055": "进击的狮子王戒指",
+    "T_Item_Name_E4056": "进击的狮子王靴子",
+    "T_Item_Name_E4061": "进击的渴望者之弓",
+    "T_Item_Name_E4062": "进击的渴望者头盔",
+    "T_Item_Name_E4063": "进击的渴望者铠甲",
+    "T_Item_Name_E4064": "进击的渴望者项鍊",
+    "T_Item_Name_E4065": "进击的渴望者戒指",
+    "T_Item_Name_E4066": "进击的渴望者靴子",
     "T_Item_Name_EC11": "下级武器强化芯片",
     "T_Item_Name_EC12": "上级武器强化芯片",
     "T_Item_Name_EC13": "传说武器强化芯片",
@@ -1152,6 +1197,11 @@
     "T_Item_Name_Frame058": "典雅闪耀",
     "T_Item_Name_Frame059": "撼心节奏",
     "T_Item_Name_Frame060": "时光机器",
+    "T_Item_Name_Frame061": "【巅峰竞技场S2】赛季框 I",
+    "T_Item_Name_Frame062": "【巅峰竞技场S2】赛季框 II",
+    "T_Item_Name_Frame063": "【巅峰竞技场S2】赛季框 III",
+    "T_Item_Name_Frame064": "【巅峰竞技场S2】赛季框 IV",
+    "T_Item_Name_Frame065": "【巅峰竞技场S2】赛季框 V",
     "T_Item_Name_GIFTCustomAEquip": "Lv85饰品自选箱(传说级别)",
     "T_Item_Name_GIFTCustomEquip": "Lv85装备自选箱(传说级别)",
     "T_Item_Name_GIFTVIP0": "VIP0礼包",
@@ -1417,6 +1467,7 @@
     "T_Item_Name_HSPS11": "状态抗性转换元件",
     "T_Item_Name_LARC": "下级饰品重置元件",
     "T_Item_Name_LERC": "下级装备重置元件",
+    "T_Item_Name_LimitBox": "超越素材选择箱",
     "T_Item_Name_M0011": "变异烈火狼",
     "T_Item_Name_M0012": "变异雪原狼",
     "T_Item_Name_M0013": "变异殭尸狼",
@@ -32605,6 +32656,14 @@
       "ID": "252",
       "Name": "T_Item_Name_228"
     },
+    "253": {
+      "ID": "253",
+      "Name": "T_Item_Name_228"
+    },
+    "254": {
+      "ID": "254",
+      "Name": "T_Item_Name_241"
+    },
     "301": {
       "ID": "301",
       "Name": "T_Item_Name_301"
@@ -35857,6 +35916,14 @@
       "ID": "E0463",
       "Name": "T_Item_Name_E0463"
     },
+    "E0464": {
+      "ID": "E0464",
+      "Name": "T_Item_Name_E0464"
+    },
+    "E0465": {
+      "ID": "E0465",
+      "Name": "T_Item_Name_E0465"
+    },
     "E0501": {
       "ID": "E0501",
       "Name": "T_Item_Name_E0501"
@@ -35876,6 +35943,10 @@
     "E0505": {
       "ID": "E0505",
       "Name": "T_Item_Name_E0505"
+    },
+    "E0506": {
+      "ID": "E0506",
+      "Name": "T_Item_Name_E0506"
     },
     "E0601": {
       "ID": "E0601",
@@ -36893,6 +36964,54 @@
       "ID": "E1106",
       "Name": "T_Item_Name_E1106"
     },
+    "E1111": {
+      "ID": "E1111",
+      "Name": "T_Item_Name_E1111"
+    },
+    "E1112": {
+      "ID": "E1112",
+      "Name": "T_Item_Name_E1112"
+    },
+    "E1113": {
+      "ID": "E1113",
+      "Name": "T_Item_Name_E1113"
+    },
+    "E1114": {
+      "ID": "E1114",
+      "Name": "T_Item_Name_E1114"
+    },
+    "E1115": {
+      "ID": "E1115",
+      "Name": "T_Item_Name_E1115"
+    },
+    "E1116": {
+      "ID": "E1116",
+      "Name": "T_Item_Name_E1116"
+    },
+    "E1121": {
+      "ID": "E1121",
+      "Name": "T_Item_Name_E1121"
+    },
+    "E1122": {
+      "ID": "E1122",
+      "Name": "T_Item_Name_E1122"
+    },
+    "E1123": {
+      "ID": "E1123",
+      "Name": "T_Item_Name_E1123"
+    },
+    "E1124": {
+      "ID": "E1124",
+      "Name": "T_Item_Name_E1124"
+    },
+    "E1125": {
+      "ID": "E1125",
+      "Name": "T_Item_Name_E1125"
+    },
+    "E1126": {
+      "ID": "E1126",
+      "Name": "T_Item_Name_E1126"
+    },
     "E2001": {
       "ID": "E2001",
       "Name": "T_Item_Name_E2001"
@@ -37157,6 +37276,126 @@
       "ID": "E4016",
       "Name": "T_Item_Name_E4016"
     },
+    "E4021": {
+      "ID": "E4021",
+      "Name": "T_Item_Name_E4021"
+    },
+    "E4022": {
+      "ID": "E4022",
+      "Name": "T_Item_Name_E4022"
+    },
+    "E4023": {
+      "ID": "E4023",
+      "Name": "T_Item_Name_E4023"
+    },
+    "E4024": {
+      "ID": "E4024",
+      "Name": "T_Item_Name_E4024"
+    },
+    "E4025": {
+      "ID": "E4025",
+      "Name": "T_Item_Name_E4025"
+    },
+    "E4026": {
+      "ID": "E4026",
+      "Name": "T_Item_Name_E4026"
+    },
+    "E4031": {
+      "ID": "E4031",
+      "Name": "T_Item_Name_E4031"
+    },
+    "E4032": {
+      "ID": "E4032",
+      "Name": "T_Item_Name_E4032"
+    },
+    "E4033": {
+      "ID": "E4033",
+      "Name": "T_Item_Name_E4033"
+    },
+    "E4034": {
+      "ID": "E4034",
+      "Name": "T_Item_Name_E4034"
+    },
+    "E4035": {
+      "ID": "E4035",
+      "Name": "T_Item_Name_E4035"
+    },
+    "E4036": {
+      "ID": "E4036",
+      "Name": "T_Item_Name_E4036"
+    },
+    "E4041": {
+      "ID": "E4041",
+      "Name": "T_Item_Name_E4041"
+    },
+    "E4042": {
+      "ID": "E4042",
+      "Name": "T_Item_Name_E4042"
+    },
+    "E4043": {
+      "ID": "E4043",
+      "Name": "T_Item_Name_E4043"
+    },
+    "E4044": {
+      "ID": "E4044",
+      "Name": "T_Item_Name_E4044"
+    },
+    "E4045": {
+      "ID": "E4045",
+      "Name": "T_Item_Name_E4045"
+    },
+    "E4046": {
+      "ID": "E4046",
+      "Name": "T_Item_Name_E4046"
+    },
+    "E4051": {
+      "ID": "E4051",
+      "Name": "T_Item_Name_E4051"
+    },
+    "E4052": {
+      "ID": "E4052",
+      "Name": "T_Item_Name_E4052"
+    },
+    "E4053": {
+      "ID": "E4053",
+      "Name": "T_Item_Name_E4053"
+    },
+    "E4054": {
+      "ID": "E4054",
+      "Name": "T_Item_Name_E4054"
+    },
+    "E4055": {
+      "ID": "E4055",
+      "Name": "T_Item_Name_E4055"
+    },
+    "E4056": {
+      "ID": "E4056",
+      "Name": "T_Item_Name_E4056"
+    },
+    "E4061": {
+      "ID": "E4061",
+      "Name": "T_Item_Name_E4061"
+    },
+    "E4062": {
+      "ID": "E4062",
+      "Name": "T_Item_Name_E4062"
+    },
+    "E4063": {
+      "ID": "E4063",
+      "Name": "T_Item_Name_E4063"
+    },
+    "E4064": {
+      "ID": "E4064",
+      "Name": "T_Item_Name_E4064"
+    },
+    "E4065": {
+      "ID": "E4065",
+      "Name": "T_Item_Name_E4065"
+    },
+    "E4066": {
+      "ID": "E4066",
+      "Name": "T_Item_Name_E4066"
+    },
     "EH1281": {
       "ID": "EH1281",
       "Name": "T_Item_Name_EH1281"
@@ -37412,6 +37651,10 @@
     "B01": {
       "ID": "B01",
       "Name": "T_Item_Name_B01"
+    },
+    "LimitBox": {
+      "ID": "LimitBox",
+      "Name": "T_Item_Name_LimitBox"
     },
     "B001": {
       "ID": "B001",
@@ -38724,6 +38967,26 @@
     "Frame060": {
       "ID": "Frame060",
       "Name": "T_Item_Name_Frame060"
+    },
+    "Frame061": {
+      "ID": "Frame061",
+      "Name": "T_Item_Name_Frame061"
+    },
+    "Frame062": {
+      "ID": "Frame062",
+      "Name": "T_Item_Name_Frame062"
+    },
+    "Frame063": {
+      "ID": "Frame063",
+      "Name": "T_Item_Name_Frame063"
+    },
+    "Frame064": {
+      "ID": "Frame064",
+      "Name": "T_Item_Name_Frame064"
+    },
+    "Frame065": {
+      "ID": "Frame065",
+      "Name": "T_Item_Name_Frame065"
     },
     "TIME01": {
       "ID": "TIME01",
@@ -116373,6 +116636,10 @@
       "ID": "RTASeasonTest2",
       "Type": "RTASeason"
     },
+    "RTASeasonS2Test": {
+      "ID": "RTASeasonS2Test",
+      "Type": "RTASeason"
+    },
     "RTASeasonS1": {
       "ID": "RTASeasonS1",
       "Type": "RTASeason"
@@ -117825,6 +118092,10 @@
       "ID": "GIFTFESRTAH44",
       "Type": "Gift"
     },
+    "GIFTFESRTAS2": {
+      "ID": "GIFTFESRTAS2",
+      "Type": "Gift"
+    },
     "Carnival01": {
       "ID": "Carnival01",
       "Type": "Carnival"
@@ -118755,6 +119026,14 @@
     },
     "GIFTFESH174_4": {
       "ID": "GIFTFESH174_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH175": {
+      "ID": "GIFTFESH175",
+      "Type": "Gift"
+    },
+    "GIFTFESH175_3": {
+      "ID": "GIFTFESH175_3",
       "Type": "Gift"
     },
     "GIFTFESH175_4": {
@@ -121415,6 +121694,10 @@
     },
     "RTASeasonSouvenirEroS2": {
       "ID": "RTASeasonSouvenirEroS2",
+      "Type": ""
+    },
+    "RTASeasonSouvenirEroS3": {
+      "ID": "RTASeasonSouvenirEroS3",
       "Type": ""
     },
     "RTASeasonSouvenirNutakuS1": {
