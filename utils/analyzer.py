@@ -289,7 +289,7 @@ def analyze_pvp_equips(data, db_path=None):
 
                 main_prop = equip['MainProp']
                 # Pad subprops to ensure we have 4 entries
-                subprops = equip['SubProps']['SourceValues']
+                subprops = (equip.get('SubProps') or {}).get('SourceValues') or []
                 subprops = (subprops + [{}] * 4)[:4]
 
                 conn.execute('''
