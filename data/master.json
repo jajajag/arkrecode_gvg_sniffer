@@ -247,7 +247,7 @@
     "T_Item_Name_A0377": "少女的心机",
     "T_Item_Name_A0380": "晨间的呵护",
     "T_Item_Name_A0386": "炎热和沁凉",
-    "T_Item_Name_A0389": "A0389",
+    "T_Item_Name_A0389": "欲擒和故纵",
     "T_Item_Name_A0392": "温煦的午后",
     "T_Item_Name_A0395": "A0395",
     "T_Item_Name_A0398": "A0398",
@@ -116544,6 +116544,10 @@
       "ID": "ActivitySignInH604",
       "Type": "SignIn"
     },
+    "ActivitySignInH605": {
+      "ID": "ActivitySignInH605",
+      "Type": "SignIn"
+    },
     "ActivitySignInH606": {
       "ID": "ActivitySignInH606",
       "Type": "SignIn"
@@ -118840,6 +118844,10 @@
       "ID": "GIFTActivityH604",
       "Type": "Gift"
     },
+    "GIFTActivityH605": {
+      "ID": "GIFTActivityH605",
+      "Type": "Gift"
+    },
     "GIFTActivityH606": {
       "ID": "GIFTActivityH606",
       "Type": "Gift"
@@ -119158,6 +119166,18 @@
     },
     "GIFTFESH604_4": {
       "ID": "GIFTFESH604_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH605": {
+      "ID": "GIFTFESH605",
+      "Type": "Gift"
+    },
+    "GIFTFESH605_3": {
+      "ID": "GIFTFESH605_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH605_4": {
+      "ID": "GIFTFESH605_4",
       "Type": "Gift"
     },
     "GIFTFESH606": {
@@ -119866,6 +119886,54 @@
     },
     "Memory24": {
       "ID": "Memory24",
+      "Type": "MemoryActiviy"
+    },
+    "Memory25": {
+      "ID": "Memory25",
+      "Type": "MemoryActiviy"
+    },
+    "Memory26": {
+      "ID": "Memory26",
+      "Type": "MemoryActiviy"
+    },
+    "Memory27": {
+      "ID": "Memory27",
+      "Type": "MemoryActiviy"
+    },
+    "Memory28": {
+      "ID": "Memory28",
+      "Type": "MemoryActiviy"
+    },
+    "Memory29": {
+      "ID": "Memory29",
+      "Type": "MemoryActiviy"
+    },
+    "Memory30": {
+      "ID": "Memory30",
+      "Type": "MemoryActiviy"
+    },
+    "Memory31": {
+      "ID": "Memory31",
+      "Type": "MemoryActiviy"
+    },
+    "Memory32": {
+      "ID": "Memory32",
+      "Type": "MemoryActiviy"
+    },
+    "Memory33": {
+      "ID": "Memory33",
+      "Type": "MemoryActiviy"
+    },
+    "Memory34": {
+      "ID": "Memory34",
+      "Type": "MemoryActiviy"
+    },
+    "Memory35": {
+      "ID": "Memory35",
+      "Type": "MemoryActiviy"
+    },
+    "Memory36": {
+      "ID": "Memory36",
       "Type": "MemoryActiviy"
     },
     "MonthBattlePass01": {
