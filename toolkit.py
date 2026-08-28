@@ -6,7 +6,7 @@ from utils.battle_runner import choose_login_team, login_teams, next_realm_floor
 from utils.battle_runner import choose_login_teams, MASTER_DB
 from utils.battle_runner import run_auto_battles
 from utils.equips import match_equip
-from utils.helper import get_event, get_role
+from utils.helper import get_event, get_npc_camp, get_role
 from utils.login_helper import choose_account, get_login_version, load_accounts
 from utils.login_helper import run_bulletin, run_login, send
 from utils.master import ensure_master_db
@@ -237,23 +237,49 @@ def run_npc_ticket(aid, session_id, npc):
     payload = {
         'data':{
             'NPCSceneID': f'HellNPC_{npc}',
+            'IsRevenge': 0,
             'AID': aid,
             'SessionID': session_id
         },
         'route': 'PVPHandler.PVPCheckTicket'
     }
     # Spend ticket
-    send(payload)
+    return send(payload)
 
-def run_npc_battle(aid, session_id, npc, camp):
+def npc_battle_end_data(camp, enemy_camp):
+    enemy_roles = enemy_camp.get('PositionRoleMap') or {}
+    return {
+        'StartBattleInfo': {
+            'SceneData': {
+                'StaticID': 'PVP',
+                'Stars': [0, 0, 0],
+                'PassCount': 0,
+            },
+            'CampData1': camp,
+            'CampData2': enemy_camp,
+            'IsRestart': 0,
+            'Round': 0,
+            'GM_Wave': 0,
+            'IsRepeatAuto': 0,
+            'BattleCountDown': -1,
+            'IsNPCPVP': 1,
+        },
+        'Camp2DeadList': [
+            role['_id'] for _, role in sorted(enemy_roles.items())
+        ],
+        'Result': 'Win',
+        'TurnRole': 0,
+        'FinishWave': 0,
+    }
+
+
+def run_npc_battle(aid, session_id, npc, camp, enemy_log_id, enemy_camp):
     payload = {
         'data': {
-            # We use fixed NPC ID
             'NPCSceneID': f'HellNPC_{npc}',
-            'EndData': {
-                'StartBattleInfo': {'CampData1': camp},
-                'Result': 'Win',
-            },
+            'IsRevenge': 0,
+            'EnemyLogID': enemy_log_id,
+            'EndData': npc_battle_end_data(camp, enemy_camp),
             'AID': aid,
             'SessionID': session_id
         },
@@ -294,8 +320,20 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
                 targets = selected
     try:
         for npc in targets:
-            run_npc_ticket(aid, session_id, npc)
-            data = run_npc_battle(aid, session_id, npc, first_team)
+            ticket = run_npc_ticket(aid, session_id, npc)
+            enemy_log_id = (ticket or {}).get('LogID')
+            enemy_camp = get_npc_camp(f'HellNPC_{npc}', MASTER_DB)
+            if not enemy_log_id or not enemy_camp:
+                print(f'NPC {npc} 挑战失败：无法获取对手战斗数据！')
+                continue
+            data = run_npc_battle(
+                aid,
+                session_id,
+                npc,
+                first_team,
+                enemy_log_id,
+                enemy_camp,
+            )
             npc_list[npc] = float('inf')
             print(f'NPC {npc} 挑战{"成功" if data["IsWin"] else "失败"}！')
     except Exception:

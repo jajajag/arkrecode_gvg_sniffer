@@ -3,7 +3,9 @@ import json
 import math
 from pathlib import Path
 import re
+import sqlite3
 import sys
+import uuid
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
@@ -438,15 +440,100 @@ def get_activity_scene_ids(pickup):
 
 def parse_team(raw):
     members = []
-    for match in re.finditer(
-            r'M:"(?P<sid>[^"]+)"[^}]*?Pos:(?P<pos>\d+)[^}]*?LV:(?P<lv>\d+)',
-            raw or ""):
+    for item in re.findall(r'\{[^{}]*M:"[^"]+"[^{}]*\}', raw or ''):
+        match = re.search(
+            r'M:"(?P<sid>[^"]+)"[^}]*?Pos:(?P<pos>\d+)'
+            r'[^}]*?LV:(?P<lv>\d+)',
+            item,
+        )
+        if not match:
+            continue
+        artifact = re.search(r'ArtifactID:"(?P<id>[^"]+)"', item)
+        artifact_lv = re.search(r'ArtifactLV:(?P<lv>\d+)', item)
         members.append({
             'sid': match.group('sid'),
             'pos': int(match.group('pos')),
             'lv': int(match.group('lv')),
+            'artifact_id': artifact.group('id') if artifact else '',
+            'artifact_lv': int(
+                artifact_lv.group('lv') if artifact_lv else 1),
         })
     return members
+
+
+def _npc_role(static_id, lv=60, artifact_id='', artifact_lv=1,
+              skill_ids=None):
+    role = {
+        '_id': str(uuid.uuid4()),
+        'StaticID': str(static_id or ''),
+        'Exp': 0,
+        'LV': intv(lv, 60),
+        'AwakenLV': 0,
+        'AwakenValue': 0,
+        'Star': 6,
+        'ImprintLV': 0,
+        'Locks': [],
+        'IsLock': 0,
+        'IsFavorite': 0,
+        'IsSelfImprintOpen': 0,
+        'IsDispatched': 0,
+        'IsSelfImprint': 0,
+        'Skills': {'Skills': [
+            {'Level': 1, 'StaticID': skill_id}
+            for skill_id in (skill_ids or [])
+        ]},
+    }
+    if artifact_id:
+        role['ArtifactData'] = {
+            '_id': '',
+            'StaticID': artifact_id,
+            'Exp': 0,
+            'LV': intv(artifact_lv, 1),
+            'Enhance': 0,
+            'IsLock': 0,
+            'IsNew': 1,
+        }
+    return role
+
+
+def get_npc_camp(scene_id, db_path=None):
+    db_path = Path(db_path) if db_path else data_path('master.db')
+    if not db_path.is_file():
+        return None
+    try:
+        conn = sqlite3.connect(str(db_path))
+        try:
+            row = conn.execute(
+                'SELECT WaveInfoJsonString FROM Scene WHERE ID=?',
+                (scene_id,),
+            ).fetchone()
+            members = parse_team(row[0]) if row else []
+            if not members:
+                return None
+            role_map = {}
+            for member in members:
+                role_sid = member['sid'].removeprefix('PVP')
+                skill_ids = [
+                    str(skill[0]) for skill in conn.execute(
+                        'SELECT ID FROM Skill WHERE ID LIKE ? ORDER BY ID',
+                        (f'{role_sid}S%',),
+                    )
+                ]
+                role_map[str(member['pos'])] = _npc_role(
+                    member['sid'],
+                    member['lv'],
+                    member['artifact_id'],
+                    member['artifact_lv'],
+                    skill_ids,
+                )
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return None
+    return {
+        'Name': '方舟α维安小队',
+        'PositionRoleMap': role_map,
+    }
 
 def get_activity_npc_pos_maps(pickup):
     prefix = f'B{pickup}_1_'
