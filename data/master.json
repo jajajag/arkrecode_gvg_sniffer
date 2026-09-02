@@ -259,7 +259,7 @@
     "T_Item_Name_A0416": "A0416",
     "T_Item_Name_A0419": "刹那的拥有",
     "T_Item_Name_A0422": "斗室的抚触",
-    "T_Item_Name_A0425": "A0425",
+    "T_Item_Name_A0425": "调情的夜车",
     "T_Item_Name_A0434": "近岸轻撩时",
     "T_Item_Name_A0437": "午后的私厨",
     "T_Item_Name_A0440": "A0440",
@@ -267,7 +267,7 @@
     "T_Item_Name_A0452": "温和的拷问",
     "T_Item_Name_A0455": "A0455",
     "T_Item_Name_A0458": "A0458",
-    "T_Item_Name_A0461": "A0461",
+    "T_Item_Name_A0461": "羞耻的自抚",
     "T_Item_Name_A0473": "A0473",
     "T_Item_Name_A0476": "A0476",
     "T_Item_Name_A0479": "A0479",
@@ -349,6 +349,7 @@
     "T_Item_Name_AH606": "热呼呼的鲷鱼烧",
     "T_Item_Name_AH612": "教义疑问集",
     "T_Item_Name_AH613": "红色扶桑花",
+    "T_Item_Name_AH804": "玩具弓箭",
     "T_Item_Name_B001": "每日成就奖励箱",
     "T_Item_Name_B007": "每周成就奖励箱",
     "T_Item_Name_B01": "测试箱子",
@@ -465,6 +466,8 @@
     "T_Item_Name_Background156": "废弃孵化室",
     "T_Item_Name_Background157": "花园",
     "T_Item_Name_Background16": "监测实验室",
+    "T_Item_Name_Background161": "高级住宅区",
+    "T_Item_Name_Background162": "高级商店街",
     "T_Item_Name_Background17": "星源室",
     "T_Item_Name_Background18": "监测实验室(毁坏)",
     "T_Item_Name_Background19": "星源矿区",
@@ -792,6 +795,7 @@
     "T_Item_Name_E0463": "辟魔的发绳",
     "T_Item_Name_E0464": "春湖玉露璫",
     "T_Item_Name_E0465": "超星辰号模型",
+    "T_Item_Name_E0467": "小闆娘的冲动",
     "T_Item_Name_E0501": "一周年纪念戒指",
     "T_Item_Name_E0502": "1.5周年纪念项鍊",
     "T_Item_Name_E0503": "RTA2025S1纪念戒指",
@@ -1040,6 +1044,12 @@
     "T_Item_Name_E1124": "飞驰者的支撑",
     "T_Item_Name_E1125": "飞驰者的幸运",
     "T_Item_Name_E1126": "飞驰者的跑道",
+    "T_Item_Name_E1141": "小闆娘的心证",
+    "T_Item_Name_E1142": "小闆娘的戒心",
+    "T_Item_Name_E1143": "小闆娘的野望",
+    "T_Item_Name_E1144": "小闆娘的信条",
+    "T_Item_Name_E1145": "小闆娘的攫取",
+    "T_Item_Name_E1146": "小闆娘的奔波",
     "T_Item_Name_E2001": "慈爱的斗技者长枪",
     "T_Item_Name_E2002": "慈爱的斗技者头盔",
     "T_Item_Name_E2003": "慈爱的斗技者铠甲",
@@ -1636,6 +1646,7 @@
     "T_Item_Name_SH612": "空专属潜能",
     "T_Item_Name_SH613": "咲专属潜能",
     "T_Item_Name_SH614": "奥萝拉专属潜能",
+    "T_Item_Name_SH804": "蜜娜专属潜能",
     "T_Item_Name_Sticker01": "测试用预设贴图",
     "T_Item_Name_T01": "团员投票券",
     "T_Item_Name_TEST01": "测试RTA积分",
@@ -1720,6 +1731,7 @@
     "T_Item_Name_TH606": "露娜招募契约",
     "T_Item_Name_TH612": "空招募契约",
     "T_Item_Name_TH613": "咲招募契约",
+    "T_Item_Name_TH804": "蜜娜招募契约",
     "T_Item_Name_THMulti": "组合招募契约",
     "T_Item_Name_TIME01": "100个钻石 (10天内天天领取)  ",
     "T_Item_Name_TIME02": "免费契约召唤+4次(连续5日)",
@@ -15000,6 +15012,22 @@
       "Attack": "1.15",
       "Defence": "0.95",
       "Speed": "1.05",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH804": {
+      "ID": "AcEH804",
+      "NAME": "T_Role_NAME_H804",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "1",
+      "Defence": "1",
+      "Speed": "1",
       "CriticalRate": "1",
       "CriticalDamageRate": "1",
       "EffectHitRate": "1",
@@ -35924,6 +35952,10 @@
       "ID": "E0465",
       "Name": "T_Item_Name_E0465"
     },
+    "E0467": {
+      "ID": "E0467",
+      "Name": "T_Item_Name_E0467"
+    },
     "E0501": {
       "ID": "E0501",
       "Name": "T_Item_Name_E0501"
@@ -37011,6 +37043,30 @@
     "E1126": {
       "ID": "E1126",
       "Name": "T_Item_Name_E1126"
+    },
+    "E1141": {
+      "ID": "E1141",
+      "Name": "T_Item_Name_E1141"
+    },
+    "E1142": {
+      "ID": "E1142",
+      "Name": "T_Item_Name_E1142"
+    },
+    "E1143": {
+      "ID": "E1143",
+      "Name": "T_Item_Name_E1143"
+    },
+    "E1144": {
+      "ID": "E1144",
+      "Name": "T_Item_Name_E1144"
+    },
+    "E1145": {
+      "ID": "E1145",
+      "Name": "T_Item_Name_E1145"
+    },
+    "E1146": {
+      "ID": "E1146",
+      "Name": "T_Item_Name_E1146"
     },
     "E2001": {
       "ID": "E2001",
@@ -39432,6 +39488,10 @@
       "ID": "TH613",
       "Name": "T_Item_Name_TH613"
     },
+    "TH804": {
+      "ID": "TH804",
+      "Name": "T_Item_Name_TH804"
+    },
     "TH0_5FES": {
       "ID": "TH0_5FES",
       "Name": "T_Item_Name_TH0_5FES"
@@ -39751,6 +39811,10 @@
     "AH613": {
       "ID": "AH613",
       "Name": "T_Item_Name_AH613"
+    },
+    "AH804": {
+      "ID": "AH804",
+      "Name": "T_Item_Name_AH804"
     },
     "GuildHeroExp": {
       "ID": "GuildHeroExp",
@@ -40391,6 +40455,10 @@
     "SH614": {
       "ID": "SH614",
       "Name": "T_Item_Name_SH614"
+    },
+    "SH804": {
+      "ID": "SH804",
+      "Name": "T_Item_Name_SH804"
     },
     "ChangeName": {
       "ID": "ChangeName",
@@ -87364,6 +87432,36 @@
       "PassiveProp.DynamicField2": "",
       "PassiveProp.DynamicField3": ""
     },
+    "AcEH176S1": {
+      "ID": "AcEH176S1",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH176S2": {
+      "ID": "AcEH176S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH176S3": {
+      "ID": "AcEH176S3",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH176S4": {
+      "ID": "AcEH176S4",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcBH152_H804S2": {
+      "ID": "AcBH152_H804S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
     "F_Special": {
       "ID": "F_Special",
       "PassiveProp.DynamicField1": "",
@@ -116560,6 +116658,10 @@
       "ID": "ActivitySignInH613",
       "Type": "SignIn"
     },
+    "ActivitySignInH804": {
+      "ID": "ActivitySignInH804",
+      "Type": "SignIn"
+    },
     "ActivitySignIn2024MoonFes": {
       "ID": "ActivitySignIn2024MoonFes",
       "Type": "SignIn"
@@ -118860,6 +118962,10 @@
       "ID": "GIFTActivityH613",
       "Type": "Gift"
     },
+    "GIFTActivityH804": {
+      "ID": "GIFTActivityH804",
+      "Type": "Gift"
+    },
     "GIFTActivity0_5FES": {
       "ID": "GIFTActivity0_5FES",
       "Type": "Gift"
@@ -119216,6 +119322,18 @@
       "ID": "GIFTFESH613_4",
       "Type": "Gift"
     },
+    "GIFTFESH804": {
+      "ID": "GIFTFESH804",
+      "Type": "Gift"
+    },
+    "GIFTFESH804_3": {
+      "ID": "GIFTFESH804_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH804_4": {
+      "ID": "GIFTFESH804_4",
+      "Type": "Gift"
+    },
     "GIFTFESH169": {
       "ID": "GIFTFESH169",
       "Type": "Gift"
@@ -119386,6 +119504,10 @@
     },
     "GIFTFesValentineH176": {
       "ID": "GIFTFesValentineH176",
+      "Type": "Gift"
+    },
+    "GIFTFes2026MoonFes": {
+      "ID": "GIFTFes2026MoonFes",
       "Type": "Gift"
     },
     "GIFTSPCH3_1": {
@@ -120524,6 +120646,10 @@
       "ID": "BranchH613",
       "Type": "SideStory"
     },
+    "BranchH804": {
+      "ID": "BranchH804",
+      "Type": "SideStory"
+    },
     "CustomizedCraft": {
       "ID": "CustomizedCraft",
       "Type": "CustomizedCraft"
@@ -121162,6 +121288,10 @@
     },
     "Version_H613": {
       "ID": "Version_H613",
+      "Type": "Function"
+    },
+    "Version_H804": {
+      "ID": "Version_H804",
       "Type": "Function"
     },
     "Version_H809": {
@@ -122142,6 +122272,10 @@
     },
     "MemoryH614": {
       "ID": "MemoryH614",
+      "Type": "MemoryActiviy"
+    },
+    "MemoryH804": {
+      "ID": "MemoryH804",
       "Type": "MemoryActiviy"
     }
   },
@@ -131667,6 +131801,78 @@
       {
         "Chapter": "BranchH613",
         "ID": "BH613_1_14",
+        "MyCampTeam": ""
+      }
+    ],
+    "BranchH804": [
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_1",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_2",
+        "MyCampTeam": "{Ms:[{M:\"AcStoryH804\",Pos:1,LV:60}]}"
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_3",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_4",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_5",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_6",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_7",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_8",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_9",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_10",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_11",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_12",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_13",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH804",
+        "ID": "BH804_1_14",
         "MyCampTeam": ""
       }
     ]
