@@ -3,7 +3,6 @@ import json
 import math
 from pathlib import Path
 import re
-import sqlite3
 import sys
 import uuid
 
@@ -497,6 +496,7 @@ def _npc_role(static_id, lv=60, artifact_id='', artifact_lv=1,
 
 
 def get_npc_camp(scene_id, db_path=None):
+    import sqlite3
     db_path = Path(db_path) if db_path else data_path('master.db')
     if not db_path.is_file():
         return None

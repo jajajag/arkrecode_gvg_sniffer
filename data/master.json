@@ -795,6 +795,7 @@
     "T_Item_Name_E0463": "辟魔的发绳",
     "T_Item_Name_E0464": "春湖玉露璫",
     "T_Item_Name_E0465": "超星辰号模型",
+    "T_Item_Name_E0466": "海之女僕的清算",
     "T_Item_Name_E0467": "小闆娘的冲动",
     "T_Item_Name_E0501": "一周年纪念戒指",
     "T_Item_Name_E0502": "1.5周年纪念项鍊",
@@ -1044,6 +1045,12 @@
     "T_Item_Name_E1124": "飞驰者的支撑",
     "T_Item_Name_E1125": "飞驰者的幸运",
     "T_Item_Name_E1126": "飞驰者的跑道",
+    "T_Item_Name_E1131": "海之女僕的香醇",
+    "T_Item_Name_E1132": "海之女僕的精明",
+    "T_Item_Name_E1133": "海之女僕的决意",
+    "T_Item_Name_E1134": "海之女僕的端正",
+    "T_Item_Name_E1135": "海之女僕的行仪",
+    "T_Item_Name_E1136": "海之女僕的克己",
     "T_Item_Name_E1141": "小闆娘的心证",
     "T_Item_Name_E1142": "小闆娘的戒心",
     "T_Item_Name_E1143": "小闆娘的野望",
@@ -14948,6 +14955,38 @@
       "Attack": "1.15",
       "Defence": "1",
       "Speed": "0.95",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH193": {
+      "ID": "AcEH193",
+      "NAME": "T_Role_NAME_H193",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.85",
+      "Defence": "1.15",
+      "Speed": "0.9",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH193_H218": {
+      "ID": "AcEH193_H218",
+      "NAME": "T_Role_NAME_H193",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.2",
+      "Attack": "0.85",
+      "Defence": "1.15",
+      "Speed": "0.9",
       "CriticalRate": "1",
       "CriticalDamageRate": "1",
       "EffectHitRate": "1",
@@ -35952,6 +35991,10 @@
       "ID": "E0465",
       "Name": "T_Item_Name_E0465"
     },
+    "E0466": {
+      "ID": "E0466",
+      "Name": "T_Item_Name_E0466"
+    },
     "E0467": {
       "ID": "E0467",
       "Name": "T_Item_Name_E0467"
@@ -37043,6 +37086,30 @@
     "E1126": {
       "ID": "E1126",
       "Name": "T_Item_Name_E1126"
+    },
+    "E1131": {
+      "ID": "E1131",
+      "Name": "T_Item_Name_E1131"
+    },
+    "E1132": {
+      "ID": "E1132",
+      "Name": "T_Item_Name_E1132"
+    },
+    "E1133": {
+      "ID": "E1133",
+      "Name": "T_Item_Name_E1133"
+    },
+    "E1134": {
+      "ID": "E1134",
+      "Name": "T_Item_Name_E1134"
+    },
+    "E1135": {
+      "ID": "E1135",
+      "Name": "T_Item_Name_E1135"
+    },
+    "E1136": {
+      "ID": "E1136",
+      "Name": "T_Item_Name_E1136"
     },
     "E1141": {
       "ID": "E1141",
@@ -87462,6 +87529,18 @@
       "PassiveProp.DynamicField2": "",
       "PassiveProp.DynamicField3": ""
     },
+    "AcEH193S1": {
+      "ID": "AcEH193S1",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH193S2": {
+      "ID": "AcEH193S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
     "F_Special": {
       "ID": "F_Special",
       "PassiveProp.DynamicField1": "",
@@ -116634,6 +116713,10 @@
       "ID": "ActivitySignInH192",
       "Type": "SignIn"
     },
+    "ActivitySignInH193": {
+      "ID": "ActivitySignInH193",
+      "Type": "SignIn"
+    },
     "ActivitySignInH602": {
       "ID": "ActivitySignInH602",
       "Type": "SignIn"
@@ -118934,6 +119017,10 @@
       "ID": "GIFTActivityH192",
       "Type": "Gift"
     },
+    "GIFTActivityH193": {
+      "ID": "GIFTActivityH193",
+      "Type": "Gift"
+    },
     "GIFTActivityH601": {
       "ID": "GIFTActivityH601",
       "Type": "Gift"
@@ -119248,6 +119335,18 @@
     },
     "GIFTFESH192_5": {
       "ID": "GIFTFESH192_5",
+      "Type": "Gift"
+    },
+    "GIFTFESH193": {
+      "ID": "GIFTFESH193",
+      "Type": "Gift"
+    },
+    "GIFTFESH193_3": {
+      "ID": "GIFTFESH193_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH193_4": {
+      "ID": "GIFTFESH193_4",
       "Type": "Gift"
     },
     "GIFTFESH602": {
@@ -121234,6 +121333,10 @@
       "ID": "Version_H188",
       "Type": "Function"
     },
+    "Version_H190": {
+      "ID": "Version_H190",
+      "Type": "Function"
+    },
     "Version_H192": {
       "ID": "Version_H192",
       "Type": "Function"
@@ -121512,6 +121615,10 @@
     },
     "Fantasy_H192": {
       "ID": "Fantasy_H192",
+      "Type": "Function"
+    },
+    "Fantasy_H193": {
+      "ID": "Fantasy_H193",
       "Type": "Function"
     },
     "Fantasy_H602": {

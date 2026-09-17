@@ -320,21 +320,21 @@
     ]
   },
   "catalog": {
-    "catalog_name": "catalog_114814",
-    "url": "https://erdpu.gzxhcjz.com/GamePatch/Android/catalog_114814.json"
+    "catalog_name": "catalog_115142",
+    "url": "https://erdpu.gzxhcjz.com/GamePatch/Android/catalog_115142.json"
   },
   "master_db": {
-    "catalog_name": "catalog_114814",
+    "catalog_name": "catalog_115142",
     "files": [
       {
-        "path": "data/staticdata/catalog_114814/staticdata_ecbbe7b4eaabb141331d80f8737000a3.bundle",
-        "size": 2450486,
-        "mtime_ns": 1788344498965443200
+        "path": "data/staticdata/catalog_115142/staticdata_1775fbca1bdca82e46d2f874bb8fb268.bundle",
+        "size": 2456800,
+        "mtime_ns": 1789641299547803800
       },
       {
-        "path": "data/staticdata/catalog_114814/text_75788e854297eecf1b40ca714e78d6dd.bundle",
-        "size": 32859933,
-        "mtime_ns": 1788344477216902200
+        "path": "data/staticdata/catalog_115142/text_f525e19157a6f825b852ec2f80c6d088.bundle",
+        "size": 33228099,
+        "mtime_ns": 1789641298759247600
       }
     ]
   }
