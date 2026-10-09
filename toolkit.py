@@ -619,22 +619,30 @@ def run_weekly(aid, session_id, repeat=140):
     print(f'每周任务完成！共{repeat}次')
 
 # 7. 刷亲密度
-def run_affection(aid, session_id, npc_list, teams):
-    now = int(time.time() * 1000)
-    targets = [npc for npc in npc_list if now > npc_list[npc]]
-    if not targets:
-        print('刷亲密度失败：请先保留至少一个可挑战的NPC！')
+def run_affection(aid, session_id, teams):
+    battle_teams = choose_login_teams(teams, 2, '请选择刷亲密度队伍')
+    if battle_teams is None:
         return
-    print(f'当前可挑战NPC：{targets}')
-    battle_team = choose_login_team(teams, '请选择刷亲密度队伍：')
-    if battle_team is None:
+    duplicates = duplicate_team_roles(battle_teams)
+    if duplicates:
+        names = ', '.join(get_role(role_id) for role_id, _, _ in duplicates)
+        print(f'刷亲密度队伍存在重复角色：{names}')
         return
-    repeat = input('请输入刷亲密度次数（默认10次）：').strip()
-    repeat = int(repeat) if str(repeat).isdigit() else 10
-    for i in range(repeat):
-        run_npc_battle(aid, session_id, targets[i % len(targets)], battle_team)
-        print(f'正在刷亲密度...（{i + 1}/{repeat}）')
-    print('亲密度刷完了！')
+    repeat_str = input('请输入挑战次数（默认10次）：').strip()
+    repeat = int(repeat_str) if repeat_str.isdigit() else 10
+    if repeat == 0:
+        print('挑战次数为0，已取消刷亲密度。')
+        return
+    print(f'开始刷亲密度：深渊第1层，共{repeat}次。')
+    try:
+        result = run_auto_battles(
+            aid, session_id, battle_teams,
+            build_realm_scene_ids(1, 1) * repeat)
+    except Exception as exc:
+        print(f'刷亲密度失败：{exc}')
+        return
+    if result == 0:
+        print(f'亲密度刷完了！共{repeat}次')
 
 # 8. 查询团战总结
 def run_guild_summary(aid, session_id, guild_data, gid=None, save_csv=True):
@@ -758,7 +766,7 @@ def main():
             # 刷佣兵团周任务
             6: lambda: run_weekly(aid, session_id, repeat=140),
             # 刷亲密度
-            7: lambda: run_affection(aid, session_id, npc_list, teams),
+            7: lambda: run_affection(aid, session_id, teams),
             # 查询团战总结
             8: lambda: run_guild_summary(aid, session_id, guild_data),
             # 小众变态工具集

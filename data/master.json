@@ -340,6 +340,7 @@
     "T_Item_Name_AH180": "生命之水",
     "T_Item_Name_AH187": "夜昙花",
     "T_Item_Name_AH188": "和风书籤",
+    "T_Item_Name_AH189": "赛车轮胎",
     "T_Item_Name_AH192": "人鱼公主的信物",
     "T_Item_Name_AH193": "秘密配方笔记",
     "T_Item_Name_AH198": "临时警备徽章",
@@ -465,7 +466,9 @@
     "T_Item_Name_Background155": "警备队休息室",
     "T_Item_Name_Background156": "废弃孵化室",
     "T_Item_Name_Background157": "花园",
+    "T_Item_Name_Background159": "赛车场",
     "T_Item_Name_Background16": "监测实验室",
+    "T_Item_Name_Background160": "超星辰号(车内)",
     "T_Item_Name_Background161": "高级住宅区",
     "T_Item_Name_Background162": "高级商店街",
     "T_Item_Name_Background17": "星源室",
@@ -1727,6 +1730,7 @@
     "T_Item_Name_TH180": "烈酒赤兔芭索萝招募契约",
     "T_Item_Name_TH187": "绚烂夏花卡洛琳招募契约",
     "T_Item_Name_TH188": "雪江招募契约",
+    "T_Item_Name_TH189": "极速的西尔维纳招募契约",
     "T_Item_Name_TH192": "爱恋泡影的玳莲招募契约",
     "T_Item_Name_TH193": "沐夏吉赛尔招募契约",
     "T_Item_Name_TH198": "执法者维尔莉特招募契约",
@@ -39511,6 +39515,10 @@
       "ID": "TH188",
       "Name": "T_Item_Name_TH188"
     },
+    "TH189": {
+      "ID": "TH189",
+      "Name": "T_Item_Name_TH189"
+    },
     "TH192": {
       "ID": "TH192",
       "Name": "T_Item_Name_TH192"
@@ -39838,6 +39846,10 @@
     "AH188": {
       "ID": "AH188",
       "Name": "T_Item_Name_AH188"
+    },
+    "AH189": {
+      "ID": "AH189",
+      "Name": "T_Item_Name_AH189"
     },
     "AH192": {
       "ID": "AH192",
@@ -87499,6 +87511,78 @@
       "PassiveProp.DynamicField2": "",
       "PassiveProp.DynamicField3": ""
     },
+    "AcEH177S1": {
+      "ID": "AcEH177S1",
+      "PassiveProp.DynamicField1": "Fun#{Fun:\"ReplaceSkill\",RateConvert:{Base:0.5,Rate:0.5,Property:\"ValueOne\",Condition:{Property:\"BuffCount\",Comparer:\"Gt\",Value:1}},FID:\"H177S2\",Conditions:[{CheckFun:\"SkillID\",CheckID:\"H177S1\"},{CheckFun:\"IsPinch\",Invert:true}] }",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH177S2": {
+      "ID": "AcEH177S2",
+      "PassiveProp.DynamicField1": "CriticalRate#0.15",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH177S3": {
+      "ID": "AcEH177S3",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH171S1": {
+      "ID": "AcEH171S1",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH171S2": {
+      "ID": "AcEH171S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH171S3": {
+      "ID": "AcEH171S3",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH171S4": {
+      "ID": "AcEH171S4",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH180S1": {
+      "ID": "AcEH180S1",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH180S2": {
+      "ID": "AcEH180S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH180S3": {
+      "ID": "AcEH180S3",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH180S4": {
+      "ID": "AcEH180S4",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcBH007_H189S4": {
+      "ID": "AcBH007_H189S4",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
     "AcEH176S1": {
       "ID": "AcEH176S1",
       "PassiveProp.DynamicField1": "",
@@ -116709,6 +116793,10 @@
       "ID": "ActivitySignInH188",
       "Type": "SignIn"
     },
+    "ActivitySignInH189": {
+      "ID": "ActivitySignInH189",
+      "Type": "SignIn"
+    },
     "ActivitySignInH192": {
       "ID": "ActivitySignInH192",
       "Type": "SignIn"
@@ -119013,6 +119101,10 @@
       "ID": "GIFTActivityH188",
       "Type": "Gift"
     },
+    "GIFTActivityH189": {
+      "ID": "GIFTActivityH189",
+      "Type": "Gift"
+    },
     "GIFTActivityH192": {
       "ID": "GIFTActivityH192",
       "Type": "Gift"
@@ -119319,6 +119411,18 @@
     },
     "GIFTFESH188_4": {
       "ID": "GIFTFESH188_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH189": {
+      "ID": "GIFTFESH189",
+      "Type": "Gift"
+    },
+    "GIFTFESH189_3": {
+      "ID": "GIFTFESH189_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH189_4": {
+      "ID": "GIFTFESH189_4",
       "Type": "Gift"
     },
     "GIFTFESH192": {
@@ -120705,6 +120809,10 @@
       "ID": "BranchH188",
       "Type": "SideStory"
     },
+    "BranchH189": {
+      "ID": "BranchH189",
+      "Type": "SideStory"
+    },
     "BranchH192": {
       "ID": "BranchH192",
       "Type": "SideStory"
@@ -121331,6 +121439,10 @@
     },
     "Version_H188": {
       "ID": "Version_H188",
+      "Type": "Function"
+    },
+    "Version_H189": {
+      "ID": "Version_H189",
       "Type": "Function"
     },
     "Version_H190": {
@@ -131188,6 +131300,78 @@
       {
         "Chapter": "BranchH188",
         "ID": "BH188_1_14",
+        "MyCampTeam": ""
+      }
+    ],
+    "BranchH189": [
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_1",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_2",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_3",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_4",
+        "MyCampTeam": "{Ms:[{M:\"AcStoryH189\",Pos:1,LV:60},{M:\"AcStoryH066_H189\",Pos:2,LV:60}]}"
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_5",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_6",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_7",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_8",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_9",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_10",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_11",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_12",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_13",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH189",
+        "ID": "BH189_1_14",
         "MyCampTeam": ""
       }
     ],
