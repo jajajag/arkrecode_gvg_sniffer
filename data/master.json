@@ -268,6 +268,7 @@
     "T_Item_Name_A0455": "A0455",
     "T_Item_Name_A0458": "A0458",
     "T_Item_Name_A0461": "羞耻的自抚",
+    "T_Item_Name_A0464": "甜蜜的顾问",
     "T_Item_Name_A0473": "A0473",
     "T_Item_Name_A0476": "A0476",
     "T_Item_Name_A0479": "A0479",
@@ -352,6 +353,7 @@
     "T_Item_Name_AH612": "教义疑问集",
     "T_Item_Name_AH613": "红色扶桑花",
     "T_Item_Name_AH804": "玩具弓箭",
+    "T_Item_Name_AH806": "物流配送凭证",
     "T_Item_Name_B001": "每日成就奖励箱",
     "T_Item_Name_B007": "每周成就奖励箱",
     "T_Item_Name_B01": "测试箱子",
@@ -472,6 +474,8 @@
     "T_Item_Name_Background160": "超星辰号(车内)",
     "T_Item_Name_Background161": "高级住宅区",
     "T_Item_Name_Background162": "高级商店街",
+    "T_Item_Name_Background167": "会议室",
+    "T_Item_Name_Background168": "文件保管室",
     "T_Item_Name_Background17": "星源室",
     "T_Item_Name_Background174": "营帐内",
     "T_Item_Name_Background175": "营帐内(夜晚)",
@@ -804,6 +808,7 @@
     "T_Item_Name_E0466": "海之女僕的清算",
     "T_Item_Name_E0467": "小闆娘的冲动",
     "T_Item_Name_E0468": "旧型收音机",
+    "T_Item_Name_E0471": "甜蜜私厨围裙",
     "T_Item_Name_E0501": "一周年纪念戒指",
     "T_Item_Name_E0502": "1.5周年纪念项鍊",
     "T_Item_Name_E0503": "RTA2025S1纪念戒指",
@@ -1070,6 +1075,12 @@
     "T_Item_Name_E1154": "巡游者的温柔",
     "T_Item_Name_E1155": "巡游者的界限",
     "T_Item_Name_E1156": "巡游者的漫步",
+    "T_Item_Name_E1181": "最终报价",
+    "T_Item_Name_E1182": "甜蜜顾问的洞察",
+    "T_Item_Name_E1183": "甜蜜顾问的原则",
+    "T_Item_Name_E1184": "甜蜜顾问的信条",
+    "T_Item_Name_E1185": "甜蜜顾问的野心",
+    "T_Item_Name_E1186": "甜蜜顾问的步伐",
     "T_Item_Name_E2001": "慈爱的斗技者长枪",
     "T_Item_Name_E2002": "慈爱的斗技者头盔",
     "T_Item_Name_E2003": "慈爱的斗技者铠甲",
@@ -1479,6 +1490,7 @@
     "T_Item_Name_H613": "咲",
     "T_Item_Name_H614": "奥萝拉",
     "T_Item_Name_H804": "蜜娜",
+    "T_Item_Name_H806": "蜜拉贝儿",
     "T_Item_Name_H809": "伊娥丝熊熊",
     "T_Item_Name_H810": "璀璨誓约的伊娥丝熊熊",
     "T_Item_Name_H811": "璐茜娅熊熊",
@@ -1667,6 +1679,7 @@
     "T_Item_Name_SH613": "咲专属潜能",
     "T_Item_Name_SH614": "奥萝拉专属潜能",
     "T_Item_Name_SH804": "蜜娜专属潜能",
+    "T_Item_Name_SH806": "蜜拉贝儿专属潜能",
     "T_Item_Name_Sticker01": "测试用预设贴图",
     "T_Item_Name_T01": "团员投票券",
     "T_Item_Name_TEST01": "测试RTA积分",
@@ -1754,6 +1767,7 @@
     "T_Item_Name_TH612": "空招募契约",
     "T_Item_Name_TH613": "咲招募契约",
     "T_Item_Name_TH804": "蜜娜招募契约",
+    "T_Item_Name_TH806": "蜜拉贝儿招募契约",
     "T_Item_Name_THMulti": "组合招募契约",
     "T_Item_Name_TIME01": "100个钻石 (10天内天天领取)  ",
     "T_Item_Name_TIME02": "免费契约召唤+4次(连续5日)",
@@ -2058,6 +2072,7 @@
     "T_Role_NAME_H613": "咲",
     "T_Role_NAME_H614": "奥萝拉",
     "T_Role_NAME_H804": "蜜娜",
+    "T_Role_NAME_H806": "蜜拉贝儿",
     "T_Role_NAME_H809": "伊娥丝熊熊",
     "T_Role_NAME_H810": "璀璨誓约的伊娥丝熊熊",
     "T_Role_NAME_H811": "璐茜娅熊熊",
@@ -5770,6 +5785,22 @@
       "Attack": "1.5970394737",
       "Defence": "0.943273906",
       "Speed": "1.12",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "0",
+      "ResistanceRate": "0",
+      "PinchRate": "1"
+    },
+    "H806": {
+      "ID": "H806",
+      "NAME": "T_Role_NAME_H806",
+      "RolePropertyID": "HERO",
+      "TeamImprint": "5S_All_DefenceRate",
+      "SelfImprint": "5S_Self_AttackRate",
+      "HP": "1.0326612903",
+      "Attack": "1.5509868421",
+      "Defence": "0.8962722853",
+      "Speed": "1.15",
       "CriticalRate": "1",
       "CriticalDamageRate": "1",
       "EffectHitRate": "0",
@@ -10384,6 +10415,22 @@
       "ResistanceRate": "1",
       "PinchRate": "1"
     },
+    "AcStoryH806": {
+      "ID": "AcStoryH806",
+      "NAME": "T_Role_NAME_H806",
+      "RolePropertyID": "AcHERO",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1.4415",
+      "Attack": "3.5",
+      "Defence": "2",
+      "Speed": "1.1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "1"
+    },
     "AcM0011": {
       "ID": "AcM0011",
       "NAME": "T_Role_NAME_M0011",
@@ -12432,6 +12479,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH033_H806": {
+      "ID": "AcEH033_H806",
+      "NAME": "T_Role_NAME_H033",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "0.95",
+      "Attack": "0.9",
+      "Defence": "1",
+      "Speed": "0.95",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcEH034": {
       "ID": "AcEH034",
       "NAME": "T_Role_NAME_H034",
@@ -12760,6 +12823,22 @@
       "SelfImprint": "",
       "HP": "0.9",
       "Attack": "0.5",
+      "Defence": "0.95",
+      "Speed": "1.05",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcEH047_H806": {
+      "ID": "AcEH047_H806",
+      "NAME": "T_Role_NAME_H047",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "0.9",
+      "Attack": "0.9",
       "Defence": "0.95",
       "Speed": "1.05",
       "CriticalRate": "1",
@@ -15232,6 +15311,22 @@
       "ResistanceRate": "1",
       "PinchRate": "0"
     },
+    "AcEH806": {
+      "ID": "AcEH806",
+      "NAME": "T_Role_NAME_H806",
+      "RolePropertyID": "AcElite",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "1",
+      "Attack": "1",
+      "Defence": "1",
+      "Speed": "1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
     "AcBB002": {
       "ID": "AcBB002",
       "NAME": "T_Role_NAME_AcEB002",
@@ -15912,6 +16007,22 @@
       "SelfImprint": "",
       "HP": "0.9",
       "Attack": "1.2",
+      "Defence": "0.9",
+      "Speed": "1.1",
+      "CriticalRate": "1",
+      "CriticalDamageRate": "1",
+      "EffectHitRate": "1",
+      "ResistanceRate": "1",
+      "PinchRate": "0"
+    },
+    "AcBH016_H806": {
+      "ID": "AcBH016_H806",
+      "NAME": "T_Role_NAME_H016",
+      "RolePropertyID": "AcBoss",
+      "TeamImprint": "",
+      "SelfImprint": "",
+      "HP": "0.9",
+      "Attack": "0.95",
       "Defence": "0.9",
       "Speed": "1.1",
       "CriticalRate": "1",
@@ -33678,6 +33789,10 @@
       "ID": "A0461",
       "Name": "T_Item_Name_A0461"
     },
+    "A0464": {
+      "ID": "A0464",
+      "Name": "T_Item_Name_A0464"
+    },
     "A0473": {
       "ID": "A0473",
       "Name": "T_Item_Name_A0473"
@@ -34825,6 +34940,10 @@
     "H804": {
       "ID": "H804",
       "Name": "T_Item_Name_H804"
+    },
+    "H806": {
+      "ID": "H806",
+      "Name": "T_Item_Name_H806"
     },
     "H809": {
       "ID": "H809",
@@ -36210,6 +36329,10 @@
       "ID": "E0468",
       "Name": "T_Item_Name_E0468"
     },
+    "E0471": {
+      "ID": "E0471",
+      "Name": "T_Item_Name_E0471"
+    },
     "E0501": {
       "ID": "E0501",
       "Name": "T_Item_Name_E0501"
@@ -37369,6 +37492,30 @@
     "E1156": {
       "ID": "E1156",
       "Name": "T_Item_Name_E1156"
+    },
+    "E1181": {
+      "ID": "E1181",
+      "Name": "T_Item_Name_E1181"
+    },
+    "E1182": {
+      "ID": "E1182",
+      "Name": "T_Item_Name_E1182"
+    },
+    "E1183": {
+      "ID": "E1183",
+      "Name": "T_Item_Name_E1183"
+    },
+    "E1184": {
+      "ID": "E1184",
+      "Name": "T_Item_Name_E1184"
+    },
+    "E1185": {
+      "ID": "E1185",
+      "Name": "T_Item_Name_E1185"
+    },
+    "E1186": {
+      "ID": "E1186",
+      "Name": "T_Item_Name_E1186"
     },
     "E2001": {
       "ID": "E2001",
@@ -39082,6 +39229,14 @@
       "ID": "Background166",
       "Name": "T_Item_Name_Background166"
     },
+    "Background167": {
+      "ID": "Background167",
+      "Name": "T_Item_Name_Background167"
+    },
+    "Background168": {
+      "ID": "Background168",
+      "Name": "T_Item_Name_Background168"
+    },
     "Background174": {
       "ID": "Background174",
       "Name": "T_Item_Name_Background174"
@@ -39810,6 +39965,10 @@
       "ID": "TH804",
       "Name": "T_Item_Name_TH804"
     },
+    "TH806": {
+      "ID": "TH806",
+      "Name": "T_Item_Name_TH806"
+    },
     "TH0_5FES": {
       "ID": "TH0_5FES",
       "Name": "T_Item_Name_TH0_5FES"
@@ -40141,6 +40300,10 @@
     "AH804": {
       "ID": "AH804",
       "Name": "T_Item_Name_AH804"
+    },
+    "AH806": {
+      "ID": "AH806",
+      "Name": "T_Item_Name_AH806"
     },
     "GuildHeroExp": {
       "ID": "GuildHeroExp",
@@ -40785,6 +40948,10 @@
     "SH804": {
       "ID": "SH804",
       "Name": "T_Item_Name_SH804"
+    },
+    "SH806": {
+      "ID": "SH806",
+      "Name": "T_Item_Name_SH806"
     },
     "ChangeName": {
       "ID": "ChangeName",
@@ -78677,6 +78844,110 @@
         "PinchRate": ""
       }
     ],
+    "H806": [
+      {
+        "RoleID": "H806",
+        "LV": "1",
+        "HPValue": "60",
+        "AttackValue": "20",
+        "\"DefenceValue\"": "DefenceValue",
+        "SpeedValue": "",
+        "HPRate": "",
+        "AttackRate": "0.03",
+        "DefenceRate": "",
+        "\"SpeedRate\"": "SpeedRate",
+        "CriticalRate": "",
+        "CriticalDamageRate": "",
+        "EffectHitRate": "",
+        "ResistanceRate": "",
+        "PinchRate": ""
+      },
+      {
+        "RoleID": "H806",
+        "LV": "2",
+        "HPValue": "60",
+        "AttackValue": "20",
+        "\"DefenceValue\"": "DefenceValue",
+        "SpeedValue": "",
+        "HPRate": "",
+        "AttackRate": "",
+        "DefenceRate": "",
+        "\"SpeedRate\"": "SpeedRate",
+        "CriticalRate": "0.04",
+        "CriticalDamageRate": "",
+        "EffectHitRate": "",
+        "ResistanceRate": "",
+        "PinchRate": ""
+      },
+      {
+        "RoleID": "H806",
+        "LV": "3",
+        "HPValue": "60",
+        "AttackValue": "20",
+        "\"DefenceValue\"": "DefenceValue",
+        "SpeedValue": "",
+        "HPRate": "",
+        "AttackRate": "",
+        "DefenceRate": "",
+        "\"SpeedRate\"": "SpeedRate",
+        "CriticalRate": "",
+        "CriticalDamageRate": "",
+        "EffectHitRate": "",
+        "ResistanceRate": "",
+        "PinchRate": ""
+      },
+      {
+        "RoleID": "H806",
+        "LV": "4",
+        "HPValue": "80",
+        "AttackValue": "30",
+        "\"DefenceValue\"": "DefenceValue",
+        "SpeedValue": "4",
+        "HPRate": "",
+        "AttackRate": "",
+        "DefenceRate": "",
+        "\"SpeedRate\"": "SpeedRate",
+        "CriticalRate": "",
+        "CriticalDamageRate": "",
+        "EffectHitRate": "",
+        "ResistanceRate": "",
+        "PinchRate": ""
+      },
+      {
+        "RoleID": "H806",
+        "LV": "5",
+        "HPValue": "80",
+        "AttackValue": "30",
+        "\"DefenceValue\"": "DefenceValue",
+        "SpeedValue": "",
+        "HPRate": "",
+        "AttackRate": "0.06",
+        "DefenceRate": "",
+        "\"SpeedRate\"": "SpeedRate",
+        "CriticalRate": "",
+        "CriticalDamageRate": "",
+        "EffectHitRate": "",
+        "ResistanceRate": "",
+        "PinchRate": ""
+      },
+      {
+        "RoleID": "H806",
+        "LV": "6",
+        "HPValue": "80",
+        "AttackValue": "30",
+        "\"DefenceValue\"": "DefenceValue",
+        "SpeedValue": "",
+        "HPRate": "",
+        "AttackRate": "",
+        "DefenceRate": "",
+        "\"SpeedRate\"": "SpeedRate",
+        "CriticalRate": "0.08",
+        "CriticalDamageRate": "",
+        "EffectHitRate": "",
+        "ResistanceRate": "",
+        "PinchRate": ""
+      }
+    ],
     "H809": [
       {
         "RoleID": "H809",
@@ -80204,6 +80475,13 @@
     },
     "A0461": {
       "ID": "A0461",
+      "Base.AttackValue": "21",
+      "Base.HPValue": "32",
+      "Max.AttackValue": "273",
+      "Max.HPValue": "416"
+    },
+    "A0464": {
+      "ID": "A0464",
       "Base.AttackValue": "21",
       "Base.HPValue": "32",
       "Max.AttackValue": "273",
@@ -81886,7 +82164,7 @@
     },
     "H086S2": {
       "ID": "H086S2",
-      "PassiveProp.DynamicField1": "{Trigger:\"AfterEvent\",Fun:\"AddTime\",TargetCamp:\"My\",Target:\"Self\",Value:0.1,Condition:{Who:\"SelectTarget\",CheckFun:\"IsDiffCamp\",Conditions:[{CheckFun:\"SkillID\",CheckID:\"H086S2\"},{CheckFun:\"IsMainRound\"},{Who:\"SelectTarget\",CheckFun:\"HaveBuff\",CheckID:\"Sleep\"}]}",
+      "PassiveProp.DynamicField1": "Fun#{Trigger:\"AfterEvent\",Fun:\"AddTime\",TargetCamp:\"My\",Target:\"Self\",Value:0.1,Condition:{Who:\"SelectTarget\",CheckFun:\"IsDiffCamp\",Conditions:[{CheckFun:\"SkillID\",CheckID:\"H086S2\"},{CheckFun:\"IsMainRound\"},{Who:\"SelectTarget\",CheckFun:\"HaveBuff\",CheckID:\"Sleep\"}]}}",
       "PassiveProp.DynamicField2": "",
       "PassiveProp.DynamicField3": ""
     },
@@ -84724,6 +85002,30 @@
     },
     "2": {
       "ID": "2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "H806S1": {
+      "ID": "H806S1",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "H806S2": {
+      "ID": "H806S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "H806S3": {
+      "ID": "H806S3",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "H806S4": {
+      "ID": "H806S4",
       "PassiveProp.DynamicField1": "",
       "PassiveProp.DynamicField2": "",
       "PassiveProp.DynamicField3": ""
@@ -87904,6 +88206,30 @@
     },
     "AcBH009_H610S2": {
       "ID": "AcBH009_H610S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH806S1": {
+      "ID": "AcEH806S1",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH806S2": {
+      "ID": "AcEH806S2",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH806S3": {
+      "ID": "AcEH806S3",
+      "PassiveProp.DynamicField1": "",
+      "PassiveProp.DynamicField2": "",
+      "PassiveProp.DynamicField3": ""
+    },
+    "AcEH806S4": {
+      "ID": "AcEH806S4",
       "PassiveProp.DynamicField1": "",
       "PassiveProp.DynamicField2": "",
       "PassiveProp.DynamicField3": ""
@@ -116482,6 +116808,117 @@
         "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
       }
     ],
+    "H806S1": [
+      {
+        "SkillID": "H806S1",
+        "LV": "2",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S1",
+        "LV": "3",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S1",
+        "LV": "4",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S1",
+        "LV": "5",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S1",
+        "LV": "6",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      }
+    ],
+    "H806S2": [
+      {
+        "SkillID": "H806S2",
+        "LV": "2",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S2",
+        "LV": "3",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S2",
+        "LV": "4",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S2",
+        "LV": "5",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S2",
+        "LV": "6",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      }
+    ],
+    "H806S3": [
+      {
+        "SkillID": "H806S3",
+        "LV": "2",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S3",
+        "LV": "3",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S3",
+        "LV": "4",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S3",
+        "LV": "5",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      },
+      {
+        "SkillID": "H806S3",
+        "LV": "6",
+        "PassiveProp.DynamicField1": "",
+        "\"PassiveProp.DynamicField2\"": "PassiveProp.DynamicField2",
+        "\"PassiveProp.DynamicField3\"": "PassiveProp.DynamicField3"
+      }
+    ],
     "H809S1": [
       {
         "SkillID": "H809S1",
@@ -117120,6 +117557,10 @@
       "ID": "ActivitySignInH804",
       "Type": "SignIn"
     },
+    "ActivitySignInH806": {
+      "ID": "ActivitySignInH806",
+      "Type": "SignIn"
+    },
     "ActivitySignIn2024MoonFes": {
       "ID": "ActivitySignIn2024MoonFes",
       "Type": "SignIn"
@@ -117626,6 +118067,10 @@
     },
     "AcyivitySummonH804": {
       "ID": "AcyivitySummonH804",
+      "Type": "SummonPickUp"
+    },
+    "AcyivitySummonH806": {
+      "ID": "AcyivitySummonH806",
       "Type": "SummonPickUp"
     },
     "MysticSummonH019": {
@@ -118584,6 +119029,14 @@
       "ID": "ActivitySummonQuestH804",
       "Type": "SummonQuest"
     },
+    "ActivitySummonUPQuestH806": {
+      "ID": "ActivitySummonUPQuestH806",
+      "Type": "SummonQuest"
+    },
+    "ActivitySummonQuestH806": {
+      "ID": "ActivitySummonQuestH806",
+      "Type": "SummonQuest"
+    },
     "NewbieGift": {
       "ID": "NewbieGift",
       "Type": "Gift"
@@ -119436,6 +119889,10 @@
       "ID": "GIFTActivityH804",
       "Type": "Gift"
     },
+    "GIFTActivityH806": {
+      "ID": "GIFTActivityH806",
+      "Type": "Gift"
+    },
     "GIFTActivity0_5FES": {
       "ID": "GIFTActivity0_5FES",
       "Type": "Gift"
@@ -119838,6 +120295,18 @@
     },
     "GIFTFESH804_4": {
       "ID": "GIFTFESH804_4",
+      "Type": "Gift"
+    },
+    "GIFTFESH806": {
+      "ID": "GIFTFESH806",
+      "Type": "Gift"
+    },
+    "GIFTFESH806_3": {
+      "ID": "GIFTFESH806_3",
+      "Type": "Gift"
+    },
+    "GIFTFESH806_4": {
+      "ID": "GIFTFESH806_4",
       "Type": "Gift"
     },
     "GIFTFESH169": {
@@ -121164,6 +121633,10 @@
       "ID": "BranchH804",
       "Type": "SideStory"
     },
+    "BranchH806": {
+      "ID": "BranchH806",
+      "Type": "SideStory"
+    },
     "CustomizedCraft": {
       "ID": "CustomizedCraft",
       "Type": "CustomizedCraft"
@@ -121768,6 +122241,10 @@
       "ID": "Version_H193",
       "Type": "Function"
     },
+    "Version_H196": {
+      "ID": "Version_H196",
+      "Type": "Function"
+    },
     "Version_H198": {
       "ID": "Version_H198",
       "Type": "Function"
@@ -121822,6 +122299,10 @@
     },
     "Version_H804": {
       "ID": "Version_H804",
+      "Type": "Function"
+    },
+    "Version_H806": {
+      "ID": "Version_H806",
       "Type": "Function"
     },
     "Version_H809": {
@@ -122078,6 +122559,10 @@
     },
     "Fantasy_H804": {
       "ID": "Fantasy_H804",
+      "Type": "Function"
+    },
+    "Fantasy_H806": {
+      "ID": "Fantasy_H806",
       "Type": "Function"
     },
     "Version_Hunt10": {
@@ -122814,6 +123299,10 @@
     },
     "MemoryH804": {
       "ID": "MemoryH804",
+      "Type": "MemoryActiviy"
+    },
+    "MemoryH806": {
+      "ID": "MemoryH806",
       "Type": "MemoryActiviy"
     }
   },
@@ -132555,6 +133044,78 @@
       {
         "Chapter": "BranchH804",
         "ID": "BH804_1_14",
+        "MyCampTeam": ""
+      }
+    ],
+    "BranchH806": [
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_1",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_2",
+        "MyCampTeam": "{Ms:[{M:\"AcStoryH806\",Pos:1,LV:60}]}"
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_3",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_4",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_5",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_6",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_7",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_8",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_9",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_10",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_11",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_12",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_13",
+        "MyCampTeam": ""
+      },
+      {
+        "Chapter": "BranchH806",
+        "ID": "BH806_1_14",
         "MyCampTeam": ""
       }
     ]
