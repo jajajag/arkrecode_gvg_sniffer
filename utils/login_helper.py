@@ -15,7 +15,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 
 
-LOGIN_URL = 'https://sadpki-portal.ebuajk.com/api/v2/login'
+LOGIN_URL = 'https://sadpki-portal-v2.ebuajk.com/api/v2/account/login'
 GAME_URL = 'https://game-arkre-labs.ecchi.xxx/Router/RouterHandler.ashx'
 TOKEN_URL = 'https://sadpki-portal-v2.ebuajk.com/api/v2/token/access'
 GAME_HEADERS = {
@@ -23,11 +23,22 @@ GAME_HEADERS = {
     'User-Agent': 'UnityPlayer/2022.3.62f2 '
                   '(UnityWebRequest/1.0, libcurl/8.10.1-DEV)',
 }
-LOGIN_PAGE = (
-    'https://sadpki-portal.ebuajk.com/login/?merchantId=&serviceId='
-    '&callback=coresdk://coresdk.games/com.nerversoft.ark.recode'
-    '&login=true&game_id=32&lang=en&platform=R18'
-)
+LOGIN_PAGE = 'https://sadpki-portal-v2.ebuajk.com/login/loginPage'
+# The native client normally initializes the SDK page before it becomes visible.
+LOGIN_INIT_SCRIPT = """
+(() => {
+    if (location.origin !== 'https://sadpki-portal-v2.ebuajk.com') return;
+    const key = 'arkrecode_login_device_id';
+    const deviceId = localStorage.getItem(key) || crypto.randomUUID();
+    localStorage.setItem(key, deviceId);
+    localStorage.removeItem('state');
+    const timer = setInterval(() => {
+        if (document.readyState !== 'complete' || !window.gameSDK) return;
+        clearInterval(timer);
+        window.gameSDK.setState(32, '', '', deviceId, 'cn', '', '', 'false');
+    }, 100);
+})();
+"""
 
 requests.packages.urllib3.disable_warnings()
 
@@ -62,7 +73,11 @@ def add_account(accounts):
     except Exception as exc:
         print(f'添加账号失败：{exc}')
         return None
-    accounts.append({'Name': name, 'Token': payload['jwt']})
+    accounts.append({
+        'Name': name,
+        'Token': payload['refreshToken'],
+        'DeviceID': payload['DeviceID'],
+    })
     save_accounts(accounts)
     print(f'已添加账号：{name}')
     return len(accounts) - 1
@@ -130,9 +145,13 @@ def get_login_version(bulletin):
 
 
 def run_refresh_token(accounts, acc_idx):
+    device_id = accounts[acc_idx].get('DeviceID')
+    if not device_id:
+        raise RuntimeError('新版 SDK 账号缺少 DeviceID，请重新通过浏览器添加账号')
     refresh_token = accounts[acc_idx]['Token']
     headers = GAME_HEADERS.copy()
     headers['Authorization'] = f'Bearer {refresh_token}'
+    headers['DeviceId'] = device_id
     time.sleep(random.uniform(1, 2))
     response = requests.post(TOKEN_URL, headers=headers)
     response.encoding = 'utf-8'
@@ -159,7 +178,7 @@ def run_login(accounts, acc_idx, version):
         token = token_data['data']['accessToken']
     else:
         token = accounts[acc_idx]['Token']
-    return send({
+    payload = {
         'data': {
             'LoginID': login_id,
             'Token': token,
@@ -168,7 +187,10 @@ def run_login(accounts, acc_idx, version):
             'IsNewSDK': is_new_sdk,
         },
         'route': 'AccountHandler.Login',
-    })
+    }
+    if is_new_sdk:
+        payload['data']['DeviceID'] = accounts[acc_idx]['DeviceID']
+    return send(payload)
 
 
 def login_account(accounts, acc_idx, bulletin=None):
@@ -332,9 +354,10 @@ def parse_cdp_body(body_result):
 
 def extract_login_payload(data):
     payload = data.get('data') if isinstance(data, dict) else None
-    if not isinstance(payload, dict) or not payload.get('jwt'):
+    if not isinstance(payload, dict) or not payload.get('refreshToken'):
         raise RuntimeError(
-            '登录响应里没有 jwt：\n' + json.dumps(data, ensure_ascii=False, indent=2)
+            '登录响应里没有 refreshToken：\n'
+            + json.dumps(data, ensure_ascii=False, indent=2)
         )
     return payload
 
@@ -368,13 +391,16 @@ def capture_login(timeout=300):
             raise RuntimeError(f'浏览器页面缺少调试地址：{page_info!r}')
 
         deadline = time.monotonic() + timeout
-        login_requests = set()
+        login_requests = {}
         login_responses = set()
         print('浏览器已打开，请在页面里完成 Erolabs 登录...')
 
         with DevToolsWebSocket(ws_url) as cdp:
             cdp.command('Network.enable')
             cdp.command('Page.enable')
+            cdp.command('Page.addScriptToEvaluateOnNewDocument', {
+                'source': LOGIN_INIT_SCRIPT,
+            })
             cdp.command('Page.navigate', {'url': LOGIN_PAGE})
 
             while time.monotonic() < deadline:
@@ -396,7 +422,10 @@ def capture_login(timeout=300):
                         and LOGIN_URL in request.get('url', '')
                         and request.get('method', '').upper() == 'POST'
                     ):
-                        login_requests.add(request_id)
+                        login_requests[request_id] = next((
+                            value for key, value in request.get('headers', {}).items()
+                            if key.lower() == 'deviceid'
+                        ), None)
                 elif method == 'Network.responseReceived':
                     response = params.get('response', {})
                     request_id = params.get('requestId')
@@ -417,7 +446,12 @@ def capture_login(timeout=300):
                             continue
                         if 'error' in msg:
                             raise RuntimeError(f'无法读取登录响应：{msg["error"]}')
-                        return extract_login_payload(parse_cdp_body(msg.get('result', {})))
+                        payload = extract_login_payload(
+                            parse_cdp_body(msg.get('result', {})))
+                        device_id = login_requests[request_id]
+                        if not device_id:
+                            raise RuntimeError('登录请求里没有 DeviceId，无法保存账号设备信息')
+                        return {**payload, 'DeviceID': device_id}
     finally:
         if proc.poll() is None:
             proc.terminate()
@@ -426,8 +460,9 @@ def capture_login(timeout=300):
 
 
 def print_login_payload(payload):
-    print(f'nickname: {payload.get("nickName") or payload.get("nickname")}')
-    print(f'jwt: {payload.get("jwt")}')
+    print(f'userId: {payload.get("userId")}')
+    print(f'refreshToken: {payload.get("refreshToken")}')
+    print(f'DeviceID: {payload.get("DeviceID")}')
 
 
 def main():
