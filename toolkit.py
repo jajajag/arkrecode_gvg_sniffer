@@ -293,7 +293,7 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
     print(f'当前可挑战NPC：{targets}')
     specified = input(
         '是否指定刷哪些NPC'
-        '（用空格或逗号隔开，忽略CD；不指定则全刷，指定非法编号则跳过）：'
+        '（空格或逗号隔开，忽略CD；不指定则全刷，指定非法编号则跳过）：'
     ).strip()
     if specified:
         npc_ids = {str(npc): npc for npc in npc_list}
