@@ -291,33 +291,16 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
     now = int(time.time() * 1000)
     targets = [npc for npc in npc_list if now > npc_list[npc]]
     print(f'当前可挑战NPC：{targets}')
-    if targets:
-        specified = input(
-            '是否指定刷哪些NPC'
-            '（用空格或逗号隔开，不指定则全刷）：'
-        ).strip()
-        if specified:
-            target_map = {str(npc): npc for npc in targets}
-            requested = [
-                npc for npc in re.split(r'[\s,，]+', specified)
-                if npc
-            ]
-            invalid = [npc for npc in requested if npc not in target_map]
-            if invalid:
-                print(
-                    '以下NPC不存在或当前不可挑战，已取消本次NPC战斗：'
-                    + '、'.join(invalid)
-                )
-                targets = []
-            else:
-                selected = []
-                seen = set()
-                for npc in requested:
-                    if npc in seen:
-                        continue
-                    seen.add(npc)
-                    selected.append(target_map[npc])
-                targets = selected
+    specified = input(
+        '是否指定刷哪些NPC'
+        '（用空格或逗号隔开，忽略CD，不指定则全刷）：'
+    ).strip()
+    if specified:
+        npc_ids = {str(npc): npc for npc in npc_list}
+        targets = list(dict.fromkeys(
+            npc_ids.get(npc, npc)
+            for npc in re.split(r'[\s,，]+', specified) if npc
+        ))
     try:
         for npc in targets:
             ticket = run_npc_ticket(aid, session_id, npc)
