@@ -293,7 +293,7 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
     print(f'当前可挑战NPC：{targets}')
     specified = input(
         '是否指定刷哪些NPC'
-        '（用空格或逗号隔开，忽略CD，不指定则全刷）：'
+        '（用空格或逗号隔开，忽略CD；不指定则全刷，指定非法编号则跳过）：'
     ).strip()
     if specified:
         npc_ids = {str(npc): npc for npc in npc_list}
@@ -303,10 +303,13 @@ def run_npc(aid, session_id, npc_list, first_team, d_quests):
         ))
     try:
         for npc in targets:
+            enemy_camp = get_npc_camp(f'HellNPC_{npc}', MASTER_DB)
+            if not enemy_camp:
+                print(f'跳过NPC {npc}：数据库中不存在或无法读取阵容！')
+                continue
             ticket = run_npc_ticket(aid, session_id, npc)
             enemy_log_id = (ticket or {}).get('LogID')
-            enemy_camp = get_npc_camp(f'HellNPC_{npc}', MASTER_DB)
-            if not enemy_log_id or not enemy_camp:
+            if not enemy_log_id:
                 print(f'NPC {npc} 挑战失败：无法获取对手战斗数据！')
                 continue
             data = run_npc_battle(
